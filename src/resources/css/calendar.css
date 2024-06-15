@@ -1,0 +1,66 @@
+/* aタグ */
+.fc-h-event {
+    background-color: transparent;
+    border: none;
+    text-align: right;
+    pointer-events: none; /* ポインターイベントを無視する */
+}
+
+/* カレンダーの背景色設定 */
+.fc-daygrid-body,
+.fc-day {
+    background-color: white; /* 背景色を白に設定 */
+}
+
+.fc-col-header-cell {
+    background-color: #42a5f5;
+    color: white; /* ヘッダーのテキスト色を白に設定 */
+}
+
+.fc .fc-daygrid-day-frame {
+    height: 100%;
+    min-height: 100px;
+}
+
+td.fc-day-sat {
+    background-color: #eaf4ff;
+}
+td.fc-day-sun {
+    background-color: #ffeaea;
+}
+
+.fc-col-header {
+    width: 100% !important;
+}
+
+.fc-scroller {
+    overflow: hidden hidden !important;
+}
+
+.fc-view-harness.fc-view-harness-active {
+    display: flex;
+    height: 637px !important;
+}
+@media screen and (min-width: 768px) {
+    .fc-view-harness.fc-view-harness-active {
+        display: block;
+        height: 636.481px !important;
+    }
+}
+
+.fc-header-toolbar.fc-toolbar {
+    margin-top: 10px;
+}
+
+.MuiInputBase-input.MuiOutlinedInput-input.MuiInputBase-inputAdornedEnd.Mui-readOnly.MuiInputBase-readOnly.css-nxo287-MuiInputBase-input-MuiOutlinedInput-input {
+    opacity: 0;
+    cursor: pointer;
+}
+.MuiTypography-root.MuiTypography-overline.css-ay2je5-MuiTypography-root,
+.MuiOutlinedInput-notchedOutline.css-1d3z3hw-MuiOutlinedInput-notchedOutline,
+.MuiDialogActions-root.MuiDialogActions-spacing.MuiPickersLayout-actionBar.css-knqc4i-MuiDialogActions-root {
+    display: none;
+}
+.css-18fy8xu-MuiFormLabel-root-MuiInputLabel-root.Mui-focused {
+    color: black !important;
+}

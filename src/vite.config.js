@@ -10,4 +10,19 @@ export default defineConfig({
         }),
         react(),
     ],
+    server: {
+        host: true,
+        hmr: {
+          host: 'localhost'
+        },
+        // ホットリロード設定
+        watch: {
+            usePolling: true
+        }
+    },
+    resolve: {
+        alias: {
+          '@': './resources/js',
+        },
+    },
 });
