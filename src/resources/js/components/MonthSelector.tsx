@@ -1,106 +1,72 @@
-import { Card, CardContent, Grid, Stack, Typography } from "@mui/material";
+import { Box, Button } from "@mui/material";
 import React from "react";
-import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
-import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
-import AccountBalanceIcon from "@mui/icons-material/AccountBalance";
-import { Transaction } from "../types";
-import { financeCalculations } from "../utils/financeCalculations";
-import { formatCurrency } from "../utils/formatting";
-interface MonthlySummaryProps {
-  monthlyTransactions: Transaction[];
-}
-const MonthlySummary = ({ monthlyTransactions }: MonthlySummaryProps) => {
-  const { income, expense, balance } = financeCalculations(monthlyTransactions);
-  return (
-    <Grid container spacing={{ xs: 1, sm: 2 }} mb={2}>
-      {/* 収入 */}
-      <Grid item xs={4} display={"flex"} flexDirection={"column"}>
-        <Card
-          sx={{
-            bgcolor: (theme) => theme.palette.incomeColor.main,
-            color: "white",
-            borderRadius: "10px",
-            flexGrow: 1,
-          }}
+import { LocalizationProvider } from "@mui/x-date-pickers";
+// import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
+import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFnsV3";
+import { DatePicker } from "@mui/x-date-pickers/DatePicker";
+import { ja } from "date-fns/locale";
+import { addMonths } from "date-fns";
+import { useAppContext } from "../context/AppContext";
+
+const MonthSelector = () => {
+    const { currentMonth, setCurrentMonth } = useAppContext();
+
+    const handleDateChange = (newDate: Date | null) => {
+        if (newDate) {
+            setCurrentMonth(newDate);
+        }
+    };
+
+    //先月ボタンを押したときの処理
+    const handlePreviousMonth = () => {
+        const previousMonth = addMonths(currentMonth, -1);
+        setCurrentMonth(previousMonth);
+    };
+
+    //次月ボタンを押したときの処理
+    const handleNextMonth = () => {
+        const nextMonth = addMonths(currentMonth, 1);
+        setCurrentMonth(nextMonth);
+    };
+    return (
+        <LocalizationProvider
+            dateAdapter={AdapterDateFns}
+            adapterLocale={ja}
+            dateFormats={{ monthAndYear: "yyyy年 MM月" }}
         >
-          <CardContent sx={{ padding: { xs: 1, sm: 2 } }}>
-            <Stack direction={"row"}>
-              <ArrowUpwardIcon sx={{ fontSize: "2rem" }} />
-              <Typography>収入</Typography>
-            </Stack>
-            <Typography
-              variant="h5"
-              textAlign={"right"}
-              fontWeight={"fontWeightBold"}
-              sx={{
-                wordBreak: "break-word",
-                fontSize: { xs: ".8rem", sm: "1rem", md: "1.2rem" },
-              }}
+            <Box
+                sx={{
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                }}
             >
-              ¥{formatCurrency(income)}
-            </Typography>
-          </CardContent>
-        </Card>
-      </Grid>
-      {/* 支出 */}
-      <Grid item xs={4} display={"flex"} flexDirection={"column"}>
-        <Card
-          sx={{
-            bgcolor: (theme) => theme.palette.expenseColor.main,
-            color: "white",
-            borderRadius: "10px",
-            flexGrow: 1,
-          }}
-        >
-          <CardContent sx={{ padding: { xs: 1, sm: 2 } }}>
-            <Stack direction={"row"}>
-              <ArrowDownwardIcon sx={{ fontSize: "2rem" }} />
-              <Typography>支出</Typography>
-            </Stack>
-            <Typography
-              variant="h5"
-              textAlign={"right"}
-              fontWeight={"fontWeightBold"}
-              sx={{
-                wordBreak: "break-word",
-                fontSize: { xs: ".8rem", sm: "1rem", md: "1.2rem" },
-              }}
-            >
-              ¥{formatCurrency(expense)}
-            </Typography>
-          </CardContent>
-        </Card>
-      </Grid>
-      {/* 残高 */}
-      <Grid item xs={4} display={"flex"} flexDirection={"column"}>
-        <Card
-          sx={{
-            bgcolor: (theme) => theme.palette.balanceColor.main,
-            color: "white",
-            borderRadius: "10px",
-            flexGrow: 1,
-          }}
-        >
-          <CardContent sx={{ padding: { xs: 1, sm: 2 } }}>
-            <Stack direction={"row"}>
-              <AccountBalanceIcon sx={{ fontSize: "2rem" }} />
-              <Typography>残高</Typography>
-            </Stack>
-            <Typography
-              variant="h5"
-              textAlign={"right"}
-              fontWeight={"fontWeightBold"}
-              sx={{
-                wordBreak: "break-word",
-                fontSize: { xs: ".8rem", sm: "1rem", md: "1.2rem" },
-              }}
-            >
-              ¥{formatCurrency(balance)}
-            </Typography>
-          </CardContent>
-        </Card>
-      </Grid>
-    </Grid>
-  );
+                <Button
+                    onClick={handlePreviousMonth}
+                    color={"error"}
+                    variant="contained"
+                >
+                    先月
+                </Button>
+                <DatePicker
+                    onChange={handleDateChange}
+                    value={currentMonth}
+                    label="年月を選択"
+                    sx={{ mx: 2, background: "white" }}
+                    views={["year", "month"]}
+                    format="yyyy/MM"
+                    slotProps={{ calendarHeader: { format: "yyyy年 M月" } }}
+                />
+                <Button
+                    onClick={handleNextMonth}
+                    color={"primary"}
+                    variant="contained"
+                >
+                    次月
+                </Button>
+            </Box>
+        </LocalizationProvider>
+    );
 };
-export default MonthlySummary;
+
+export default MonthSelector;

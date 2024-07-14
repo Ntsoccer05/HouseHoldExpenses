@@ -1,5 +1,5 @@
-import { Box, useMediaQuery, useTheme } from "@mui/material";
-import React, { useMemo, useState } from "react";
+import { Box, useMediaQuery, Grid, useTheme } from "@mui/material";
+import React, { MutableRefObject, useMemo, useRef, useState } from "react";
 import MonthlySummary from "../components/MonthlySummary";
 import Calendar from "../components/Calendar";
 import TransactionMenu from "../components/TransactionMenu";
@@ -9,6 +9,9 @@ import { format } from "date-fns";
 import { DateClickArg } from "@fullcalendar/interaction";
 import useMonthlyTransactions from "../hooks/useMonthlyTransactions";
 import { useAppContext } from "../context/AppContext";
+import ChangeCalendarMonth from "../components/ChangeCalendarMonth";
+import FullCalendar from "@fullcalendar/react";
+import "../../css/calendar.css";
 
 const Home = () => {
     const today = format(new Date(), "yyyy-MM-dd");
@@ -22,6 +25,10 @@ const Home = () => {
     // const isMobile = useMediaQuery(theme.breakpoints.down("lg"));
 
     const { isMobile } = useAppContext();
+
+    const calendarRef = useRef<React.LegacyRef<FullCalendar> | FullCalendar>(
+        null
+    );
 
     const monthlyTransactions = useMonthlyTransactions();
 
@@ -81,11 +88,18 @@ const Home = () => {
             {/* 左側コンテンツ */}
             <Box sx={{ flexGrow: 1 }}>
                 <MonthlySummary monthlyTransactions={monthlyTransactions} />
+                <Grid item xs={12}>
+                    {/* 日付選択エリア */}
+                    <ChangeCalendarMonth
+                        calendarRef={calendarRef.current as FullCalendar}
+                    />
+                </Grid>
                 <Calendar
                     setCurrentDay={setCurrentDay}
                     currentDay={currentDay}
                     today={today}
                     onDateClick={handleDateClick}
+                    calendarRef={calendarRef as React.LegacyRef<FullCalendar>}
                 />
             </Box>
             {/* 右側コンテンツ */}

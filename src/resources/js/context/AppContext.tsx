@@ -1,109 +1,154 @@
-import * as React from "react";
-import AppBar from "@mui/material/AppBar";
-import Box from "@mui/material/Box";
-import CssBaseline from "@mui/material/CssBaseline";
-import IconButton from "@mui/material/IconButton";
-import MenuIcon from "@mui/icons-material/Menu";
-import Toolbar from "@mui/material/Toolbar";
-import Typography from "@mui/material/Typography";
-import { Outlet } from "react-router-dom";
-// import { collection, getDocs } from "firebase/firestore";
-// import { db } from "../../firebase";
-import { Transaction } from "../../types";
-import { isFirestoreError } from "../../utils/errorHandling";
-// import { useAppContext } from "../../context/AppContext";
-import Sidebar from "../components/common/SideBar";
-const drawerWidth = 240;
+import React, { ReactNode, createContext, useContext, useState } from "react";
+import { Transaction } from "../types/index";
+import { Schema } from "../validations/schema";
+// import {
+//   addDoc,
+//   collection,
+//   deleteDoc,
+//   doc,
+//   updateDoc,
+// } from "firebase/firestore";
+// import { db } from "../firebase";
+// import { isFirestoreError } from "../utils/errorHandling";
+import { useMediaQuery, useTheme } from "@mui/material";
 
-export default function AppLayout() {
-    // const { setTransactions, setIsLoading } = useAppContext();
-    const [mobileOpen, setMobileOpen] = React.useState(false);
+//コンテキスト
+interface AppContextType {
+    transactions: Transaction[];
+    setTransactions: React.Dispatch<React.SetStateAction<Transaction[]>>;
+    currentMonth: Date;
+    setCurrentMonth: React.Dispatch<React.SetStateAction<Date>>;
+    isLoading: boolean;
+    setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
+    isMobile: boolean;
+    //以下から関数（追加、削除、更新）
+    onSaveTransaction: (transaction: Schema) => Promise<void>;
+    onDeleteTransaction: (
+        transactionIds: string | readonly string[]
+    ) => Promise<void>;
+    onUpdateTransaction: (
+        transaction: Schema,
+        transactionId: string
+    ) => Promise<void>;
+}
 
-    const handleDrawerToggle = () => {
-        setMobileOpen(!mobileOpen);
+// createContextでグローバルにする値を設定　AppContext.Providerのvalueの設定値の型を指定する必要がある
+const AppContext = createContext<AppContextType | undefined>(undefined);
+
+interface AppProviderProps {
+    children: ReactNode;
+}
+// プロバイダーコンポーネント
+export const AppProvider = ({ children }: AppProviderProps) => {
+    const theme = useTheme();
+    const [transactions, setTransactions] = useState<Transaction[]>([]);
+    const [currentMonth, setCurrentMonth] = useState(new Date());
+    const [isLoading, setIsLoading] = useState(true);
+    const isMobile = useMediaQuery(theme.breakpoints.down("lg"));
+
+    //取引を保存する処理
+    const onSaveTransaction = async (transaction: Schema) => {
+        // try {
+        //     //firestoreにデータを保存
+        //     const docRef = await addDoc(
+        //         collection(db, "Transactions"),
+        //         transaction
+        //     );
+        //     const newTransaction = {
+        //         id: docRef.id,
+        //         ...transaction,
+        //     } as Transaction;
+        //     setTransactions((prevTransaction) => [
+        //         ...prevTransaction,
+        //         newTransaction,
+        //     ]);
+        // } catch (err) {
+        //     if (isFirestoreError(err)) {
+        //         console.error("firestoreのエラーは：", err);
+        //     } else {
+        //         console.error("一般的なエラーは:", err);
+        //     }
+        // }
     };
 
-    //firestoreのデータを全て取得
-    React.useEffect(() => {
-        const fecheTransactions = async () => {
-            // try {
-            //     const querySnapshot = await getDocs(
-            //         collection(db, "Transactions")
-            //     );
-            //     const transactionsData = querySnapshot.docs.map((doc) => {
-            //         return {
-            //             ...doc.data(),
-            //             id: doc.id,
-            //         } as Transaction;
-            //     });
-            //     setTransactions(transactionsData);
-            // } catch (err) {
-            //     if (isFirestoreError(err)) {
-            //         console.error("firestoreのエラーは：", err);
-            //     } else {
-            //         console.error("一般的なエラーは:", err);
-            //     }
-            // } finally {
-            //     setIsLoading(false);
-            // }
-        };
-        fecheTransactions();
-    }, []);
+    //削除処理
+    const onDeleteTransaction = async (
+        transactionIds: string | readonly string[]
+    ) => {
+        // try {
+        //     const idsToDelete = Array.isArray(transactionIds)
+        //         ? transactionIds
+        //         : [transactionIds];
+        //     for (const id of idsToDelete) {
+        //         //firestoreのデータ削除
+        //         await deleteDoc(doc(db, "Transactions", id));
+        //     }
+        //     //複数の取引を削除可能
+        //     const filterdTransactions = transactions.filter(
+        //         (transaction) => !idsToDelete.includes(transaction.id)
+        //     );
+        //     setTransactions(filterdTransactions);
+        // } catch (err) {
+        //     if (isFirestoreError(err)) {
+        //         console.error("firestoreのエラーは：", err);
+        //     } else {
+        //         console.error("一般的なエラーは:", err);
+        //     }
+        // }
+    };
+
+    //更新処理
+    const onUpdateTransaction = async (
+        transaction: Schema,
+        transactionId: string
+    ) => {
+        // try {
+        //     //firestore更新処理
+        //     const docRef = doc(db, "Transactions", transactionId);
+        //     await updateDoc(docRef, transaction);
+        //     //フロント更新
+        //     const updatedTransactions = transactions.map((t) =>
+        //         t.id === transactionId ? { ...t, ...transaction } : t
+        //     ) as Transaction[];
+        //     setTransactions(updatedTransactions);
+        // } catch (err) {
+        //     if (isFirestoreError(err)) {
+        //         console.error("firestoreのエラーは：", err);
+        //     } else {
+        //         console.error("一般的なエラーは:", err);
+        //     }
+        // }
+    };
 
     return (
-        <Box
-            sx={{
-                display: "flex",
-                bgcolor: (theme) => theme.palette.grey[100],
-                minHeight: "100vh",
+        // valueで設定した値をchildrenで受け取ることができる
+        <AppContext.Provider
+            value={{
+                transactions,
+                setTransactions,
+                currentMonth,
+                setCurrentMonth,
+                isLoading,
+                setIsLoading,
+                isMobile,
+                onSaveTransaction,
+                onDeleteTransaction,
+                onUpdateTransaction,
             }}
         >
-            <CssBaseline />
-
-            {/* ヘッダー */}
-            <AppBar
-                position="fixed"
-                sx={{
-                    width: { md: `calc(100% - ${drawerWidth}px)` },
-                    ml: { md: `${drawerWidth}px` },
-                }}
-            >
-                <Toolbar>
-                    <IconButton
-                        color="inherit"
-                        aria-label="open drawer"
-                        edge="start"
-                        onClick={handleDrawerToggle}
-                        sx={{ mr: 2, display: { md: "none" } }}
-                    >
-                        <MenuIcon />
-                    </IconButton>
-                    <Typography variant="h6" noWrap component="div">
-                        {/* TypeScript × React 家計簿 */}
-                    </Typography>
-                </Toolbar>
-            </AppBar>
-
-            {/* サイドバー */}
-            <Sidebar
-                drawerWidth={drawerWidth}
-                mobileOpen={mobileOpen}
-                handleDrawerToggle={handleDrawerToggle}
-            />
-
-            {/* メインコンテンツ */}
-            <Box
-                component="main"
-                sx={{
-                    flexGrow: 1,
-                    p: 3,
-                    width: { md: `calc(100% - ${drawerWidth}px)` },
-                }}
-            >
-                <Toolbar />
-                {/* <Outlet />は<Route>で囲んでいるrouteの子要素を表示するためのもの */}
-                <Outlet />
-            </Box>
-        </Box>
+            {children}
+        </AppContext.Provider>
     );
-}
+};
+
+// コンテキストを使用するためのカスタムフック
+export const useAppContext = () => {
+    // useContextでvalueに設定した値を取得できる
+    const context = useContext(AppContext);
+    if (!context) {
+        throw new Error(
+            "useAppContextは、AppProvider内で使用する必要があります。"
+        );
+    }
+    return context;
+};

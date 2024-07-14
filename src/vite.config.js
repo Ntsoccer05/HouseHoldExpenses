@@ -1,11 +1,15 @@
-import { defineConfig } from 'vite';
-import laravel from 'laravel-vite-plugin';
-import react from '@vitejs/plugin-react';
+import { defineConfig } from "vite";
+import laravel from "laravel-vite-plugin";
+import react from "@vitejs/plugin-react";
 
 export default defineConfig({
+    // Poper.jsのエラー解消  https://github.com/mui/material-ui/issues/32727#issuecomment-1767646455
+    optimizeDeps: {
+        include: ["@emotion/react", "@emotion/styled", "@mui/material/Tooltip"],
+    },
     plugins: [
         laravel({
-            input: ['resources/css/app.css', 'resources/js/app.tsx'],
+            input: ["resources/sass/app.scss", "resources/js/app.js"],
             refresh: true,
         }),
         react(),
@@ -13,16 +17,16 @@ export default defineConfig({
     server: {
         host: true,
         hmr: {
-          host: 'localhost'
+            host: "localhost",
         },
         // ホットリロード設定
         watch: {
-            usePolling: true
-        }
+            usePolling: true,
+        },
     },
     resolve: {
         alias: {
-          '@': './resources/js',
+            "@": "./resources/js",
         },
     },
 });
