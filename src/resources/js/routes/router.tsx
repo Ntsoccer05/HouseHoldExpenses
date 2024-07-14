@@ -33,6 +33,9 @@ import { ThemeProvider } from "@emotion/react";
 import { CssBaseline } from "@mui/material";
 
 import { AppProvider } from "../context/AppContext";
+import Login from "../pages/Login";
+import Register from "../pages/Register";
+import VerifyEmail from "../components/Auth/VerifyEmail";
 
 function DefineRouter() {
     return (
@@ -45,7 +48,13 @@ function DefineRouter() {
                         <Route path="/" element={<AppLayout />}>
                             {/* 親と同じパスはindexと記述できる */}
                             <Route index element={<Home />} />
+                            <Route path="/login" element={<Login />} />
+                            <Route path="/register" element={<Register />} />
                             <Route path="/report" element={<Report />} />
+                            <Route
+                                path="/api/email/verify/:id/:hash"
+                                element={<VerifyEmail />}
+                            />
                             {/* 最後にpath='*'で上記に当てはまらない全てのページを指す */}
                             <Route path="*" element={<NoMatch />} />
                         </Route>

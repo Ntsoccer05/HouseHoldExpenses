@@ -99,6 +99,7 @@ export default function AppLayout() {
                 }}
             >
                 <Toolbar />
+                {/* Outletで子コンポーネントにレイアウトを継承する */}
                 <Outlet />
             </Box>
         </Box>

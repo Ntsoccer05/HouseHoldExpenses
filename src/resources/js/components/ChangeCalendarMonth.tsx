@@ -55,11 +55,11 @@ const ChangeCalendarMonth = ({ calendarRef }: ChangeCalendarMonthProps) => {
                     onMonthChange={closeModal}
                     sx={{
                         mx: 2,
-                        background: "transparent",
+                        // background: "transparent",
                         position: "absolute",
                         top: { xs: "183px", sm: "202px", md: "210px" },
                         left: { xs: "0%", md: "235px" },
-                        color: "transparent!important",
+                        // color: "transparent!important",
                     }}
                     views={["year", "month"]}
                     format="yyyy年MM月"

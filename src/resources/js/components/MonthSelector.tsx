@@ -12,7 +12,6 @@ const MonthSelector = () => {
     const { currentMonth, setCurrentMonth } = useAppContext();
 
     const handleDateChange = (newDate: Date | null) => {
-        debugger;
         if (newDate) {
             setCurrentMonth(newDate);
         }
