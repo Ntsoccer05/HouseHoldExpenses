@@ -55,11 +55,7 @@ const MonthSelector = () => {
                     sx={{ mx: 2, background: "white" }}
                     views={["year", "month"]}
                     format="yyyy/MM"
-                    slotProps={{
-                        toolbar: {
-                            toolbarFormat: "yyyy年MM月",
-                        },
-                    }}
+                    slotProps={{ calendarHeader: { format: "yyyy年 M月" } }}
                 />
                 <Button
                     onClick={handleNextMonth}

@@ -19,5 +19,14 @@ export default defineConfig({
         hmr: {
             host: "localhost",
         },
+        // ホットリロード設定
+        watch: {
+            usePolling: true,
+        },
+    },
+    resolve: {
+        alias: {
+            "@": "./resources/js",
+        },
     },
 });
