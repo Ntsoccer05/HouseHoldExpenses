@@ -18,6 +18,9 @@ import {
     Typography,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
+import { LoginError } from "../../utils/errorHandling";
+import Modal from "@mui/material/Modal";
+import ModalComponent from "../common/ModalComponent";
 
 function LoginForm() {
     type LoginInput = {
@@ -25,10 +28,30 @@ function LoginForm() {
         password: string;
     };
 
+    type LoginErrMsgs = {
+        emailErrMsg?: string;
+        passErrMsg?: string;
+    };
+
+    type ResendConfirmEmail = {
+        email: string;
+    };
+
+    const [errorMsgs, setErrorMsgs] = useState<LoginErrMsgs>({
+        emailErrMsg: "",
+        passErrMsg: "",
+    });
+
     const [loginInput, setLogin] = useState<LoginInput>({
         email: "",
         password: "",
     });
+
+    const [reConfirmEmail, setReConfirmEmail] = useState<boolean>(false);
+
+    const [showModal, setShowModal] = useState<boolean>(false);
+    const [modalMainMessage, setModalMainMessage] = useState<string>("");
+    const [modalMessage, setModalMessage] = useState<string>("");
 
     const navigate = useNavigate();
 
@@ -40,6 +63,7 @@ function LoginForm() {
         formState: { errors },
         handleSubmit,
         reset,
+        getValues,
     } = useForm<LoginScheme>({
         // フォームの初期値設定
         defaultValues: {
@@ -54,21 +78,52 @@ function LoginForm() {
 
     const loginSubmit: SubmitHandler<LoginScheme> = (data) => {
         //フォームデータ送信時に画面を再更新しないようにする処理
-        setIsLoading(true);
-
         axios
             .post("/api/login", data)
             .then((response) => {
                 // handleEmailVerification(response.data.token);
                 // 送信成功時の処理
-                setIsLoading(false);
                 navigate("/");
                 console.log(response.data);
             })
             .catch(function (error) {
                 // 送信失敗時の処理
+                if (error.response.status == 403) {
+                    setErrorMsgs((state) => {
+                        return {
+                            ...state,
+                            emailErrMsg: error.response.data.error,
+                        };
+                    });
+                    setReConfirmEmail(true);
+                }
+                const errorResMsgs = error.response.data.errors;
+                LoginError(errorResMsgs, setErrorMsgs);
                 console.log("通信に失敗しました");
             });
+    };
+
+    const resendConfirmEmail: () => void = async () => {
+        //フォームデータ送信時に画面を再更新しないようにする処理
+        setIsLoading(true);
+        const formEmailVal = getValues("email");
+        setModalMainMessage("認証用メール");
+        setModalMessage("認証用メールを送信しました。ご確認お願いします。");
+        await axios
+            .post("/api/email/verification-notification", {
+                email: formEmailVal,
+            })
+            .then((res) => {
+                setShowModal(true);
+                setIsLoading(false);
+            })
+            .catch((err) => {
+                console.log(err);
+            });
+    };
+
+    const handleCloseModal: () => void = () => {
+        setShowModal(false);
     };
 
     const formContent = (
@@ -82,7 +137,7 @@ function LoginForm() {
                         render={({ field }) => (
                             <TextField
                                 error={!!errors.email}
-                                helperText={errors.email?.message}
+                                helperText={errorMsgs?.emailErrMsg}
                                 {...field}
                                 label="メールアドレス"
                                 type="email"
@@ -96,7 +151,7 @@ function LoginForm() {
                         render={({ field }) => (
                             <TextField
                                 error={!!errors.password}
-                                helperText={errors.password?.message}
+                                helperText={errorMsgs?.passErrMsg}
                                 {...field}
                                 label="パスワード"
                                 type="password"
@@ -104,8 +159,21 @@ function LoginForm() {
                         )}
                     />
                     {/* 保存ボタン */}
-                    <Button type="submit" variant="contained" fullWidth>
-                        ログイン
+                    {/* イベントハンドラで条件式の場合onClick={()=>}のようにアロー関数型で記述する */}
+                    <Button
+                        type="submit"
+                        variant="contained"
+                        fullWidth
+                        disabled={isLoading}
+                        onClick={() =>
+                            reConfirmEmail ? resendConfirmEmail() : undefined
+                        }
+                    >
+                        {reConfirmEmail
+                            ? isLoading
+                                ? "認証メール送信中"
+                                : "再度メール認証"
+                            : "ログイン"}
                     </Button>
                 </Stack>
             </Box>
@@ -124,6 +192,12 @@ function LoginForm() {
             >
                 {formContent}
             </Box>
+            <ModalComponent
+                showModal={showModal}
+                mainMessage={modalMainMessage}
+                contentMessage={modalMessage}
+                handleCloseModal={handleCloseModal}
+            />
         </>
     );
 }

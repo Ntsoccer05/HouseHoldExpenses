@@ -38,12 +38,10 @@ export function RegisterError(errorMsgs: RegisterErrs, setErrorMsgs) {
         }
         if ("password_confirmation" in errorMsgs) {
             setErrorMsgs((state) => {
-                setErrorMsgs((state) => {
-                    return {
-                        ...state,
-                        passConfErrMsg: errorMsgs.password_confirmation[0],
-                    };
-                });
+                return {
+                    ...state,
+                    passConfErrMsg: errorMsgs.password_confirmation[0],
+                };
             });
         }
     }

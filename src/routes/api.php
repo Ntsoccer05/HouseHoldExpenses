@@ -28,11 +28,8 @@ Route::group(['middleware'=>['verified.custom', 'auth:sanctum']],function(){
         return $request->user();
     });
 });
-// Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-//     return $request->user();
-// });
 
-Route::middleware('verified.custom')->post('/login', [LoginController::class, 'login'])->name('login');;
+Route::post('/login', [LoginController::class, 'login'])->name('login');;
 Route::post('/register', [RegisterController::class, 'temporaryRegister']);
 
 // メール認証
