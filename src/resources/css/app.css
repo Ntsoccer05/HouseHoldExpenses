@@ -16,3 +16,7 @@
 #event-balance {
     color: #4caf50;
 }
+
+.MuiFormHelperText-root {
+    color: red !important;
+}

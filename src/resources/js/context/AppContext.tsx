@@ -1,5 +1,5 @@
 import React, { ReactNode, createContext, useContext, useState } from "react";
-import { Transaction } from "../types/index";
+import { LoginUser, Transaction } from "../types/index";
 import { Schema } from "../validations/schema";
 // import {
 //   addDoc,
@@ -11,6 +11,7 @@ import { Schema } from "../validations/schema";
 // import { db } from "../firebase";
 // import { isFirestoreError } from "../utils/errorHandling";
 import { useMediaQuery, useTheme } from "@mui/material";
+import axios from "axios";
 
 //コンテキスト
 interface AppContextType {
@@ -30,6 +31,8 @@ interface AppContextType {
         transaction: Schema,
         transactionId: string
     ) => Promise<void>;
+    LoginUser: LoginUser | undefined;
+    getLoginUser: () => Promise<void>;
 }
 
 // createContextでグローバルにする値を設定　AppContext.Providerのvalueの設定値の型を指定する必要がある
@@ -44,7 +47,19 @@ export const AppProvider = ({ children }: AppProviderProps) => {
     const [transactions, setTransactions] = useState<Transaction[]>([]);
     const [currentMonth, setCurrentMonth] = useState(new Date());
     const [isLoading, setIsLoading] = useState(true);
+    const [LoginUser, setLoginUser] = useState<LoginUser | undefined>();
     const isMobile = useMediaQuery(theme.breakpoints.down("lg"));
+
+    //ログインユーザー取得処理
+    const getLoginUser = async () => {
+        try {
+            await axios.get("/api/user").then((res) => {
+                setLoginUser(res.data);
+            });
+        } catch (err) {
+            console.log(err);
+        }
+    };
 
     //取引を保存する処理
     const onSaveTransaction = async (transaction: Schema) => {
@@ -134,6 +149,8 @@ export const AppProvider = ({ children }: AppProviderProps) => {
                 onSaveTransaction,
                 onDeleteTransaction,
                 onUpdateTransaction,
+                LoginUser,
+                getLoginUser,
             }}
         >
             {children}

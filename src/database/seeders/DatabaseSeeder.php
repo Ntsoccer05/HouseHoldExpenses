@@ -6,6 +6,9 @@ namespace Database\Seeders;
 
 use App\Models\Content;
 use App\Models\ExpenceCategory;
+use App\Models\FixedCategory;
+use App\Models\FixedExpenseCategory;
+use App\Models\FixedIncomeCategory;
 use App\Models\IncomeCategory;
 use App\Models\MonthlyAmount;
 use App\Models\Type;
@@ -26,7 +29,29 @@ class DatabaseSeeder extends Seeder
         //     'email' => 'test@example.com',
         // ]);
         User::factory(10)->create();
-        Type::factory(2)->create();
+        Type::factory()->create([
+            'id' => 1,
+            'name' => 'income'
+        ]);
+        Type::factory()->create([
+            'id' => 2,
+            'name' => 'expense'
+        ]);
+        foreach(config('app.income_contents') as $key => $incomeContent){
+            FixedCategory::factory()->create([
+                'id' => $key + 1,
+                'type_id' => config('app.income_type_id'),
+                'content' => $incomeContent
+            ]);
+        }
+        $expense_id = FixedCategory::latest('id')->first()->id;
+        foreach(config('app.expense_contents') as $key => $expenseContent){
+            FixedCategory::factory()->create([
+                'id' => $expense_id + $key + 1,
+                'type_id' => config('app.expense_type_id'),
+                'content' => $expenseContent
+            ]);
+        }
         ExpenceCategory::factory(5)->create();
         IncomeCategory::factory(5)->create();
         Content::factory(10)->create();

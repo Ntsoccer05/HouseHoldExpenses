@@ -7,6 +7,7 @@ use App\Http\Requests\Auth\EmailCustomVerificationRequest;
 use App\Models\User;
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Foundation\Auth\VerifiesEmails;
+use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 
 class VerificationController extends Controller
@@ -51,6 +52,24 @@ class VerificationController extends Controller
 
         //最終的に任意のルート先にリダイレクトさせるようにします
         return redirect()->to(config('app.url'));
+    }
+
+    /**
+     * Resend the email verification notification.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function resend(Request $request, User $user)
+    {
+        $requestUser = $user->where('email', $request->email)->first();
+        if ($requestUser->hasVerifiedEmail()) {
+            return response()->json(['message' => 'Email already verified.'], 400);
+        }
+
+        $requestUser->sendEmailVerificationNotification();
+
+        return response()->json(['message' => '認証用メールを送信しました。ご確認お願いします。']);
     }
     
     /**
