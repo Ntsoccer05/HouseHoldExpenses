@@ -1,65 +1,57 @@
-import React, { useState } from "react";
-import axios from "axios";
-import { RegisterScheme, registerSchema } from "../../validations/Register";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Controller, SubmitHandler, useForm } from "react-hook-form";
 import { Box, Button, Container, Stack, TextField } from "@mui/material";
-import { RegisterError } from "../../utils/errorHandling";
+import axios from "axios";
+import React, { useEffect, useState } from "react";
+import { Controller, SubmitHandler, useForm } from "react-hook-form";
 import ModalComponent from "../common/ModalComponent";
+import { PasswordResetError } from "../../utils/errorHandling";
+import { PasswordResetScheme } from "../../validations/PasswordReset";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 
-function RegisterForm() {
-    type RegisterErrMsgs = {
-        nameErrMsg?: string;
-        emailErrMsg?: string;
+function ResetPasswordForm() {
+    type PasswordResetErrMsgs = {
         passErrMsg?: string;
         passConfErrMsg?: string;
     };
 
-    const [errorMsgs, setErrorMsgs] = useState<RegisterErrMsgs>({
-        nameErrMsg: "",
-        emailErrMsg: "",
+    const [errorMsgs, setErrorMsgs] = useState<PasswordResetErrMsgs>({
         passErrMsg: "",
         passConfErrMsg: "",
     });
+
+    const navigate = useNavigate();
+
+    // クエリパラメータ取得
+    const [searchParams] = useSearchParams();
+    const token = searchParams.get("token");
+    const email = searchParams.get("email");
 
     const [showModal, setShowModal] = useState<boolean>(false);
     const [modalMainMessage, setModalMainMessage] = useState<string>("");
     const [modalMessage, setModalMessage] = useState<string>("");
 
-    const {
-        control,
-        // setValue,
-        // watch,
-        // errorsにバリデーションメッセージが格納される
-        // formState: { errors },
-        handleSubmit,
-        // reset,
-    } = useForm<RegisterScheme>({
+    const { control, handleSubmit } = useForm<PasswordResetScheme>({
         // フォームの初期値設定
         defaultValues: {
-            name: "",
             email: "",
             password: "",
             password_confirmation: "",
         },
-        // resolver: zodResolver()でバリデーション設定
-        // resolver: zodResolver(registerSchema),
     });
 
     const [isLoading, setIsLoading] = useState<boolean>(false);
 
-    const registerSubmit: SubmitHandler<RegisterScheme> = (data) => {
+    const passwordResetSubmit: SubmitHandler<PasswordResetScheme> = (data) => {
         //フォームデータ送信時に画面を再更新しないようにする処理
         setIsLoading(true);
 
         axios
-            .post("/api/register", data)
+            .post("/api/password/reset", { ...data, token })
             .then((response) => {
                 // 送信成功時の処理
                 setShowModal(true);
-                setModalMainMessage("認証用メール");
+                setModalMainMessage("パスワード変更完了");
                 setModalMessage(
-                    "認証用メールを送信しました。ご確認お願いします。"
+                    "パスワード変更完了しました。ログインしてください。"
                 );
                 setIsLoading(false);
                 console.log(response.data);
@@ -67,13 +59,14 @@ function RegisterForm() {
             .catch(function (error) {
                 setIsLoading(false);
                 const errorResMsgs = error.response.data.errors;
-                RegisterError(errorResMsgs, setErrorMsgs);
+                PasswordResetError(errorResMsgs, setErrorMsgs);
                 // 送信失敗時の処理
                 console.log("通信に失敗しました");
             });
     };
     const handleCloseModal: () => void = () => {
         setShowModal(false);
+        navigate("/login");
     };
 
     const formContent = (
@@ -81,41 +74,21 @@ function RegisterForm() {
             <Box
                 component={"form"}
                 sx={{ width: "100%" }}
-                onSubmit={handleSubmit(registerSubmit)}
+                onSubmit={handleSubmit(passwordResetSubmit)}
             >
                 <Stack spacing={2}>
-                    {/* ユーザー名 */}
-                    <Controller
-                        name="name"
-                        control={control}
-                        render={({ field }) => (
-                            <TextField
-                                InputLabelProps={{
-                                    shrink: true,
-                                }}
-                                // errors.nameは値が入っており、!!で値が入っている場合True、ない場合はFalseと変換している
-                                error={!!errorMsgs?.nameErrMsg}
-                                helperText={errorMsgs?.nameErrMsg}
-                                {...field}
-                                autoFocus
-                                label="ユーザー名"
-                                type="text"
-                                required
-                            />
-                        )}
-                    />
                     {/* メールアドレス */}
                     <Controller
                         name="email"
                         control={control}
                         render={({ field }) => (
                             <TextField
-                                error={!!errorMsgs?.emailErrMsg}
-                                helperText={errorMsgs?.emailErrMsg}
                                 {...field}
                                 label="メールアドレス"
                                 type="email"
                                 required
+                                // inputProps 属性に input タグに渡したい属性を props として渡せるっぽいので、この props 経由で readonly を指定できる
+                                inputProps={{ readonly: true }}
                             />
                         )}
                     />
@@ -156,7 +129,9 @@ function RegisterForm() {
                         fullWidth
                         disabled={isLoading}
                     >
-                        {isLoading ? "認証メール送信中" : "登録"}
+                        {isLoading
+                            ? "パスワード変更中"
+                            : "パスワードを変更する"}
                     </Button>
                 </Stack>
             </Box>
@@ -186,4 +161,4 @@ function RegisterForm() {
     );
 }
 
-export default RegisterForm;
+export default ResetPasswordForm;

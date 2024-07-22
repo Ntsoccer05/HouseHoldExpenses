@@ -1,26 +1,13 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import axios from "axios";
 import { LoginScheme, loginSchema } from "../../validations/Login";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
-import {
-    Box,
-    Button,
-    ButtonGroup,
-    FormControl,
-    FormHelperText,
-    IconButton,
-    InputLabel,
-    ListItemIcon,
-    MenuItem,
-    Stack,
-    TextField,
-    Typography,
-} from "@mui/material";
+import { Box, Button, Container, Grid, Stack, TextField } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { LoginError } from "../../utils/errorHandling";
-import Modal from "@mui/material/Modal";
 import ModalComponent from "../common/ModalComponent";
+import { Link } from "react-router-dom";
 
 function LoginForm() {
     type LoginInput = {
@@ -88,6 +75,7 @@ function LoginForm() {
             })
             .catch(function (error) {
                 // 送信失敗時の処理
+                setIsLoading(false);
                 if (error.response.status == 403) {
                     setErrorMsgs((state) => {
                         return {
@@ -118,6 +106,7 @@ function LoginForm() {
                 setIsLoading(false);
             })
             .catch((err) => {
+                setIsLoading(false);
                 console.log(err);
             });
     };
@@ -128,7 +117,11 @@ function LoginForm() {
 
     const formContent = (
         <>
-            <Box component={"form"} onSubmit={handleSubmit(loginSubmit)}>
+            <Box
+                component={"form"}
+                sx={{ width: "100%" }}
+                onSubmit={handleSubmit(loginSubmit)}
+            >
                 <Stack spacing={2}>
                     {/* メールアドレス */}
                     <Controller
@@ -139,6 +132,8 @@ function LoginForm() {
                                 error={!!errors.email}
                                 helperText={errorMsgs?.emailErrMsg}
                                 {...field}
+                                autoFocus
+                                required
                                 label="メールアドレス"
                                 type="email"
                             />
@@ -153,8 +148,10 @@ function LoginForm() {
                                 error={!!errors.password}
                                 helperText={errorMsgs?.passErrMsg}
                                 {...field}
+                                required
                                 label="パスワード"
                                 type="password"
+                                variant="outlined"
                             />
                         )}
                     />
@@ -181,23 +178,36 @@ function LoginForm() {
     );
     return (
         <>
-            <Box
-                sx={{
-                    width: "100%",
-                    height: "100%",
-                    bgcolor: "background.paper",
-                    boxSizing: "border-box", // ボーダーとパディングをwidthに含める
-                    boxShadow: "0px 0px 15px -5px #777777",
-                }}
-            >
-                {formContent}
-            </Box>
-            <ModalComponent
-                showModal={showModal}
-                mainMessage={modalMainMessage}
-                contentMessage={modalMessage}
-                handleCloseModal={handleCloseModal}
-            />
+            <Container component="main" maxWidth="xs">
+                <Box
+                    sx={{
+                        marginTop: 8,
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                    }}
+                >
+                    {formContent}
+                    <Grid container sx={{ mt: 5, display: "block" }}>
+                        <Grid item xs sx={{ mb: 1 }}>
+                            <Link to="/password/forget">
+                                パスワードを忘れましたか？
+                            </Link>
+                        </Grid>
+                        <Grid item>
+                            <Link to="/register">
+                                {"アカウントをお持ちでないですか？ 新規登録"}
+                            </Link>
+                        </Grid>
+                    </Grid>
+                    <ModalComponent
+                        showModal={showModal}
+                        mainMessage={modalMainMessage}
+                        contentMessage={modalMessage}
+                        handleCloseModal={handleCloseModal}
+                    />
+                </Box>
+            </Container>
         </>
     );
 }

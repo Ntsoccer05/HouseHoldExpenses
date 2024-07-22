@@ -7,6 +7,8 @@ import { ja } from "date-fns/locale";
 import { startOfMonth } from "date-fns";
 import { useAppContext } from "../context/AppContext";
 import FullCalendar from "@fullcalendar/react";
+import { TextField } from "@mui/material";
+import { styled } from "@mui/system";
 
 interface ChangeCalendarMonthProps {
     calendarRef: FullCalendar;
@@ -34,6 +36,26 @@ const ChangeCalendarMonth = ({ calendarRef }: ChangeCalendarMonthProps) => {
         setOpen(false); // 選択時にモーダルを閉じる
     };
 
+    const myStyle = {
+        "& .MuiInputBase-root": {
+            border: "none",
+        },
+        "& .MuiOutlinedInput-root": {
+            "& fieldset": {
+                border: "none",
+            },
+        },
+        "& .MuiInput-underline:before": {
+            borderBottom: "none",
+        },
+        "& .MuiInput-underline:hover:before": {
+            borderBottom: "none",
+        },
+        "& .MuiInput-underline:after": {
+            borderBottom: "none",
+        },
+    };
+
     return (
         <LocalizationProvider
             dateAdapter={AdapterDateFns}
@@ -57,9 +79,17 @@ const ChangeCalendarMonth = ({ calendarRef }: ChangeCalendarMonthProps) => {
                         mx: 2,
                         // background: "transparent",
                         position: "absolute",
-                        top: { xs: "183px", sm: "202px", md: "210px" },
+                        top: { xs: "183px", sm: "202px", md: "205px" },
                         left: { xs: "0%", md: "235px" },
-                        // color: "transparent!important",
+                        "& .MuiInputBase-root": {
+                            color: "transparent",
+                            border: "none",
+                        },
+                        "& .MuiOutlinedInput-root": {
+                            "& fieldset": {
+                                border: "none",
+                            },
+                        },
                     }}
                     views={["year", "month"]}
                     format="yyyy年MM月"

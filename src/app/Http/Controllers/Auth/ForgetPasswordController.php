@@ -4,11 +4,12 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\ForgetPasswordRequest;
-use App\Http\Requests\Auth\ResettPasswordRequest;
+use App\Http\Requests\Auth\ResetPasswordRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Password; //←パスワードリセットの通知メールを送る処理に必要
 use Illuminate\Auth\Events\PasswordReset; //←パスワードリセットDB更新処理に必要
 use Illuminate\Support\Facades\Hash; //←パスワードリセットDB更新処理に必要
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str; //←パスワードリセットDB更新処理に必要
 
 class ForgetPasswordController extends Controller
@@ -21,6 +22,7 @@ class ForgetPasswordController extends Controller
     */
     public function sendemail(ForgetPasswordRequest $request){
 
+        Log::error($request);
         $request->validated();
 
         $status = Password::sendResetLink(
@@ -48,7 +50,7 @@ class ForgetPasswordController extends Controller
      * ↓↓公式のリファレンスをそのまま参照↓↓
      * https://readouble.com/laravel/8.x/ja/passwords.html
     */
-    public function passwordreset(ResettPasswordRequest $request){
+    public function passwordreset(ResetPasswordRequest $request){
         $request->validated();
 
         $status = Password::reset(
