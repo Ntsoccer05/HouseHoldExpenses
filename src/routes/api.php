@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Auth\ForgetPasswordController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\VerificationController;
@@ -48,5 +49,5 @@ Route::prefix('login')->group(function () {
 // });
 
 //パスワードリセット
-// Route::post('/password/forget', [ForgetPasswordController::class, 'sendemail']);
-// Route::post('/password/reset', [ForgetPasswordController::class, 'passwordreset'])->name('password.reset');
+Route::post('/password/forget', [ForgetPasswordController::class, 'sendemail']);
+Route::post('/password/reset', [ForgetPasswordController::class, 'passwordreset'])->name('password.reset');

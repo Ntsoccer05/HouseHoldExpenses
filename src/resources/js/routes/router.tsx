@@ -11,6 +11,8 @@ import { AppProvider } from "../context/AppContext";
 import Login from "../pages/Login";
 import Register from "../pages/Register";
 import VerifyEmail from "../components/Auth/VerifyEmail";
+import PasswordForget from "../pages/PasswordForget";
+import ResetPassword from "../pages/ResetPassword";
 
 function DefineRouter() {
     return (
@@ -29,6 +31,14 @@ function DefineRouter() {
                             <Route
                                 path="/api/email/verify/:id/:hash"
                                 element={<VerifyEmail />}
+                            />
+                            <Route
+                                path="/api/password/reset"
+                                element={<ResetPassword />}
+                            />
+                            <Route
+                                path="/password/forget"
+                                element={<PasswordForget />}
                             />
                             {/* 最後にpath='*'で上記に当てはまらない全てのページを指す */}
                             <Route path="*" element={<NoMatch />} />

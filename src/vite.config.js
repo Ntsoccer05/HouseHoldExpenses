@@ -5,7 +5,12 @@ import react from "@vitejs/plugin-react";
 export default defineConfig({
     // Poper.jsのエラー解消  https://github.com/mui/material-ui/issues/32727#issuecomment-1767646455
     optimizeDeps: {
-        include: ["@emotion/react", "@emotion/styled", "@mui/material/Tooltip"],
+        include: [
+            "@emotion/react",
+            "@emotion/styled",
+            "@mui/material/Tooltip",
+            "@mui/material",
+        ],
     },
     plugins: [
         laravel({
