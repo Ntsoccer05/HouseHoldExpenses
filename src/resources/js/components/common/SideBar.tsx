@@ -15,6 +15,7 @@ import HomeIcon from "@mui/icons-material/Home";
 import EqualizerIcon from "@mui/icons-material/Equalizer";
 import { NavLink } from "react-router-dom";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
+import MeetingRoomIcon from "@mui/icons-material/MeetingRoom";
 
 interface SidebarProps {
     drawerWidth: number;
@@ -37,12 +38,12 @@ const Sidebar = ({
         { text: "トップ", path: "/", icon: HomeIcon },
         { text: "レポート", path: "/report", icon: EqualizerIcon },
         { text: "ログイン", path: "/login", icon: LockOutlinedIcon },
-        { text: "サインイン", path: "/register", icon: HomeIcon },
+        { text: "サインイン", path: "/register", icon: MeetingRoomIcon },
     ];
     const NotLoginMenuItems: menuItem[] = [
         { text: "トップ", path: "/", icon: HomeIcon },
         { text: "ログイン", path: "/login", icon: HomeIcon },
-        { text: "サインイン", path: "/register", icon: LockOutlinedIcon },
+        { text: "サインイン", path: "/register", icon: MeetingRoomIcon },
     ];
 
     const baseLinkStyle: CSSProperties = {

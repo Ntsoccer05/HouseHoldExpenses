@@ -11,8 +11,8 @@ import SideBar from "../common/SideBar";
 // import { collection, getDocs } from "firebase/firestore";
 // import { db } from "../../firebase";
 import { Transaction } from "../../types";
-import { isFirestoreError } from "../../utils/errorHandling";
 import { useAppContext } from "../../context/AppContext";
+import topLogo from "../../logo/スマカケ.webp";
 const drawerWidth = 240;
 
 export default function AppLayout() {
@@ -48,6 +48,13 @@ export default function AppLayout() {
         // fecheTransactions();
     }, []);
 
+    const topImgLogoStyle = {
+        width: "260px",
+        height: "50px",
+        objectFit: "cover",
+        marginRight: "10px",
+    };
+
     return (
         <Box
             sx={{
@@ -64,6 +71,7 @@ export default function AppLayout() {
                 sx={{
                     width: { md: `calc(100% - ${drawerWidth}px)` },
                     ml: { md: `${drawerWidth}px` },
+                    bgcolor: "#fff",
                 }}
             >
                 <Toolbar>
@@ -72,12 +80,26 @@ export default function AppLayout() {
                         aria-label="open drawer"
                         edge="start"
                         onClick={handleDrawerToggle}
-                        sx={{ mr: 2, display: { md: "none" } }}
+                        sx={{ mr: 2, display: { md: "none" }, color: "black" }}
                     >
                         <MenuIcon />
                     </IconButton>
-                    <Typography variant="h6" noWrap component="div">
-                        スマート節約帳
+                    <Typography
+                        variant="h6"
+                        noWrap
+                        component="div"
+                        sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            margin: "0 auto",
+                        }}
+                    >
+                        {/* <span className="topTitle">スマート家計簿</span> */}
+                        <img
+                            style={topImgLogoStyle}
+                            src={topLogo}
+                            alt="toplogo"
+                        />
                     </Typography>
                 </Toolbar>
             </AppBar>

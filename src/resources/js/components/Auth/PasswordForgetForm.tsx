@@ -5,6 +5,7 @@ import { Controller, SubmitHandler, useForm } from "react-hook-form";
 import ModalComponent from "../common/ModalComponent";
 import { PasswordForgetScheme } from "../../validations/PasswordForget";
 import { PasswordForgetError } from "../../utils/errorHandling";
+import AppTitle from "../layout/AppTitle";
 
 function PasswordForgetForm() {
     type PasswordResetErrMsgs = {
@@ -108,6 +109,7 @@ function PasswordForgetForm() {
                         alignItems: "center",
                     }}
                 >
+                    <AppTitle title="パスワード変更メール送信"></AppTitle>
                     {formContent}
                     <ModalComponent
                         showModal={showModal}
