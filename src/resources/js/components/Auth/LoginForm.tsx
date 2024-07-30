@@ -8,6 +8,8 @@ import { useNavigate } from "react-router-dom";
 import { LoginError } from "../../utils/errorHandling";
 import ModalComponent from "../common/ModalComponent";
 import { Link } from "react-router-dom";
+import AppTitle from "../layout/AppTitle";
+import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 
 function LoginForm() {
     type LoginInput = {
@@ -115,6 +117,8 @@ function LoginForm() {
         setShowModal(false);
     };
 
+    const IconComponents: JSX.Element = <LockOutlinedIcon />;
+
     const formContent = (
         <>
             <Box
@@ -187,6 +191,7 @@ function LoginForm() {
                         alignItems: "center",
                     }}
                 >
+                    <AppTitle title="ログイン" icon={IconComponents}></AppTitle>
                     {formContent}
                     <Grid container sx={{ mt: 5, display: "block" }}>
                         <Grid item xs sx={{ mb: 1 }}>

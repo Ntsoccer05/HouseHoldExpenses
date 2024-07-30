@@ -77,7 +77,6 @@ const ChangeCalendarMonth = ({ calendarRef }: ChangeCalendarMonthProps) => {
                     onMonthChange={closeModal}
                     sx={{
                         mx: 2,
-                        // background: "transparent",
                         position: "absolute",
                         top: { xs: "183px", sm: "202px", md: "205px" },
                         left: { xs: "0%", md: "235px" },
@@ -88,6 +87,8 @@ const ChangeCalendarMonth = ({ calendarRef }: ChangeCalendarMonthProps) => {
                         "& .MuiOutlinedInput-root": {
                             "& fieldset": {
                                 border: "none",
+                                width: "65%",
+                                cursor: "pointer",
                             },
                         },
                     }}

@@ -51,6 +51,9 @@ td.fc-day-sun {
 .fc-header-toolbar.fc-toolbar {
     margin-top: 10px;
 }
+.fc-toolbar-title {
+    cursor: pointer !important;
+}
 
 /* .MuiInputBase-input.MuiOutlinedInput-input.MuiInputBase-inputAdornedEnd.Mui-readOnly.MuiInputBase-readOnly.css-nxo287-MuiInputBase-input-MuiOutlinedInput-input {
     opacity: 0;

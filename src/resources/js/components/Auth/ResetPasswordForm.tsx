@@ -6,6 +6,7 @@ import ModalComponent from "../common/ModalComponent";
 import { PasswordResetError } from "../../utils/errorHandling";
 import { PasswordResetScheme } from "../../validations/PasswordReset";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import AppTitle from "../layout/AppTitle";
 
 function ResetPasswordForm() {
     type PasswordResetErrMsgs = {
@@ -148,6 +149,7 @@ function ResetPasswordForm() {
                         alignItems: "center",
                     }}
                 >
+                    <AppTitle title="パスワード変更"></AppTitle>
                     {formContent}
                     <ModalComponent
                         showModal={showModal}

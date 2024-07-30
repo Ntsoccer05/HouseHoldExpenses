@@ -6,6 +6,8 @@ import { Controller, SubmitHandler, useForm } from "react-hook-form";
 import { Box, Button, Container, Stack, TextField } from "@mui/material";
 import { RegisterError } from "../../utils/errorHandling";
 import ModalComponent from "../common/ModalComponent";
+import MeetingRoomIcon from "@mui/icons-material/MeetingRoom";
+import AppTitle from "../layout/AppTitle";
 
 function RegisterForm() {
     type RegisterErrMsgs = {
@@ -75,6 +77,7 @@ function RegisterForm() {
     const handleCloseModal: () => void = () => {
         setShowModal(false);
     };
+    const IconComponents: JSX.Element = <MeetingRoomIcon />;
 
     const formContent = (
         <>
@@ -173,6 +176,10 @@ function RegisterForm() {
                         alignItems: "center",
                     }}
                 >
+                    <AppTitle
+                        title="サインイン"
+                        icon={IconComponents}
+                    ></AppTitle>
                     {formContent}
                     <ModalComponent
                         showModal={showModal}
