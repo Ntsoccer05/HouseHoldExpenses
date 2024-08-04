@@ -10,6 +10,7 @@ import ModalComponent from "../common/ModalComponent";
 import { Link } from "react-router-dom";
 import AppTitle from "../layout/AppTitle";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
+import { useAppContext } from "../../context/AppContext";
 
 function LoginForm() {
     type LoginInput = {
@@ -35,6 +36,8 @@ function LoginForm() {
         email: "",
         password: "",
     });
+
+    const { getLoginUser } = useAppContext();
 
     const [reConfirmEmail, setReConfirmEmail] = useState<boolean>(false);
 
@@ -72,6 +75,7 @@ function LoginForm() {
             .then((response) => {
                 // handleEmailVerification(response.data.token);
                 // 送信成功時の処理
+                getLoginUser();
                 navigate("/");
                 console.log(response.data);
             })

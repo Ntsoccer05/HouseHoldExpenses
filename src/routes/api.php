@@ -20,14 +20,12 @@ use Illuminate\Support\Facades\Route;
 
 // ログイン済みのみ
 // verifiedでメール認証済み
-Route::group(['middleware'=>['verified.custom', 'auth:sanctum']],function(){
+Route::group(['middleware'=>['auth:sanctum']],function(){
     Route::post('/logout',[LoginController::class, 'logout']);
 });
 
-Route::group(['middleware'=>['verified.custom', 'auth:sanctum']],function(){
-    Route::get('/user', function (Request $request) {
-        return $request->user();
-    });
+Route::middleware(['auth:sanctum'])->get('/user', function (Request $request) {
+    return $request->user();
 });
 
 Route::post('/login', [LoginController::class, 'login'])->name('login');;

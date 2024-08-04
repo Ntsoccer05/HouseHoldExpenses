@@ -68,6 +68,7 @@ function RegisterForm() {
             })
             .catch(function (error) {
                 setIsLoading(false);
+                debugger;
                 const errorResMsgs = error.response.data.errors;
                 RegisterError(errorResMsgs, setErrorMsgs);
                 // 送信失敗時の処理

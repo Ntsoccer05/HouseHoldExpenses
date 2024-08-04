@@ -16,8 +16,13 @@ import topLogo from "../../logo/スマカケ.webp";
 const drawerWidth = 240;
 
 export default function AppLayout() {
-    const { setTransactions, setIsLoading } = useAppContext();
+    const { setTransactions, setIsLoading, getLoginUser, LoginUser } =
+        useAppContext();
     const [mobileOpen, setMobileOpen] = React.useState(false);
+
+    React.useEffect(() => {
+        getLoginUser();
+    }, []);
 
     const handleDrawerToggle = () => {
         setMobileOpen(!mobileOpen);

@@ -38,17 +38,15 @@ export function RegisterError(errorMsgs: RegisterErrs, setErrorMsgs) {
         }
         if ("password" in errorMsgs) {
             setErrorMsgs((state) => {
+                if (errorMsgs.password[0].indexOf("パスワード確認")) {
+                    return {
+                        ...state,
+                        passConfErrMsg: errorMsgs.password[0],
+                    };
+                }
                 return {
                     ...state,
                     passErrMsg: errorMsgs.password[0],
-                };
-            });
-        }
-        if ("password_confirmation" in errorMsgs) {
-            setErrorMsgs((state) => {
-                return {
-                    ...state,
-                    passConfErrMsg: errorMsgs.password_confirmation[0],
                 };
             });
         }

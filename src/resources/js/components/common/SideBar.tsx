@@ -9,13 +9,16 @@ import {
     ListItemText,
     Toolbar,
 } from "@mui/material";
-import React, { CSSProperties } from "react";
+import React, { CSSProperties, useEffect, useState } from "react";
 
 import HomeIcon from "@mui/icons-material/Home";
 import EqualizerIcon from "@mui/icons-material/Equalizer";
 import { NavLink } from "react-router-dom";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import MeetingRoomIcon from "@mui/icons-material/MeetingRoom";
+import { useAppContext } from "../../context/AppContext";
+import axios from "axios";
+import ModalComponent from "./ModalComponent";
 
 interface SidebarProps {
     drawerWidth: number;
@@ -34,17 +37,42 @@ const Sidebar = ({
     mobileOpen,
     handleDrawerToggle,
 }: SidebarProps) => {
+    const { LoginUser, setLoginUser } = useAppContext();
+
     const MenuItems: menuItem[] = [
         { text: "トップ", path: "/", icon: HomeIcon },
         { text: "レポート", path: "/report", icon: EqualizerIcon },
-        { text: "ログイン", path: "/login", icon: LockOutlinedIcon },
-        { text: "サインイン", path: "/register", icon: MeetingRoomIcon },
     ];
+
+    const LogoutItems = [{ text: "ログアウト", icon: LockOutlinedIcon }];
+
     const NotLoginMenuItems: menuItem[] = [
         { text: "トップ", path: "/", icon: HomeIcon },
         { text: "ログイン", path: "/login", icon: HomeIcon },
         { text: "サインイン", path: "/register", icon: MeetingRoomIcon },
     ];
+
+    const [menuItems, setMenuItems] = useState<menuItem[]>(MenuItems);
+
+    const objToArray = (obj: menuItem[]) => {
+        return Object.values(obj);
+    };
+    const [showModal, setShowModal] = useState<boolean>(false);
+    const [modalMainMessage, setModalMainMessage] = useState<string>("");
+    const [modalMessage, setModalMessage] = useState<string>("");
+    const [modalOption, setModalOption] = useState<number>(0);
+
+    useEffect(() => {
+        LoginUser
+            ? setMenuItems((beforeData) => {
+                  const menusList = MenuItems;
+                  return objToArray(menusList);
+              })
+            : setMenuItems((beforeData) => {
+                  const menusList = { ...beforeData, ...NotLoginMenuItems };
+                  return objToArray(menusList);
+              });
+    }, [LoginUser]);
 
     const baseLinkStyle: CSSProperties = {
         textDecoration: "none",
@@ -56,12 +84,32 @@ const Sidebar = ({
         backgroundColor: "rgba(0, 0, 0, 0.08)",
     };
 
+    const clickLogout = () => {
+        setShowModal(true);
+        setModalMainMessage("ログアウト");
+        setModalMessage("ログアウトしますか？");
+        setModalOption(1);
+    };
+
+    const logout = async () => {
+        await axios
+            .post("/api/logout", LoginUser)
+            .then((res) => {
+                setLoginUser(undefined);
+            })
+            .catch((err) => {});
+    };
+
+    const handleCloseModal: () => void = () => {
+        setShowModal(false);
+    };
+
     const drawer = (
         <div>
             <Toolbar />
             <Divider />
             <List>
-                {MenuItems.map((item, index) => (
+                {menuItems.map((item, index) => (
                     <NavLink
                         key={item.text}
                         to={item.path}
@@ -82,6 +130,29 @@ const Sidebar = ({
                         </ListItem>
                     </NavLink>
                 ))}
+                {LoginUser &&
+                    LogoutItems.map((item, index) => (
+                        <NavLink
+                            key={item.text}
+                            onClick={clickLogout}
+                            to=""
+                            style={({ isActive }) => {
+                                return {
+                                    ...baseLinkStyle,
+                                    ...(isActive ? activeLinkStyle : {}),
+                                };
+                            }}
+                        >
+                            <ListItem key={index} disablePadding>
+                                <ListItemButton>
+                                    <ListItemIcon>
+                                        <item.icon />
+                                    </ListItemIcon>
+                                    <ListItemText primary={item.text} />
+                                </ListItemButton>
+                            </ListItem>
+                        </NavLink>
+                    ))}
             </List>
         </div>
     );
@@ -125,6 +196,14 @@ const Sidebar = ({
             >
                 {drawer}
             </Drawer>
+            <ModalComponent
+                showModal={showModal}
+                mainMessage={modalMainMessage}
+                contentMessage={modalMessage}
+                modalOption={modalOption}
+                handleCloseModal={handleCloseModal}
+                handleFunc={logout}
+            />
         </Box>
     );
 };

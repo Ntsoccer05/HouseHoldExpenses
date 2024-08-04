@@ -38,7 +38,7 @@ class RegisterRequest extends FormRequest
             'email.unique' => ':attributeは登録できません。',
             'email.email' => '正しいメールアドレスを指定してください。',
             'password.required' => ':attributeは必須項目です。',
-            'password.confirmed' => ':attributeは必須項目です。' 
+            'password.confirmed' => ':attributeと:attribute確認が一致していません。', 
         ];
     }
 

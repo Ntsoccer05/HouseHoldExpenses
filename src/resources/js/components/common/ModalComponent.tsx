@@ -4,13 +4,17 @@ interface ModalComponentProps {
     mainMessage: string;
     contentMessage: string;
     showModal: boolean;
+    modalOption?: number;
     handleCloseModal: () => void;
+    handleFunc: () => void;
 }
 function ModalComponent({
     mainMessage,
     contentMessage,
     showModal,
+    modalOption,
     handleCloseModal,
+    handleFunc,
 }: ModalComponentProps) {
     const style = {
         position: "absolute" as "absolute",
@@ -34,6 +38,32 @@ function ModalComponent({
                     {contentMessage}
                 </Typography>
                 <Box mt={4} display="flex" justifyContent="center">
+                    {modalOption ? (
+                        <>
+                            <Button
+                                variant="contained"
+                                color="primary"
+                                onClick={handleFunc}
+                            >
+                                はい
+                            </Button>
+                            <Button
+                                variant="contained"
+                                color="primary"
+                                onClick={handleCloseModal}
+                            >
+                                いいえ
+                            </Button>
+                        </>
+                    ) : (
+                        <Button
+                            variant="contained"
+                            color="primary"
+                            onClick={handleCloseModal}
+                        >
+                            閉じる
+                        </Button>
+                    )}
                     <Button
                         variant="contained"
                         color="primary"

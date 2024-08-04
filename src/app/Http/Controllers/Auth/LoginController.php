@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Auth;
 use Laravel\Socialite\Facades\Socialite;
 use App\Http\Requests\Auth\LoginRequest;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 
@@ -35,6 +36,7 @@ class LoginController extends Controller
         if(empty($user->email_verified_at)){
             return response()->json(['error' => 'メールアドレス認証がされていません'],403);
         }
+        // webでログイン guard('web')
         if(Auth::guard('web')->attempt($credentials)){
             $request->session()->regenerate();
             return response()->json(['status_code' => 200,'message' => 'ログインしました'], 200);
@@ -44,8 +46,17 @@ class LoginController extends Controller
     // ログアウト処理
     public function logout(Request $request)
     {
-        // ログアウトする
-        Auth::guard()->logout();
+        // ユーザーが認証されていない場合 webでログインしたのでguard('web')
+        if ( Auth::guard('web')->guest()) {
+            return new JsonResponse([
+                'message' => '既にログアウト済みです',
+            ]);
+        }
+
+        Log::error($request);
+        
+        // ログアウトする webでログインしたのでguard('web')
+        Auth::guard('web')->logout();
         // セッションを無効にする
         $request->session()->invalidate();
         // CSRFトークンを再生成する
