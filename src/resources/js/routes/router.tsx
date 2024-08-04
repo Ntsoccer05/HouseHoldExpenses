@@ -7,7 +7,7 @@ import { theme } from "../theme/theme";
 import { ThemeProvider } from "@emotion/react";
 import { CssBaseline } from "@mui/material";
 
-import { AppProvider } from "../context/AppContext";
+import { AppProvider, useAppContext } from "../context/AppContext";
 import Login from "../pages/Login";
 import Register from "../pages/Register";
 import VerifyEmail from "../components/Auth/VerifyEmail";

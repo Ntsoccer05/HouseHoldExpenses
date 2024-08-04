@@ -32,6 +32,7 @@ interface AppContextType {
         transactionId: string
     ) => Promise<void>;
     LoginUser: LoginUser | undefined;
+    setLoginUser: React.Dispatch<React.SetStateAction<LoginUser | undefined>>;
     getLoginUser: () => Promise<void>;
 }
 
@@ -150,6 +151,7 @@ export const AppProvider = ({ children }: AppProviderProps) => {
                 onDeleteTransaction,
                 onUpdateTransaction,
                 LoginUser,
+                setLoginUser,
                 getLoginUser,
             }}
         >
