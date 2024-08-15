@@ -14,6 +14,7 @@ use App\Models\MonthlyAmount;
 use App\Models\Type;
 use App\Models\User;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 
 class DatabaseSeeder extends Seeder
 {
@@ -29,13 +30,18 @@ class DatabaseSeeder extends Seeder
         //     'email' => 'test@example.com',
         // ]);
         User::factory(10)->create();
-        Type::factory()->create([
-            'id' => 1,
-            'name' => 'income'
-        ]);
-        Type::factory()->create([
-            'id' => 2,
-            'name' => 'expense'
+        DB::table('types')->insert([
+            [
+                'id' => 1,
+                'name' => '収入',
+                'en_name' => 'income'
+            ],
+            [
+                'id' => 2,
+                'name' => '支出',
+                'en_name' => 'expense'
+            ],
+          
         ]);
         foreach(config('app.income_contents') as $key => $incomeContent){
             FixedCategory::factory()->create([

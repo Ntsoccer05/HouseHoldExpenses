@@ -12,6 +12,7 @@ import { useAppContext } from "../context/AppContext";
 import ChangeCalendarMonth from "../components/ChangeCalendarMonth";
 import FullCalendar from "@fullcalendar/react";
 import "../../css/calendar.css";
+import { useNavigate } from "react-router-dom";
 
 const Home = () => {
     const today = format(new Date(), "yyyy-MM-dd");
@@ -24,7 +25,10 @@ const Home = () => {
     // const theme = useTheme();
     // const isMobile = useMediaQuery(theme.breakpoints.down("lg"));
 
-    const { isMobile } = useAppContext();
+    const { isMobile, LoginUser } = useAppContext();
+
+    //ページ遷移に使用する
+    const navigate = useNavigate();
 
     const calendarRef = useRef<React.LegacyRef<FullCalendar> | FullCalendar>(
         null
@@ -50,14 +54,18 @@ const Home = () => {
 
     // フォームの開閉処理(内訳追加ボタンを押したとき)
     const handleAddTransactionForm = () => {
-        if (isMobile) {
-            setIsDialogOpen(true);
-        } else {
-            if (selectedTransaction) {
-                setSelectedTransaction(null);
+        if (LoginUser) {
+            if (isMobile) {
+                setIsDialogOpen(true);
             } else {
-                setIsEntryDrawerOpen(!isEntryDrawerOpen);
+                if (selectedTransaction) {
+                    setSelectedTransaction(null);
+                } else {
+                    setIsEntryDrawerOpen(!isEntryDrawerOpen);
+                }
             }
+        } else {
+            navigate("/login");
         }
     };
     //取り引きが選択された時の処理

@@ -59,6 +59,12 @@ function ResetPasswordForm() {
             })
             .catch(function (error) {
                 setIsLoading(false);
+                setErrorMsgs(() => {
+                    return {
+                        passErrMsg: "",
+                        passConfErrMsg: "",
+                    };
+                });
                 const errorResMsgs = error.response.data.errors;
                 PasswordResetError(errorResMsgs, setErrorMsgs);
                 // 送信失敗時の処理

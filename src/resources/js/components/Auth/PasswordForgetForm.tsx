@@ -49,6 +49,11 @@ function PasswordForgetForm() {
             })
             .catch(function (error) {
                 setIsLoading(false);
+                setErrorMsgs(() => {
+                    return {
+                        emailErrMsg: "",
+                    };
+                });
                 const errorResMsgs = error.response.data.errors;
                 PasswordForgetError(errorResMsgs, setErrorMsgs);
                 // 送信失敗時の処理

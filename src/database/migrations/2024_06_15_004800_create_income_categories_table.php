@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->onDelete('cascade');
             $table->foreignId('type_id')->onDelete('cascade');
-            $table->string('content');
+            $table->string('content')->default(0);
             $table->timestamps();
         });
     }

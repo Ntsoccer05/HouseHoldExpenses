@@ -20,8 +20,10 @@ class ExpenceCategoryFactory extends Factory
     {
         return [
             //
+            // `User::factory()` の記述はExpenceCategoryのダミーデータを1件生成すると、それと同時にuser_idが新たに生成され、そのuser_idが`ExpenceCategory->user_id` にセットされる
             'user_id' => User::factory(),
-            'type_id' => Type::factory(),
+            // Typeモデル内にあるidの中からランダムに割り当てられる（新たに生成されない）
+            'type_id' => Type::inRandomOrder()->value('id'),
             'content' => fake()->text(50),
         ];
     }
