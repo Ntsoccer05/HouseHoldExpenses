@@ -15,6 +15,7 @@ import HomeIcon from "@mui/icons-material/Home";
 import EqualizerIcon from "@mui/icons-material/Equalizer";
 import { NavLink } from "react-router-dom";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
+import LockOpenIcon from "@mui/icons-material/LockOpen";
 import MeetingRoomIcon from "@mui/icons-material/MeetingRoom";
 import { useAppContext } from "../../context/AppContext";
 import axios from "axios";
@@ -48,8 +49,8 @@ const Sidebar = ({
 
     const NotLoginMenuItems: menuItem[] = [
         { text: "トップ", path: "/", icon: HomeIcon },
-        { text: "ログイン", path: "/login", icon: HomeIcon },
-        { text: "サインイン", path: "/register", icon: MeetingRoomIcon },
+        { text: "ログイン", path: "/login", icon: MeetingRoomIcon },
+        { text: "サインイン", path: "/register", icon: LockOpenIcon },
     ];
 
     const [menuItems, setMenuItems] = useState<menuItem[]>(MenuItems);
@@ -96,8 +97,13 @@ const Sidebar = ({
             .post("/api/logout", LoginUser)
             .then((res) => {
                 setLoginUser(undefined);
+                setModalMainMessage("ログアウト完了");
+                setModalMessage("ログアウトしました");
+                setModalOption(0);
             })
-            .catch((err) => {});
+            .catch((err) => {
+                handleCloseModal();
+            });
     };
 
     const handleCloseModal: () => void = () => {

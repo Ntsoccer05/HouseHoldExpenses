@@ -8,12 +8,28 @@ interface AppTitleProps {
 function AppTitle({ title, icon }: AppTitleProps) {
     return (
         <Box>
-            <Typography variant="h5" component="h1">
+            <Typography
+                variant="h5"
+                component="h1"
+                sx={
+                    icon
+                        ? { cursor: "default", mb: 0 }
+                        : { cursor: "default", mb: 5 }
+                }
+            >
                 {title}
             </Typography>
-            <Avatar sx={{ margin: "8px auto", bgcolor: "secondary.main" }}>
-                {icon}
-            </Avatar>
+            {icon && (
+                <Avatar
+                    sx={{
+                        margin: "8px auto",
+                        bgcolor: "secondary.main",
+                        mb: 5,
+                    }}
+                >
+                    {icon}
+                </Avatar>
+            )}
         </Box>
     );
 }

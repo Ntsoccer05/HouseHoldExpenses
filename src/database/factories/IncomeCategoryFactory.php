@@ -21,7 +21,8 @@ class IncomeCategoryFactory extends Factory
         return [
             //
             'user_id' => User::factory(),
-            'type_id' => Type::factory(),
+            // Typeモデル内にあるidの中からランダムに割り当てられる（新たに生成されない）
+            'type_id' => Type::inRandomOrder()->value('id'),
             'content' => fake()->text(50),
         ];
     }

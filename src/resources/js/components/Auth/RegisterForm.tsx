@@ -8,6 +8,7 @@ import { RegisterError } from "../../utils/errorHandling";
 import ModalComponent from "../common/ModalComponent";
 import MeetingRoomIcon from "@mui/icons-material/MeetingRoom";
 import AppTitle from "../layout/AppTitle";
+import LockOpen from "@mui/icons-material/LockOpen";
 
 function RegisterForm() {
     type RegisterErrMsgs = {
@@ -63,12 +64,18 @@ function RegisterForm() {
                 setModalMessage(
                     "認証用メールを送信しました。ご確認お願いします。"
                 );
-                setIsLoading(false);
                 console.log(response.data);
             })
             .catch(function (error) {
                 setIsLoading(false);
-                debugger;
+                setErrorMsgs(() => {
+                    return {
+                        nameErrMsg: "",
+                        emailErrMsg: "",
+                        passErrMsg: "",
+                        passConfErrMsg: "",
+                    };
+                });
                 const errorResMsgs = error.response.data.errors;
                 RegisterError(errorResMsgs, setErrorMsgs);
                 // 送信失敗時の処理
@@ -78,7 +85,7 @@ function RegisterForm() {
     const handleCloseModal: () => void = () => {
         setShowModal(false);
     };
-    const IconComponents: JSX.Element = <MeetingRoomIcon />;
+    const IconComponents: JSX.Element = <LockOpen />;
 
     const formContent = (
         <>
@@ -160,7 +167,11 @@ function RegisterForm() {
                         fullWidth
                         disabled={isLoading}
                     >
-                        {isLoading ? "認証メール送信中" : "登録"}
+                        {isLoading
+                            ? modalMessage
+                                ? "認証メールを確認してください"
+                                : "認証メール送信中"
+                            : "登録"}
                     </Button>
                 </Stack>
             </Box>

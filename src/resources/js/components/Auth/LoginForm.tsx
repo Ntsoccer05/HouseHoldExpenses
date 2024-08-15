@@ -11,6 +11,7 @@ import { Link } from "react-router-dom";
 import AppTitle from "../layout/AppTitle";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import { useAppContext } from "../../context/AppContext";
+import { MeetingRoomOutlined } from "@mui/icons-material";
 
 function LoginForm() {
     type LoginInput = {
@@ -82,6 +83,12 @@ function LoginForm() {
             .catch(function (error) {
                 // 送信失敗時の処理
                 setIsLoading(false);
+                setErrorMsgs(() => {
+                    return {
+                        emailErrMsg: "",
+                        passErrMsg: "",
+                    };
+                });
                 if (error.response.status == 403) {
                     setErrorMsgs((state) => {
                         return {
@@ -121,7 +128,7 @@ function LoginForm() {
         setShowModal(false);
     };
 
-    const IconComponents: JSX.Element = <LockOutlinedIcon />;
+    const IconComponents: JSX.Element = <MeetingRoomOutlined />;
 
     const formContent = (
         <>
@@ -170,16 +177,21 @@ function LoginForm() {
                         variant="contained"
                         fullWidth
                         disabled={isLoading}
-                        onClick={() =>
-                            reConfirmEmail ? resendConfirmEmail() : undefined
-                        }
                     >
-                        {reConfirmEmail
-                            ? isLoading
-                                ? "認証メール送信中"
-                                : "再度メール認証"
-                            : "ログイン"}
+                        ログイン
                     </Button>
+                    {reConfirmEmail && (
+                        <Button
+                            color="error"
+                            type="submit"
+                            variant="contained"
+                            fullWidth
+                            disabled={isLoading}
+                            onClick={() => resendConfirmEmail()}
+                        >
+                            {isLoading ? "認証メール送信中" : "再度メール認証"}
+                        </Button>
+                    )}
                 </Stack>
             </Box>
         </>
