@@ -55,3 +55,10 @@ export interface LoginUser {
     created_at: Date;
     updated_at: Date;
 }
+export interface BaseUserCategory {
+    content: string;
+    created_at: Date;
+    id: number;
+    type_id: number;
+    updated_at: Date;
+}

@@ -77,7 +77,7 @@ class User extends Authenticatable implements MustVerifyEmail
 
     // public function markEmailAsVerified()
     // {
-    //     // $thisには使用先で$user->hasVerifiedEmail()とした場合の$userが入る
+    //     // $thisには使用先で$user->markEmailAsVerified()とした場合の$userが入る
     //     return $this->forceFill([
     //         'email_verified_at' => $this->freshTimestamp(),
     //     ])->save();

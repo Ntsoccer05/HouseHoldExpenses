@@ -38,7 +38,7 @@ function LoginForm() {
         password: "",
     });
 
-    const { getLoginUser } = useAppContext();
+    const { setIsLogigned } = useAppContext();
 
     const [reConfirmEmail, setReConfirmEmail] = useState<boolean>(false);
 
@@ -76,9 +76,8 @@ function LoginForm() {
             .then((response) => {
                 // handleEmailVerification(response.data.token);
                 // 送信成功時の処理
-                getLoginUser();
+                setIsLogigned(true);
                 navigate("/");
-                console.log(response.data);
             })
             .catch(function (error) {
                 // 送信失敗時の処理

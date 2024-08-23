@@ -4,6 +4,8 @@ use App\Http\Controllers\Auth\ForgetPasswordController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\VerificationController;
+use App\Http\Controllers\ExpenseCategoryController;
+use App\Http\Controllers\IncomeCategoryController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -21,6 +23,8 @@ use Illuminate\Support\Facades\Route;
 // ログイン済みのみ
 // verifiedでメール認証済み
 Route::group(['middleware'=>['auth:sanctum']],function(){
+    Route::get('/IncomeCategory',[IncomeCategoryController::class, 'index']);
+    Route::get('/ExpenseCategory',[ExpenseCategoryController::class, 'index']);
     Route::post('/logout',[LoginController::class, 'logout']);
 });
 

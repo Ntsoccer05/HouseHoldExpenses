@@ -36,6 +36,7 @@ class LoginController extends Controller
         if(empty($user->email_verified_at)){
             return response()->json(['error' => 'メールアドレス認証がされていません'],403);
         }
+        
         // webでログイン guard('web')
         if(Auth::guard('web')->attempt($credentials)){
             $request->session()->regenerate();
