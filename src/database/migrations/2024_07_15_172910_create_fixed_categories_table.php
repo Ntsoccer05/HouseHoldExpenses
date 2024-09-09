@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('type_id')->onDelete('cascade');
             $table->string('content');
+            $table->string('icon')->default("");
             $table->timestamps();
         });
     }

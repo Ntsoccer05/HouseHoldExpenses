@@ -47,7 +47,8 @@ class DatabaseSeeder extends Seeder
             FixedCategory::factory()->create([
                 'id' => $key + 1,
                 'type_id' => config('app.income_type_id'),
-                'content' => $incomeContent
+                'content' => $incomeContent,
+                'icon' => config('app.income_icons')[$key]
             ]);
         }
         $expense_id = FixedCategory::latest('id')->first()->id;
@@ -55,7 +56,8 @@ class DatabaseSeeder extends Seeder
             FixedCategory::factory()->create([
                 'id' => $expense_id + $key + 1,
                 'type_id' => config('app.expense_type_id'),
-                'content' => $expenseContent
+                'content' => $expenseContent,
+                'icon' => config('app.expense_icons')[$key]
             ]);
         }
         ExpenceCategory::factory(5)->create();

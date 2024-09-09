@@ -198,6 +198,7 @@ return [
     'expense_type_id' => 2,
 
     'income_contents' => [ "給与", "副収入", "お小遣い"],
+    'income_icons' => [ "Work", "AddBusiness", "Savings"],
     'expense_contents' => ["食費", "日用品", "住居費", "交際費", "娯楽", "交通費"],
-
+    'expense_icons' => ["Fastfood", "Alarm", "AddHome", "Diversity3", "SportsTennis", "Train"],
 ];

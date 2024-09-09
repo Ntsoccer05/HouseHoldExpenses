@@ -64,7 +64,6 @@ function RegisterForm() {
                 setModalMessage(
                     "認証用メールを送信しました。ご確認お願いします。"
                 );
-                console.log(response.data);
             })
             .catch(function (error) {
                 setIsLoading(false);

@@ -5,7 +5,12 @@ import React, {
     useEffect,
     useState,
 } from "react";
-import { BaseUserCategory, LoginUser, Transaction } from "../types/index";
+import {
+    BaseUserCategory,
+    CategoryItem,
+    LoginUser,
+    Transaction,
+} from "../types/index";
 import { Schema } from "../validations/schema";
 // import {
 //   addDoc,
@@ -43,14 +48,17 @@ interface AppContextType {
     getLoginUser: () => Promise<void>;
     getIncomeCategory: () => Promise<void>;
     getExpenseCategory: () => Promise<void>;
+    IncomeCategories: CategoryItem[] | undefined;
+    ExpenseCategories: CategoryItem[] | undefined;
 }
 
-// createContextでグローバルにする値を設定　AppContext.Providerのvalueの設定値の型を指定する必要がある
+// createContextでグローバルにする値を設定 AppContext.Providerのvalueの設定値の型を指定する必要がある
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 interface AppProviderProps {
     children: ReactNode;
 }
+
 // プロバイダーコンポーネント
 export const AppProvider = ({ children }: AppProviderProps) => {
     const theme = useTheme();
@@ -59,7 +67,12 @@ export const AppProvider = ({ children }: AppProviderProps) => {
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [isLogigned, setIsLogigned] = useState<boolean>(false);
     const [LoginUser, setLoginUser] = useState<LoginUser | undefined>();
-    const [IncomeCategory, setIncomeCategory] = useState();
+    const [IncomeCategories, setIncomeCategories] = useState<CategoryItem[]>(
+        []
+    );
+    const [ExpenseCategories, setExpenseCategories] = useState<CategoryItem[]>(
+        []
+    );
     const isMobile = useMediaQuery(theme.breakpoints.down("lg"));
 
     //ログインユーザー取得処理
@@ -88,11 +101,19 @@ export const AppProvider = ({ children }: AppProviderProps) => {
                             const responseIncomeCategory =
                                 res.data.incomeUserCategory.map(
                                     (incomeCategory: BaseUserCategory) => {
-                                        return incomeCategory.content;
+                                        return {
+                                            id: incomeCategory.id,
+                                            filtered_id:
+                                                incomeCategory.filtered_id,
+                                            fixed_category_id:
+                                                incomeCategory.fixed_category_id,
+                                            label: incomeCategory.content,
+                                            icon: incomeCategory.icon,
+                                            deleted: incomeCategory.deleted,
+                                        };
                                     }
                                 );
-                            console.log(responseIncomeCategory);
-                            setIncomeCategory(responseIncomeCategory);
+                            setIncomeCategories(responseIncomeCategory);
                         }
                     })
                     .catch((err) => {}));
@@ -112,16 +133,23 @@ export const AppProvider = ({ children }: AppProviderProps) => {
                         },
                     })
                     .then((res) => {
-                        console.log(res.data.expenseUserCategory);
                         if (res.data.expenseUserCategory) {
                             const responseExpenseCategory =
                                 res.data.expenseUserCategory.map(
                                     (expenseCategory: BaseUserCategory) => {
-                                        return expenseCategory.content;
+                                        return {
+                                            id: expenseCategory.id,
+                                            filtered_id:
+                                                expenseCategory.filtered_id,
+                                            fixed_category_id:
+                                                expenseCategory.fixed_category_id,
+                                            label: expenseCategory.content,
+                                            icon: expenseCategory.icon,
+                                            deleted: expenseCategory.deleted,
+                                        };
                                     }
                                 );
-                            console.log(responseExpenseCategory);
-                            setIncomeCategory(responseExpenseCategory);
+                            setExpenseCategories(responseExpenseCategory);
                         }
                     })
                     .catch((err) => {}));
@@ -231,6 +259,8 @@ export const AppProvider = ({ children }: AppProviderProps) => {
                 LoginUser,
                 setLoginUser,
                 getLoginUser,
+                IncomeCategories,
+                ExpenseCategories,
                 getIncomeCategory,
                 getExpenseCategory,
             }}

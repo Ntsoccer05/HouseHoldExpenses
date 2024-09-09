@@ -45,7 +45,6 @@ function PasswordForgetForm() {
                     "パスワード変更メールを送信しました。ご確認お願いします。"
                 );
                 setIsLoading(false);
-                console.log(response.data);
             })
             .catch(function (error) {
                 setIsLoading(false);

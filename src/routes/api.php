@@ -25,6 +25,12 @@ use Illuminate\Support\Facades\Route;
 Route::group(['middleware'=>['auth:sanctum']],function(){
     Route::get('/IncomeCategory',[IncomeCategoryController::class, 'index']);
     Route::get('/ExpenseCategory',[ExpenseCategoryController::class, 'index']);
+    Route::post('/updateExpenseCategory',[ExpenseCategoryController::class, 'update']);
+    Route::post('/updateIncomeCategory',[IncomeCategoryController::class, 'update']);
+    Route::post('/deleteExpenseCategory',[ExpenseCategoryController::class, 'delete']);
+    Route::post('/deleteIncomeCategory',[IncomeCategoryController::class, 'delete']);
+    Route::post('/addExpenseCategory',[ExpenseCategoryController::class, 'add']);
+    Route::post('/addIncomeCategory',[IncomeCategoryController::class, 'add']);
     Route::post('/logout',[LoginController::class, 'logout']);
 });
 
