@@ -42,7 +42,6 @@ const CategoryEditForm = React.memo(
         const handleClick = (event: React.MouseEvent<unknown>, id: number) => {
             const selectedIndex = selected.indexOf(id);
             let newSelected: readonly number[] = [];
-            // debugger;
             if (selectedIndex === -1) {
                 newSelected = newSelected.concat(selected, id);
             } else if (selectedIndex === 0) {
