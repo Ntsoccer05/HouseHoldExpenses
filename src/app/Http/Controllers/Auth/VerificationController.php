@@ -43,7 +43,7 @@ class VerificationController extends Controller
 
         //メール認証されている時のリダイレクト先
         if ($requestUser->hasVerifiedEmail()) {
-            return redirect()->to(config('app.url'));
+            return redirect()->to(config('app.url').'/login');
         }
 
         if ($requestUser->markEmailAsVerified()) {
@@ -51,7 +51,7 @@ class VerificationController extends Controller
         }
 
         //最終的に任意のルート先にリダイレクトさせるようにします
-        return redirect()->to(config('app.url'));
+        return redirect()->to(config('app.url').'/login');
     }
 
     /**

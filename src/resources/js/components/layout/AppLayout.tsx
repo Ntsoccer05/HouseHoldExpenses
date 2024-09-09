@@ -12,7 +12,6 @@ import SideBar from "../common/SideBar";
 // import { db } from "../../firebase";
 import { Transaction } from "../../types";
 import { useAppContext } from "../../context/AppContext";
-import topLogo from "../../logo/スマカケ.webp";
 const drawerWidth = 240;
 
 export default function AppLayout() {
@@ -53,7 +52,7 @@ export default function AppLayout() {
         // fecheTransactions();
     }, []);
 
-    const topImgLogoStyle = {
+    const topImgLogoStyle: React.CSSProperties = {
         width: "260px",
         height: "50px",
         objectFit: "cover",
@@ -102,7 +101,8 @@ export default function AppLayout() {
                         {/* <span className="topTitle">スマート家計簿</span> */}
                         <img
                             style={topImgLogoStyle}
-                            src={topLogo}
+                            // publicフォルダ内のロゴを参照
+                            src="/logo/スマカケ.webp"
                             alt="toplogo"
                         />
                     </Typography>

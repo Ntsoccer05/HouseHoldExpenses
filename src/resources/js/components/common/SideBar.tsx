@@ -20,6 +20,7 @@ import MeetingRoomIcon from "@mui/icons-material/MeetingRoom";
 import { useAppContext } from "../../context/AppContext";
 import axios from "axios";
 import ModalComponent from "./ModalComponent";
+import CategoryIcon from "@mui/icons-material/Category";
 
 interface SidebarProps {
     drawerWidth: number;
@@ -43,6 +44,7 @@ const Sidebar = ({
     const MenuItems: menuItem[] = [
         { text: "トップ", path: "/", icon: HomeIcon },
         { text: "レポート", path: "/report", icon: EqualizerIcon },
+        { text: "カテゴリ編集", path: "/category", icon: CategoryIcon },
     ];
 
     const LogoutItems = [{ text: "ログアウト", icon: LockOutlinedIcon }];

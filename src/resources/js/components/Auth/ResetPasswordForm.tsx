@@ -55,7 +55,6 @@ function ResetPasswordForm() {
                     "パスワード変更完了しました。ログインしてください。"
                 );
                 setIsLoading(false);
-                console.log(response.data);
             })
             .catch(function (error) {
                 setIsLoading(false);

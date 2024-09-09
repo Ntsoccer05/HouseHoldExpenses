@@ -1,5 +1,16 @@
-import React, { ReactNode, createContext, useContext, useState } from "react";
-import { LoginUser, Transaction } from "../types/index";
+import React, {
+    ReactNode,
+    createContext,
+    useContext,
+    useEffect,
+    useState,
+} from "react";
+import {
+    BaseUserCategory,
+    CategoryItem,
+    LoginUser,
+    Transaction,
+} from "../types/index";
 import { Schema } from "../validations/schema";
 // import {
 //   addDoc,
@@ -22,6 +33,7 @@ interface AppContextType {
     isLoading: boolean;
     setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
     isMobile: boolean;
+    setIsLogigned: React.Dispatch<React.SetStateAction<boolean>>;
     //以下から関数（追加、削除、更新）
     onSaveTransaction: (transaction: Schema) => Promise<void>;
     onDeleteTransaction: (
@@ -34,21 +46,33 @@ interface AppContextType {
     LoginUser: LoginUser | undefined;
     setLoginUser: React.Dispatch<React.SetStateAction<LoginUser | undefined>>;
     getLoginUser: () => Promise<void>;
+    getIncomeCategory: () => Promise<void>;
+    getExpenseCategory: () => Promise<void>;
+    IncomeCategories: CategoryItem[] | undefined;
+    ExpenseCategories: CategoryItem[] | undefined;
 }
 
-// createContextでグローバルにする値を設定　AppContext.Providerのvalueの設定値の型を指定する必要がある
+// createContextでグローバルにする値を設定 AppContext.Providerのvalueの設定値の型を指定する必要がある
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 interface AppProviderProps {
     children: ReactNode;
 }
+
 // プロバイダーコンポーネント
 export const AppProvider = ({ children }: AppProviderProps) => {
     const theme = useTheme();
     const [transactions, setTransactions] = useState<Transaction[]>([]);
     const [currentMonth, setCurrentMonth] = useState(new Date());
-    const [isLoading, setIsLoading] = useState(true);
+    const [isLoading, setIsLoading] = useState<boolean>(true);
+    const [isLogigned, setIsLogigned] = useState<boolean>(false);
     const [LoginUser, setLoginUser] = useState<LoginUser | undefined>();
+    const [IncomeCategories, setIncomeCategories] = useState<CategoryItem[]>(
+        []
+    );
+    const [ExpenseCategories, setExpenseCategories] = useState<CategoryItem[]>(
+        []
+    );
     const isMobile = useMediaQuery(theme.breakpoints.down("lg"));
 
     //ログインユーザー取得処理
@@ -61,6 +85,87 @@ export const AppProvider = ({ children }: AppProviderProps) => {
             console.log(err);
         }
     };
+
+    //収入カテゴリー取得処理
+    const getIncomeCategory = async () => {
+        try {
+            LoginUser &&
+                (await axios
+                    .get("/api/IncomeCategory", {
+                        params: {
+                            user_id: LoginUser.id,
+                        },
+                    })
+                    .then((res) => {
+                        if (res.data.incomeUserCategory) {
+                            const responseIncomeCategory =
+                                res.data.incomeUserCategory.map(
+                                    (incomeCategory: BaseUserCategory) => {
+                                        return {
+                                            id: incomeCategory.id,
+                                            filtered_id:
+                                                incomeCategory.filtered_id,
+                                            fixed_category_id:
+                                                incomeCategory.fixed_category_id,
+                                            label: incomeCategory.content,
+                                            icon: incomeCategory.icon,
+                                            deleted: incomeCategory.deleted,
+                                        };
+                                    }
+                                );
+                            setIncomeCategories(responseIncomeCategory);
+                        }
+                    })
+                    .catch((err) => {}));
+        } catch (err) {
+            console.log(err);
+        }
+    };
+
+    //収入カテゴリー取得処理
+    const getExpenseCategory = async () => {
+        try {
+            LoginUser &&
+                (await axios
+                    .get("/api/ExpenseCategory", {
+                        params: {
+                            user_id: LoginUser.id,
+                        },
+                    })
+                    .then((res) => {
+                        if (res.data.expenseUserCategory) {
+                            const responseExpenseCategory =
+                                res.data.expenseUserCategory.map(
+                                    (expenseCategory: BaseUserCategory) => {
+                                        return {
+                                            id: expenseCategory.id,
+                                            filtered_id:
+                                                expenseCategory.filtered_id,
+                                            fixed_category_id:
+                                                expenseCategory.fixed_category_id,
+                                            label: expenseCategory.content,
+                                            icon: expenseCategory.icon,
+                                            deleted: expenseCategory.deleted,
+                                        };
+                                    }
+                                );
+                            setExpenseCategories(responseExpenseCategory);
+                        }
+                    })
+                    .catch((err) => {}));
+        } catch (err) {
+            console.log(err);
+        }
+    };
+
+    useEffect(() => {
+        isLogigned && getLoginUser();
+    }, [isLogigned]);
+
+    useEffect(() => {
+        getIncomeCategory();
+        getExpenseCategory();
+    }, [LoginUser]);
 
     //取引を保存する処理
     const onSaveTransaction = async (transaction: Schema) => {
@@ -147,12 +252,17 @@ export const AppProvider = ({ children }: AppProviderProps) => {
                 isLoading,
                 setIsLoading,
                 isMobile,
+                setIsLogigned,
                 onSaveTransaction,
                 onDeleteTransaction,
                 onUpdateTransaction,
                 LoginUser,
                 setLoginUser,
                 getLoginUser,
+                IncomeCategories,
+                ExpenseCategories,
+                getIncomeCategory,
+                getExpenseCategory,
             }}
         >
             {children}
