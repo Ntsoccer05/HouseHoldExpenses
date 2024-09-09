@@ -22,7 +22,6 @@ class ForgetPasswordController extends Controller
     */
     public function sendemail(ForgetPasswordRequest $request){
 
-        Log::error($request);
         $request->validated();
 
         $status = Password::sendResetLink(

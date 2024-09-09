@@ -106,7 +106,6 @@ class IncomeCategoryController extends Controller
         $user_id = $request->user_id;
         $deleteData = json_encode($request->deleteData['tgtCategories']);
         $deleteData = json_decode($deleteData);
-        Log::error($deleteData);
         foreach($deleteData as $tgtData){
             $tgtData->user_id = $user_id;
             if(isset($tgtData->fixed_category_id)){

@@ -54,8 +54,6 @@ class LoginController extends Controller
             ]);
         }
 
-        Log::error($request);
-        
         // ログアウトする webでログインしたのでguard('web')
         Auth::guard('web')->logout();
         // セッションを無効にする
