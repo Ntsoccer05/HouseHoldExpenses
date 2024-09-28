@@ -54,6 +54,19 @@ td.fc-day-sun {
 .fc-toolbar-title {
     cursor: pointer !important;
 }
+.custom-event {
+    display: flex;
+    flex-grow: 1;
+    flex-direction: column;
+}
+
+.custom-event-content {
+    text-align: right;
+}
+
+.fc-daygrid-event-harness a.fc-daygrid-event {
+    pointer-events: none;
+}
 
 /* .MuiInputBase-input.MuiOutlinedInput-input.MuiInputBase-inputAdornedEnd.Mui-readOnly.MuiInputBase-readOnly.css-nxo287-MuiInputBase-input-MuiOutlinedInput-input {
     opacity: 0;

@@ -2,7 +2,11 @@ import FullCalendar from "@fullcalendar/react";
 import React, { memo, useEffect, useState } from "react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import jaLocale from "@fullcalendar/core/locales/ja";
-import { DatesSetArg, EventContentArg } from "@fullcalendar/core";
+import {
+    DatesSetArg,
+    EventClickArg,
+    EventContentArg,
+} from "@fullcalendar/core";
 import { Balance, CalendarContent } from "../types";
 import { calculateDailyBalances } from "../utils/financeCalculations";
 import { formatCurrency } from "../utils/formatting";
@@ -86,16 +90,25 @@ const Calendar = memo(
         //カレンダーイベントの見た目を作る関数
         const renderEventContent = (eventInfo: EventContentArg) => {
             return (
-                <div>
-                    <div className="money" id="event-income">
+                <div className="custom-event">
+                    <div
+                        className="money custom-event-content"
+                        id="event-income"
+                    >
                         {eventInfo.event.extendedProps.income}
                     </div>
 
-                    <div className="money" id="event-expense">
+                    <div
+                        className="money custom-event-content"
+                        id="event-expense"
+                    >
                         {eventInfo.event.extendedProps.expense}
                     </div>
 
-                    <div className="money" id="event-balance">
+                    <div
+                        className="money custom-event-content"
+                        id="event-balance"
+                    >
                         {eventInfo.event.extendedProps.balance}
                     </div>
                 </div>
@@ -153,10 +166,26 @@ const Calendar = memo(
                         backgroundEvent,
                     ]}
                     eventContent={renderEventContent}
+                    // eventClick={(info: EventClickArg) => {
+                    //     console.log(info);
+                    //     // Construct the onDateClick argument based on EventClickArg
+                    //     const dateClicked = {
+                    //         date: new Date(info.event.start as Date), // Use the event's start date
+                    //         allDay: true,
+                    //         dayEl: info.el, // Reference to the element
+                    //         jsEvent: info.jsEvent, // Include the jsEvent for any specific event handling
+                    //         view: info.view, // Pass the current view for context
+                    //         dateStr: (info.event.start as Date)
+                    //             .toISOString()
+                    //             .split("T")[0], // Format date as a string
+                    //     };
+
+                    //     onDateClick(dateClicked); // Call your date click handler here
+                    // }}
                     datesSet={handleDateSet}
                     dateClick={onDateClick}
                     buttonText={{
-                        today: "今月", // ここで today ボタンのテキストを変更
+                        today: "今月",
                     }}
                 />
             </>

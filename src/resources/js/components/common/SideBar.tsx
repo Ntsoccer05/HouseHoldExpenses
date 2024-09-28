@@ -39,7 +39,7 @@ const Sidebar = ({
     mobileOpen,
     handleDrawerToggle,
 }: SidebarProps) => {
-    const { LoginUser, setLoginUser } = useAppContext();
+    const { LoginUser, setLoginUser, setLoginFlg, loginFlg } = useAppContext();
 
     const MenuItems: menuItem[] = [
         { text: "トップ", path: "/", icon: HomeIcon },
@@ -55,7 +55,9 @@ const Sidebar = ({
         { text: "サインイン", path: "/register", icon: LockOpenIcon },
     ];
 
-    const [menuItems, setMenuItems] = useState<menuItem[]>(MenuItems);
+    const [menuItems, setMenuItems] = useState<menuItem[]>([
+        { text: "", path: "", icon: HomeIcon },
+    ]);
 
     const objToArray = (obj: menuItem[]) => {
         return Object.values(obj);
@@ -66,16 +68,18 @@ const Sidebar = ({
     const [modalOption, setModalOption] = useState<number>(0);
 
     useEffect(() => {
-        LoginUser
-            ? setMenuItems((beforeData) => {
-                  const menusList = MenuItems;
-                  return objToArray(menusList);
-              })
-            : setMenuItems((beforeData) => {
-                  const menusList = { ...beforeData, ...NotLoginMenuItems };
-                  return objToArray(menusList);
-              });
-    }, [LoginUser]);
+        if (loginFlg === 1) {
+            setMenuItems((beforeData) => {
+                const menusList = { ...beforeData, ...MenuItems };
+                return objToArray(menusList);
+            });
+        } else if (loginFlg === 2) {
+            setMenuItems((beforeData) => {
+                const menusList = { ...beforeData, ...NotLoginMenuItems };
+                return objToArray(menusList);
+            });
+        }
+    }, [loginFlg]);
 
     const baseLinkStyle: CSSProperties = {
         textDecoration: "none",
@@ -99,6 +103,7 @@ const Sidebar = ({
             .post("/api/logout", LoginUser)
             .then((res) => {
                 setLoginUser(undefined);
+                setLoginFlg(2);
                 setModalMainMessage("ログアウト完了");
                 setModalMessage("ログアウトしました");
                 setModalOption(0);
@@ -138,7 +143,7 @@ const Sidebar = ({
                         </ListItem>
                     </NavLink>
                 ))}
-                {LoginUser &&
+                {loginFlg === 1 &&
                     LogoutItems.map((item, index) => (
                         <NavLink
                             key={item.text}
@@ -147,7 +152,6 @@ const Sidebar = ({
                             style={({ isActive }) => {
                                 return {
                                     ...baseLinkStyle,
-                                    ...(isActive ? activeLinkStyle : {}),
                                 };
                             }}
                         >

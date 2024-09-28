@@ -33,7 +33,8 @@ interface AppContextType {
     isLoading: boolean;
     setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
     isMobile: boolean;
-    setIsLogigned: React.Dispatch<React.SetStateAction<boolean>>;
+    setLoginFlg: React.Dispatch<React.SetStateAction<number>>;
+    loginFlg: number;
     //以下から関数（追加、削除、更新）
     onSaveTransaction: (transaction: Schema) => Promise<void>;
     onDeleteTransaction: (
@@ -65,7 +66,7 @@ export const AppProvider = ({ children }: AppProviderProps) => {
     const [transactions, setTransactions] = useState<Transaction[]>([]);
     const [currentMonth, setCurrentMonth] = useState(new Date());
     const [isLoading, setIsLoading] = useState<boolean>(true);
-    const [isLogigned, setIsLogigned] = useState<boolean>(false);
+    const [loginFlg, setLoginFlg] = useState<number>(0);
     const [LoginUser, setLoginUser] = useState<LoginUser | undefined>();
     const [IncomeCategories, setIncomeCategories] = useState<CategoryItem[]>(
         []
@@ -80,9 +81,11 @@ export const AppProvider = ({ children }: AppProviderProps) => {
         try {
             await axios.get("/api/user").then((res) => {
                 setLoginUser(res.data);
+                setLoginFlg(() => 1);
             });
         } catch (err) {
             console.log(err);
+            setLoginFlg(() => 2);
         }
     };
 
@@ -105,8 +108,8 @@ export const AppProvider = ({ children }: AppProviderProps) => {
                                             id: incomeCategory.id,
                                             filtered_id:
                                                 incomeCategory.filtered_id,
-                                            fixed_category_id:
-                                                incomeCategory.fixed_category_id,
+                                            // fixed_category_id:
+                                            //     incomeCategory.fixed_category_id,
                                             label: incomeCategory.content,
                                             icon: incomeCategory.icon,
                                             deleted: incomeCategory.deleted,
@@ -121,6 +124,10 @@ export const AppProvider = ({ children }: AppProviderProps) => {
             console.log(err);
         }
     };
+
+    React.useEffect(() => {
+        getLoginUser();
+    }, []);
 
     //収入カテゴリー取得処理
     const getExpenseCategory = async () => {
@@ -141,8 +148,8 @@ export const AppProvider = ({ children }: AppProviderProps) => {
                                             id: expenseCategory.id,
                                             filtered_id:
                                                 expenseCategory.filtered_id,
-                                            fixed_category_id:
-                                                expenseCategory.fixed_category_id,
+                                            // fixed_category_id:
+                                            //     expenseCategory.fixed_category_id,
                                             label: expenseCategory.content,
                                             icon: expenseCategory.icon,
                                             deleted: expenseCategory.deleted,
@@ -159,37 +166,29 @@ export const AppProvider = ({ children }: AppProviderProps) => {
     };
 
     useEffect(() => {
-        isLogigned && getLoginUser();
-    }, [isLogigned]);
-
-    useEffect(() => {
         getIncomeCategory();
         getExpenseCategory();
     }, [LoginUser]);
 
     //取引を保存する処理
     const onSaveTransaction = async (transaction: Schema) => {
-        // try {
-        //     //firestoreにデータを保存
-        //     const docRef = await addDoc(
-        //         collection(db, "Transactions"),
-        //         transaction
-        //     );
-        //     const newTransaction = {
-        //         id: docRef.id,
-        //         ...transaction,
-        //     } as Transaction;
-        //     setTransactions((prevTransaction) => [
-        //         ...prevTransaction,
-        //         newTransaction,
-        //     ]);
-        // } catch (err) {
-        //     if (isFirestoreError(err)) {
-        //         console.error("firestoreのエラーは：", err);
-        //     } else {
-        //         console.error("一般的なエラーは:", err);
-        //     }
-        // }
+        try {
+            //データを保存
+            const docRef = await axios.post("/api/addTransaction", {
+                transaction: transaction,
+                user_id: LoginUser?.id,
+            });
+            const newTransaction = {
+                id: docRef.data.id,
+                ...transaction,
+            } as Transaction;
+            setTransactions((prevTransaction) => [
+                ...prevTransaction,
+                newTransaction,
+            ]);
+        } catch (err) {
+            console.error("一般的なエラーは:", err);
+        }
     };
 
     //削除処理
@@ -252,7 +251,8 @@ export const AppProvider = ({ children }: AppProviderProps) => {
                 isLoading,
                 setIsLoading,
                 isMobile,
-                setIsLogigned,
+                setLoginFlg,
+                loginFlg,
                 onSaveTransaction,
                 onDeleteTransaction,
                 onUpdateTransaction,

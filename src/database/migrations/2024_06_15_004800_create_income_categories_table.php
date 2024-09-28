@@ -15,7 +15,8 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->onDelete('cascade');
             $table->foreignId('type_id')->onDelete('cascade');
-            $table->integer('fixed_category_id')->nullable();
+            // $table->integer('fixed_category_id')->nullable();
+            $table->integer('filtered_id')->nullable();
             $table->string('content')->default(0);
             $table->string('icon')->default("");
             $table->integer('deleted')->default(0);

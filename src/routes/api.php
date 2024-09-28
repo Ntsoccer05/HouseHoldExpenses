@@ -6,6 +6,7 @@ use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\VerificationController;
 use App\Http\Controllers\ExpenseCategoryController;
 use App\Http\Controllers\IncomeCategoryController;
+use App\Http\Controllers\TransactionController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -31,6 +32,10 @@ Route::group(['middleware'=>['auth:sanctum']],function(){
     Route::post('/deleteIncomeCategory',[IncomeCategoryController::class, 'delete']);
     Route::post('/addExpenseCategory',[ExpenseCategoryController::class, 'add']);
     Route::post('/addIncomeCategory',[IncomeCategoryController::class, 'add']);
+    Route::post('/sortExpenseCategory',[ExpenseCategoryController::class, 'sort']);
+    Route::post('/sortIncomeCategory',[IncomeCategoryController::class, 'sort']);
+    Route::post('/addTransaction',[TransactionController::class, 'create']);
+    Route::get('/getTransactions',[TransactionController::class, 'index']);
     Route::post('/logout',[LoginController::class, 'logout']);
 });
 

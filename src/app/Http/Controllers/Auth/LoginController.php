@@ -28,7 +28,6 @@ class LoginController extends Controller
     // ログイン処理
     public function login(LoginRequest $request)
     {
-
         // まずLoginRequest.php内でバリデーションされて以下のコードが走る
         $credentials = $request->validated();
 
@@ -36,6 +35,13 @@ class LoginController extends Controller
         if(empty($user->email_verified_at)){
             return response()->json(['error' => 'メールアドレス認証がされていません'],403);
         }
+
+        // セッションをログ出力
+        // Log::info('セッションID: ' . $request->session()->getId());
+        // Log::info('セッション内容: ', $request->session()->all());  // セッションの全データを配列として出力
+
+        // 万が一ログアウトせずセッションが残っていた場合の処理
+        $request->session()->invalidate();  // セッションを無効化
         
         // webでログイン guard('web')
         if(Auth::guard('web')->attempt($credentials)){

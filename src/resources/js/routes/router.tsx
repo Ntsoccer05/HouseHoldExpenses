@@ -16,6 +16,7 @@ import PasswordForget from "../pages/PasswordForget";
 import ResetPassword from "../pages/ResetPassword";
 import Category from "../pages/Category";
 import PrivateRoute from "./PrivateRoute";
+import OnlyPublicRoute from "./OnlyPublicRoute";
 
 function DefineRouter() {
     return (
@@ -30,14 +31,24 @@ function DefineRouter() {
                             <Route
                                 index
                                 // PrivateRoute：ログインしていなかったらログイン画面へリダイレクト
+                                element={<Home />}
+                            />
+                            <Route
+                                path="/login"
                                 element={
-                                    <PrivateRoute>
-                                        <Home />
-                                    </PrivateRoute>
+                                    <OnlyPublicRoute>
+                                        <Login />
+                                    </OnlyPublicRoute>
                                 }
                             />
-                            <Route path="/login" element={<Login />} />
-                            <Route path="/register" element={<Register />} />
+                            <Route
+                                path="/register"
+                                element={
+                                    <OnlyPublicRoute>
+                                        <Register />
+                                    </OnlyPublicRoute>
+                                }
+                            />
                             <Route
                                 path="/report"
                                 element={
@@ -50,24 +61,34 @@ function DefineRouter() {
                             <Route
                                 path="/category"
                                 element={
-                                    <PrivateRoute>
-                                        <CategoryProvider>
-                                            <Category />
-                                        </CategoryProvider>
-                                    </PrivateRoute>
+                                    <CategoryProvider>
+                                        <Category />
+                                    </CategoryProvider>
                                 }
                             />
                             <Route
                                 path="/api/email/verify/:id/:hash"
-                                element={<VerifyEmail />}
+                                element={
+                                    <OnlyPublicRoute>
+                                        <VerifyEmail />
+                                    </OnlyPublicRoute>
+                                }
                             />
                             <Route
                                 path="/api/password/reset"
-                                element={<ResetPassword />}
+                                element={
+                                    <OnlyPublicRoute>
+                                        <ResetPassword />
+                                    </OnlyPublicRoute>
+                                }
                             />
                             <Route
                                 path="/password/forget"
-                                element={<PasswordForget />}
+                                element={
+                                    <OnlyPublicRoute>
+                                        <PasswordForget />
+                                    </OnlyPublicRoute>
+                                }
                             />
                             {/* 最後にpath='*'で上記に当てはまらない全てのページを指す */}
                             <Route path="*" element={<NoMatch />} />

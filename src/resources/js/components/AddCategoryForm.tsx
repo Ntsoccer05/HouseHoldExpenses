@@ -27,10 +27,17 @@ interface AddCategoryFormProps {
     open: boolean;
     setIsMobileDrawerOpen: React.Dispatch<React.SetStateAction<boolean>>;
     onClose: () => void;
+    setAdded: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const AddCategoryForm = memo(
-    ({ type, open, onClose, setIsMobileDrawerOpen }: AddCategoryFormProps) => {
+    ({
+        type,
+        open,
+        onClose,
+        setIsMobileDrawerOpen,
+        setAdded,
+    }: AddCategoryFormProps) => {
         const { isMobile, ExpenseCategories, IncomeCategories } =
             useAppContext();
         const { addCategories } = useCategoryContext();
@@ -78,12 +85,13 @@ const AddCategoryForm = memo(
         });
 
         // 送信処理
-        const onSubmit: SubmitHandler<Schema> = (data) => {
+        const onSubmit: SubmitHandler<Schema> = async (data) => {
             data.type = type;
-            addCategories(data);
+            await addCategories(data);
             // フォームの入力値を空にする
             setIsMobileDrawerOpen(false);
             reset();
+            setAdded(true);
         };
 
         return (

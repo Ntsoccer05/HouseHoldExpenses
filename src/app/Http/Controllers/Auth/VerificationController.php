@@ -4,11 +4,14 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\EmailCustomVerificationRequest;
+use App\Models\ExpenceCategory;
+use App\Models\IncomeCategory;
 use App\Models\User;
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Foundation\Auth\VerifiesEmails;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Log;
 
 class VerificationController extends Controller
 {
@@ -49,6 +52,11 @@ class VerificationController extends Controller
         if ($requestUser->markEmailAsVerified()) {
             event(new Verified($requestUser));
         }
+
+        $expenseCategory = new ExpenceCategory();
+        $incomeCategory = new IncomeCategory();
+        $expenseCategory->firstCreateData($requestUser);
+        $incomeCategory->firstCreateData($requestUser);
 
         //最終的に任意のルート先にリダイレクトさせるようにします
         return redirect()->to(config('app.url').'/login');
