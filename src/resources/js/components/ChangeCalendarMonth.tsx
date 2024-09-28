@@ -74,6 +74,10 @@ const ChangeCalendarMonth = memo(
                         onClose={() => setOpen(false)}
                         label="年月を選択"
                         onMonthChange={closeModal}
+                        // OKを押したとき
+                        onAccept={(date) => {
+                            date && closeModal(date);
+                        }}
                         sx={{
                             mx: 2,
                             position: "absolute",

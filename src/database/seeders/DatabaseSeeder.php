@@ -43,26 +43,26 @@ class DatabaseSeeder extends Seeder
             ],
           
         ]);
-        foreach(config('app.income_contents') as $key => $incomeContent){
-            FixedCategory::factory()->create([
-                'id' => $key + 1,
-                'type_id' => config('app.income_type_id'),
-                'content' => $incomeContent,
-                'icon' => config('app.income_icons')[$key]
-            ]);
-        }
-        $expense_id = FixedCategory::latest('id')->first()->id;
-        foreach(config('app.expense_contents') as $key => $expenseContent){
-            FixedCategory::factory()->create([
-                'id' => $expense_id + $key + 1,
-                'type_id' => config('app.expense_type_id'),
-                'content' => $expenseContent,
-                'icon' => config('app.expense_icons')[$key]
-            ]);
-        }
+        // foreach(config('app.income_contents') as $key => $incomeContent){
+        //     FixedCategory::factory()->create([
+        //         'id' => $key + 1,
+        //         'type_id' => config('app.income_type_id'),
+        //         'content' => $incomeContent,
+        //         'icon' => config('app.income_icons')[$key]
+        //     ]);
+        // }
+        // $expense_id = FixedCategory::latest('id')->first()->id;
+        // foreach(config('app.expense_contents') as $key => $expenseContent){
+        //     FixedCategory::factory()->create([
+        //         'id' => $expense_id + $key + 1,
+        //         'type_id' => config('app.expense_type_id'),
+        //         'content' => $expenseContent,
+        //         'icon' => config('app.expense_icons')[$key]
+        //     ]);
+        // }
         ExpenceCategory::factory(5)->create();
         IncomeCategory::factory(5)->create();
-        Content::factory(10)->create();
+        // Content::factory(10)->create();
         MonthlyAmount::factory(10)->create();
     }
 }

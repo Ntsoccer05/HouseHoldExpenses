@@ -16,6 +16,23 @@ import { useState } from "react";
 import DynamicIcon from "./common/DynamicIcon";
 import { expenseMuiIcons, incomeMuiIcons } from "../config/CategoryIcon";
 import { useCategoryContext } from "../context/CategoryContext";
+import {
+    DndContext,
+    closestCenter,
+    MouseSensor,
+    TouchSensor,
+    useSensor,
+    useSensors,
+    DragEndEvent,
+} from "@dnd-kit/core";
+import {
+    arrayMove,
+    SortableContext,
+    verticalListSortingStrategy,
+    useSortable,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import DragHandleIcon from "@mui/icons-material/DragHandle";
 
 interface CategoryEditProps {
     edited: boolean;
@@ -23,8 +40,38 @@ interface CategoryEditProps {
     categories: CategoryItem[] | undefined;
     selected: readonly number[];
     swichedCategory: boolean;
+    added: boolean;
+    deleted: boolean;
     setSelected: React.Dispatch<React.SetStateAction<readonly number[]>>;
+    setCategories: React.Dispatch<
+        React.SetStateAction<CategoryItem[] | undefined>
+    >;
+    setAdded: React.Dispatch<React.SetStateAction<boolean>>;
+    setEdited: React.Dispatch<React.SetStateAction<boolean>>;
+    setDeleted: React.Dispatch<React.SetStateAction<boolean>>;
 }
+
+const SortableItem = ({
+    id,
+    children,
+}: {
+    id: number;
+    children: React.ReactNode;
+}) => {
+    const { attributes, listeners, setNodeRef, transform, transition } =
+        useSortable({ id });
+
+    const style = {
+        transform: CSS.Transform.toString(transform),
+        transition,
+    };
+
+    return (
+        <TableRow ref={setNodeRef} style={style} {...attributes} {...listeners}>
+            {children}
+        </TableRow>
+    );
+};
 
 const CategoryEditForm = React.memo(
     ({
@@ -33,11 +80,81 @@ const CategoryEditForm = React.memo(
         categories,
         selected,
         swichedCategory,
+        added,
+        deleted,
         setSelected,
+        setCategories,
+        setAdded,
+        setEdited,
+        setDeleted,
     }: CategoryEditProps) => {
-        const { editCategory } = useCategoryContext();
+        // const { editCategory, sortCategory } = useCategoryContext();
+        const { editCategory, sortCategories } = useCategoryContext();
 
-        const [initialized, setInitialized] = useState<boolean>(false); // 初期化済みかどうかのフラグ
+        const [initialized, setInitialized] = useState<boolean>(false);
+
+        // Check if the target element is interactive
+        const isInteractiveElement = (target: EventTarget | null) => {
+            if (target instanceof HTMLElement) {
+                const interactiveElements = [
+                    "input",
+                    "textarea",
+                    "select",
+                    "button",
+                ];
+                return interactiveElements.includes(
+                    target.tagName.toLowerCase()
+                );
+            }
+            return false;
+        };
+
+        const sensors = useSensors(
+            useSensor(MouseSensor, {
+                activationConstraint: {
+                    distance: 5,
+                },
+            }),
+            useSensor(TouchSensor, {
+                activationConstraint: {
+                    distance: 10,
+                },
+            })
+        );
+
+        const handleDragStart = (event: any) => {
+            if (event.active && isInteractiveElement(event.active.node)) {
+                // Prevent drag start if the target is an interactive element
+                event.preventDefault();
+            }
+        };
+
+        const handleDragEnd = async (event: DragEndEvent) => {
+            if (event.active.id !== event.over?.id && categories) {
+                const oldIndex = categories.findIndex(
+                    (category) => category.filtered_id === event.active.id
+                );
+                const newIndex = categories.findIndex(
+                    (category) => category.filtered_id === event.over?.id
+                );
+
+                const newCategories = arrayMove(categories, oldIndex, newIndex);
+
+                setContentValues(
+                    (prevCategory) =>
+                        (prevCategory = newCategories.map(
+                            (category) => category.label || ""
+                        ))
+                );
+                setIconValues(
+                    (prevCategory) =>
+                        (prevCategory = newCategories.map(
+                            (category) => category.icon || ""
+                        ))
+                );
+                sortCategories(newCategories, type);
+            }
+        };
 
         const handleClick = (event: React.MouseEvent<unknown>, id: number) => {
             const selectedIndex = selected.indexOf(id);
@@ -102,6 +219,28 @@ const CategoryEditForm = React.memo(
             setCategoryValues(false);
         }, [swichedCategory]);
 
+        React.useEffect(() => {
+            if (
+                added &&
+                categories &&
+                categories.length > contentValues.length
+            ) {
+                setCategoryValues(false);
+                setAdded(() => false);
+                setEdited(false);
+            }
+        }, [added, categories]);
+        React.useEffect(() => {
+            if (
+                deleted &&
+                categories &&
+                contentValues.length > categories.length
+            ) {
+                setCategoryValues(false);
+                setDeleted(false);
+            }
+        }, [deleted, categories]);
+
         const handleCategoryChange =
             (index: number) => (event: React.ChangeEvent<HTMLInputElement>) => {
                 if (categories && categories?.length > 0) {
@@ -112,8 +251,8 @@ const CategoryEditForm = React.memo(
                         setContentValues(newValues);
                         const id = ids && Number(ids.id);
                         const filtered_id = ids && Number(ids.filtered_id);
-                        const fixed_category_id =
-                            ids && Number(ids.fixed_category_id);
+                        // const fixed_category_id =
+                        //     ids && Number(ids.fixed_category_id);
                         const content = event.target.value;
                         const tgtCategory = categories.filter((category) => {
                             return category.filtered_id === filtered_id;
@@ -124,7 +263,7 @@ const CategoryEditForm = React.memo(
                             content,
                             icon,
                             type,
-                            fixed_category_id,
+                            // fixed_category_id,
                         };
                         editCategory(argument);
                     }
@@ -141,8 +280,8 @@ const CategoryEditForm = React.memo(
                         setIconValues(newValues);
                         const id = ids && Number(ids.id);
                         const filtered_id = ids && Number(ids.filtered_id);
-                        const fixed_category_id =
-                            ids && Number(ids.fixed_category_id);
+                        // const fixed_category_id =
+                        //     ids && Number(ids.fixed_category_id);
                         const icon = event.target.value;
                         const tgtCategory = categories.filter((category) => {
                             return category.filtered_id === filtered_id;
@@ -153,152 +292,204 @@ const CategoryEditForm = React.memo(
                             icon,
                             content,
                             type,
-                            fixed_category_id,
+                            // fixed_category_id,
                         };
                         editCategory(argument);
                     }
                 }
             };
 
-        // 数字のみを取り出す関数
         const extractIds = (
             str: string
         ): {
             id: string;
             filtered_id: string;
-            fixed_category_id: string;
+            // fixed_category_id: string;
         } | null => {
-            // 正規表現を使ってidとfiltered_idを抽出
-            const regex = /(\D+)(\d+)(\D+)(\d+)(\D+)(\d+)/;
+            // const regex = /(\D+)(\d+)(\D+)(\d+)(\D+)(\d+)/;
+            const regex = /(\D+)(\d+)(\D+)(\d+)/;
             const matches = str.match(regex);
             if (matches) {
                 const id = matches[2];
                 const filtered_id = matches[4];
-                const fixed_category_id = matches[6];
-                return { id, filtered_id, fixed_category_id };
+                // const fixed_category_id = matches[6];
+                // return { id, filtered_id, fixed_category_id };
+                return { id, filtered_id };
             }
-            return null; // マッチしない場合はnullを返す
+            return null;
         };
 
         return (
-            <TableBody>
-                {categories?.map((category, index) => {
-                    const isItemSelected = isSelected(
-                        category.filtered_id || 0
-                    );
-                    const labelId = `enhanced-table-checkbox-${index}`;
+            <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragStart={handleDragStart}
+                onDragEnd={handleDragEnd}
+                // autoScroll={false}
+            >
+                <SortableContext
+                    items={
+                        categories?.map(
+                            (category) => category.filtered_id || 0
+                        ) || []
+                    }
+                    strategy={verticalListSortingStrategy}
+                >
+                    <TableBody>
+                        {categories?.map((category, index) => {
+                            const isItemSelected = isSelected(
+                                category.filtered_id || 0
+                            );
+                            const labelId = `enhanced-table-checkbox-${index}`;
 
-                    return (
-                        <TableRow
-                            key={index}
-                            hover={!edited} // 編集モードでは hover を無効化
-                            onClick={(event) => {
-                                if (!edited) {
-                                    handleClick(
-                                        event,
-                                        category.filtered_id || 0
-                                    );
-                                }
-                            }}
-                            role="checkbox"
-                            aria-checked={isItemSelected}
-                            tabIndex={-1}
-                            selected={isItemSelected}
-                            sx={{
-                                cursor: edited ? "default" : "pointer", // 編集モードではカーソルをデフォルトに
-                                textAlign: "center",
-                            }}
-                        >
-                            {!edited && (
-                                <TableCell padding="checkbox">
-                                    <Checkbox
-                                        color="primary"
-                                        checked={isItemSelected}
-                                        inputProps={{
-                                            "aria-labelledby": labelId,
-                                        }}
-                                    />
-                                </TableCell>
-                            )}
-                            <TableCell
-                                component="th"
-                                id={labelId}
-                                scope="row"
-                                padding="none"
-                                align="center"
-                            >
-                                {edited ? (
-                                    <TextField
-                                        required
-                                        name={
-                                            "content_" +
-                                            String(category.id) +
-                                            "filteredContent_" +
-                                            String(category.filtered_id) +
-                                            "fixed_category_id_" +
-                                            String(
-                                                category.fixed_category_id || 0
-                                            )
-                                        }
-                                        value={contentValues[index]}
-                                        onChange={handleCategoryChange(index)}
-                                    />
-                                ) : (
-                                    category.label
-                                )}
-                            </TableCell>
-                            <TableCell align="center">
-                                {edited ? (
-                                    <FormControl fullWidth>
-                                        <Select
-                                            value={iconValues[index]}
-                                            name={
-                                                "icon_" +
-                                                String(category.id) +
-                                                "filteredIcon_" +
-                                                String(category.filtered_id) +
-                                                "fixed_category_id_" +
-                                                String(
-                                                    category.fixed_category_id ||
-                                                        0
-                                                )
-                                            }
-                                            onChange={handleIconChange(index)}
+                            const tableRowContent = (
+                                <>
+                                    {!edited ? (
+                                        <TableCell padding="checkbox">
+                                            <Checkbox
+                                                color="primary"
+                                                checked={isItemSelected}
+                                                inputProps={{
+                                                    "aria-labelledby": labelId,
+                                                }}
+                                            />
+                                        </TableCell>
+                                    ) : (
+                                        <TableCell
+                                            padding="checkbox"
+                                            align="center"
                                         >
-                                            {(type === "expense"
-                                                ? expenseMuiIcons
-                                                : incomeMuiIcons
-                                            ).map((categoryIcon, index) => {
-                                                return (
-                                                    <MenuItem
-                                                        key={index}
-                                                        value={categoryIcon}
-                                                    >
-                                                        <ListItemIcon>
-                                                            <DynamicIcon
-                                                                iconName={
-                                                                    categoryIcon
-                                                                }
-                                                                fontSize="medium"
-                                                            />
-                                                        </ListItemIcon>
-                                                    </MenuItem>
-                                                );
-                                            })}
-                                        </Select>
-                                    </FormControl>
-                                ) : (
-                                    <DynamicIcon
-                                        iconName={category.icon}
-                                        fontSize="medium"
-                                    />
-                                )}
-                            </TableCell>
-                        </TableRow>
-                    );
-                })}
-            </TableBody>
+                                            <DragHandleIcon />
+                                        </TableCell>
+                                    )}
+                                    <TableCell
+                                        component="th"
+                                        id={labelId}
+                                        scope="row"
+                                        padding="none"
+                                        align="center"
+                                    >
+                                        {edited ? (
+                                            <TextField
+                                                required
+                                                name={
+                                                    "content_" +
+                                                    String(category.id) +
+                                                    "filteredContent_" +
+                                                    String(category.filtered_id)
+                                                    // "fixed_category_id_" +
+                                                    // String(
+                                                    //     category.fixed_category_id ||
+                                                    //         0
+                                                    // )
+                                                }
+                                                value={contentValues[index]}
+                                                onChange={handleCategoryChange(
+                                                    index
+                                                )}
+                                            />
+                                        ) : (
+                                            category.label
+                                        )}
+                                    </TableCell>
+                                    <TableCell align="center">
+                                        {edited ? (
+                                            <FormControl fullWidth>
+                                                <Select
+                                                    value={iconValues[index]}
+                                                    name={
+                                                        "icon_" +
+                                                        String(category.id) +
+                                                        "filteredIcon_" +
+                                                        String(
+                                                            category.filtered_id
+                                                        )
+                                                        // "fixed_category_id_" +
+                                                        // String(
+                                                        //     category.fixed_category_id ||
+                                                        //         0
+                                                        // )
+                                                    }
+                                                    onChange={handleIconChange(
+                                                        index
+                                                    )}
+                                                >
+                                                    {(type === "expense"
+                                                        ? expenseMuiIcons
+                                                        : incomeMuiIcons
+                                                    ).map(
+                                                        (
+                                                            categoryIcon,
+                                                            index
+                                                        ) => {
+                                                            return (
+                                                                <MenuItem
+                                                                    key={index}
+                                                                    value={
+                                                                        categoryIcon
+                                                                    }
+                                                                >
+                                                                    <ListItemIcon>
+                                                                        <DynamicIcon
+                                                                            iconName={
+                                                                                categoryIcon
+                                                                            }
+                                                                            fontSize="medium"
+                                                                        />
+                                                                    </ListItemIcon>
+                                                                </MenuItem>
+                                                            );
+                                                        }
+                                                    )}
+                                                </Select>
+                                            </FormControl>
+                                        ) : (
+                                            <DynamicIcon
+                                                iconName={category.icon}
+                                                fontSize="medium"
+                                            />
+                                        )}
+                                    </TableCell>
+                                </>
+                            );
+
+                            return edited ? (
+                                <SortableItem
+                                    key={category.filtered_id}
+                                    id={category.filtered_id || 0}
+                                >
+                                    {tableRowContent}
+                                </SortableItem>
+                            ) : (
+                                <TableRow
+                                    key={index}
+                                    hover={!edited}
+                                    onClick={(event) => {
+                                        if (!edited) {
+                                            handleClick(
+                                                event,
+                                                category.filtered_id || 0
+                                            );
+                                        }
+                                    }}
+                                    role="checkbox"
+                                    aria-checked={isItemSelected}
+                                    tabIndex={-1}
+                                    selected={isItemSelected}
+                                    sx={{
+                                        cursor: edited ? "default" : "pointer",
+                                        textAlign: "center",
+                                    }}
+                                >
+                                    {tableRowContent}
+                                </TableRow>
+                            );
+                        })}
+                    </TableBody>
+                </SortableContext>
+            </DndContext>
         );
     }
 );
+
 export default CategoryEditForm;

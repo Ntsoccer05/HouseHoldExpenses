@@ -38,7 +38,7 @@ function LoginForm() {
         password: "",
     });
 
-    const { setIsLogigned } = useAppContext();
+    const { setLoginFlg, getLoginUser, LoginUser } = useAppContext();
 
     const [reConfirmEmail, setReConfirmEmail] = useState<boolean>(false);
 
@@ -69,37 +69,46 @@ function LoginForm() {
 
     const [isLoading, setIsLoading] = useState<boolean>(false);
 
-    const loginSubmit: SubmitHandler<LoginScheme> = (data) => {
-        //フォームデータ送信時に画面を再更新しないようにする処理
-        axios
-            .post("/api/login", data)
-            .then((response) => {
-                // handleEmailVerification(response.data.token);
-                // 送信成功時の処理
-                setIsLogigned(true);
-                navigate("/");
-            })
-            .catch(function (error) {
-                // 送信失敗時の処理
-                setIsLoading(false);
-                setErrorMsgs(() => {
-                    return {
-                        emailErrMsg: "",
-                        passErrMsg: "",
-                    };
-                });
-                if (error.response.status == 403) {
-                    setErrorMsgs((state) => {
-                        return {
-                            ...state,
-                            emailErrMsg: error.response.data.error,
-                        };
+    const loginSubmit: SubmitHandler<LoginScheme> = async (data) => {
+        // CSRF保護
+        await axios
+            .get("/sanctum/csrf-cookie")
+            .then(async (res) => {
+                //フォームデータ送信時に画面を再更新しないようにする処理
+                await axios
+                    .post("/api/login", data)
+                    .then(async (response) => {
+                        if (response.data.status_code === 200) {
+                            await getLoginUser();
+                            setLoginFlg(1);
+                            navigate("/");
+                        }
+                    })
+                    .catch(function (error) {
+                        // 送信失敗時の処理
+                        setIsLoading(false);
+                        setErrorMsgs(() => {
+                            return {
+                                emailErrMsg: "",
+                                passErrMsg: "",
+                            };
+                        });
+                        if (error.response.status == 403) {
+                            setErrorMsgs((state) => {
+                                return {
+                                    ...state,
+                                    emailErrMsg: error.response.data.error,
+                                };
+                            });
+                            setReConfirmEmail(true);
+                        }
+                        const errorResMsgs = error.response.data.errors;
+                        LoginError(errorResMsgs, setErrorMsgs);
+                        console.log("通信に失敗しました");
                     });
-                    setReConfirmEmail(true);
-                }
-                const errorResMsgs = error.response.data.errors;
-                LoginError(errorResMsgs, setErrorMsgs);
-                console.log("通信に失敗しました");
+            })
+            .catch((e) => {
+                console.log(e);
             });
     };
 

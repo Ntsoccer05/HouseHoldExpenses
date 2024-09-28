@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Laravel\Socialite\Facades\Socialite;
 use App\Http\Requests\Auth\RegisterRequest;
+use App\Models\ExpenceCategory;
+use App\Models\IncomeCategory;
 use Carbon\Carbon;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Facades\Validator;
@@ -19,7 +21,6 @@ class RegisterController extends Controller
     //ユーザ仮登録処理
     public function temporaryRegister(RegisterRequest $request)
     {
-
         $user = User::Create([
             'name' => $request['name'],
             'email' => $request['email'],
@@ -36,7 +37,6 @@ class RegisterController extends Controller
     //ユーザ本登録処理
     public function formatRegister(Request $request)
     {
-
         Validator::make($request, [
             'email' => 'required|string|email|max:255|unique:users|email:strict,dns,spoof',
             'token' => 'required|string',
@@ -68,7 +68,7 @@ class RegisterController extends Controller
             'password' => null,
         ]);
 
-        Auth::guard()->login($user, true);
+        // Auth::guard()->login($user, true);
 
         return response()->json(["status_code" => 200, "message" => "登録しました", "user" => $user]);
     }

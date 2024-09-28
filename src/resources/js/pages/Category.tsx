@@ -65,7 +65,7 @@ function EnhancedTableHead(props: EnhancedTableProps) {
     return (
         <TableHead>
             <TableRow>
-                {!edited && (
+                {!edited ? (
                     <TableCell padding="checkbox">
                         <Checkbox
                             color="primary"
@@ -79,6 +79,8 @@ function EnhancedTableHead(props: EnhancedTableProps) {
                             }}
                         />
                     </TableCell>
+                ) : (
+                    <TableCell align="center" padding="normal"></TableCell>
                 )}
                 {headCells.map((headCell) => (
                     <TableCell
@@ -97,12 +99,13 @@ function EnhancedTableHead(props: EnhancedTableProps) {
 function Category() {
     const [selected, setSelected] = useState<readonly number[]>([]);
     const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
+    const [added, setAdded] = useState(false);
+    const [deleted, setDeleted] = useState(false);
 
     const numSelected = selected.length;
     const [edited, setEdited] = useState<boolean>(false);
     const [type, setType] = useState<TransactionType>("expense");
 
-    const onAddCategories = () => {};
     const onUpdateCategories = () => {
         setEdited(!edited);
     };
@@ -128,6 +131,7 @@ function Category() {
     const { IncomeCategories, ExpenseCategories } = useAppContext();
     const [categories, setCategories] = useState<CategoryItem[] | undefined>([
         {
+            id: 0,
             label: "",
             icon: "",
             filtered_id: 0,
@@ -177,13 +181,14 @@ function Category() {
     }, [type]);
 
     //削除処理
-    const onDeleteCategories = async () => {
+    const onDeleteCategories = () => {
         if (selected.length > 0) {
             const tgtCategories = categories?.filter((category, index) => {
                 return selected.includes(category.filtered_id as number);
             }) as CategoryItem[];
             deleteCategories(tgtCategories, type);
             setSelected([]);
+            setDeleted(true);
         }
     };
 
@@ -291,6 +296,12 @@ function Category() {
                                 selected={selected}
                                 swichedCategory={swichedCategory}
                                 setSelected={setSelected}
+                                setCategories={setCategories}
+                                added={added}
+                                deleted={deleted}
+                                setAdded={setAdded}
+                                setEdited={setEdited}
+                                setDeleted={setDeleted}
                             />
                         </Table>
                     </TableContainer>
@@ -303,6 +314,7 @@ function Category() {
                     open={isMobileDrawerOpen}
                     onClose={handleCloseMobileDrawer}
                     setIsMobileDrawerOpen={setIsMobileDrawerOpen}
+                    setAdded={setAdded}
                 ></AddCategoryForm>
             </Box>
         </Box>

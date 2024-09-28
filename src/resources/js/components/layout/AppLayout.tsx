@@ -8,49 +8,52 @@ import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
 import { Outlet } from "react-router-dom";
 import SideBar from "../common/SideBar";
-// import { collection, getDocs } from "firebase/firestore";
-// import { db } from "../../firebase";
+import axios from "axios";
 import { Transaction } from "../../types";
 import { useAppContext } from "../../context/AppContext";
+// import { collection, getDocs } from "firebase/firestore";
+// import { db } from "../../firebase";
 const drawerWidth = 240;
 
 export default function AppLayout() {
-    const { setTransactions, setIsLoading, getLoginUser, LoginUser } =
-        useAppContext();
     const [mobileOpen, setMobileOpen] = React.useState(false);
-
-    React.useEffect(() => {
-        getLoginUser();
-    }, []);
+    const { LoginUser, setTransactions, setIsLoading } = useAppContext();
 
     const handleDrawerToggle = () => {
         setMobileOpen(!mobileOpen);
     };
 
-    //firestoreのデータを全て取得
+    //家計簿データを全て取得
     React.useEffect(() => {
-        // const fecheTransactions = async () => {
-        //   try {
-        //     const querySnapshot = await getDocs(collection(db, "Transactions"));
-        //     const transactionsData = querySnapshot.docs.map((doc) => {
-        //       return {
-        //         ...doc.data(),
-        //         id: doc.id,
-        //       } as Transaction;
-        //     });
-        //     setTransactions(transactionsData);
-        //   } catch (err) {
-        //     if (isFirestoreError(err)) {
-        //       console.error("firestoreのエラーは：", err);
-        //     } else {
-        //       console.error("一般的なエラーは:", err);
-        //     }
-        //   } finally {
-        //     setIsLoading(false);
-        //   }
-        // };
-        // fecheTransactions();
-    }, []);
+        if (LoginUser) {
+            const fecheTransactions = async () => {
+                try {
+                    const querySnapshot = await axios.get(
+                        "/api/getTransactions",
+                        {
+                            params: { user_id: LoginUser.id },
+                        }
+                    );
+                    if (querySnapshot.data.transactions) {
+                        const transactionsData =
+                            querySnapshot.data.transactions.map(
+                                (doc: Transaction) => {
+                                    return {
+                                        ...doc,
+                                    } as Transaction;
+                                }
+                            );
+                        setTransactions(transactionsData);
+                    }
+                } catch (err) {
+                    console.error("一般的なエラーは:", err);
+                } finally {
+                    setIsLoading(false);
+                }
+            };
+            fecheTransactions();
+        }
+    }, [LoginUser]);
 
     const topImgLogoStyle: React.CSSProperties = {
         width: "260px",

@@ -29,7 +29,7 @@ export interface Transaction {
     amount: number;
     content: string;
     type: TransactionType;
-    category: IncomeCategory | ExpenseCategory;
+    category: string;
 }
 
 export interface Balance {
@@ -61,7 +61,7 @@ export interface BaseUserCategory {
     id: number;
     filtered_id: number;
     type_id: number;
-    fixed_category_id: number;
+    // fixed_category_id: number;
     icon: string;
     deleted: number;
     updated_at: Date;
@@ -69,8 +69,8 @@ export interface BaseUserCategory {
 
 export interface CategoryItem {
     id?: number;
-    filtered_id: number;
+    filtered_id?: number;
     label: string;
     icon: string;
-    fixed_category_id?: number;
+    // fixed_category_id?: number;
 }

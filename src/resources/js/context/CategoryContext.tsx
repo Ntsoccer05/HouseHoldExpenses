@@ -16,19 +16,23 @@ interface CategoryContextType {
         content,
         icon,
         type,
-        fixed_category_id,
-    }: {
+    }: // fixed_category_id,
+    {
         id: number;
         content: string;
         icon: string;
         type: TransactionType;
-        fixed_category_id?: number;
+        // fixed_category_id?: number;
     }) => Promise<void>;
     deleteCategories: (
         tgtCategories: CategoryItem[],
         type: TransactionType
     ) => Promise<void>;
     addCategories: (data: data) => Promise<void>;
+    sortCategories: (
+        tgtCategories: CategoryItem[],
+        type: TransactionType
+    ) => Promise<void>;
 }
 
 // createContextでグローバルにする値を設定　CategoryContext.Providerのvalueの設定値の型を指定する必要がある
@@ -79,13 +83,13 @@ export const CategoryProvider = ({ children }: CategoryProviderProps) => {
         content,
         icon,
         type,
-        fixed_category_id,
-    }: {
+    }: // fixed_category_id,
+    {
         id: number;
         content: string;
         icon: string;
         type: TransactionType;
-        fixed_category_id?: number;
+        // fixed_category_id?: number;
     }) => {
         try {
             const tgtCategory =
@@ -104,7 +108,7 @@ export const CategoryProvider = ({ children }: CategoryProviderProps) => {
                     content,
                     icon,
                     type,
-                    fixed_category_id: fixed_category_id,
+                    // fixed_category_id: fixed_category_id,
                 };
                 const api =
                     updateData.type === "income"
@@ -126,6 +130,40 @@ export const CategoryProvider = ({ children }: CategoryProviderProps) => {
             console.log(err);
         }
     };
+    const sortCategories = async (
+        tgtCategories: CategoryItem[],
+        type: TransactionType
+    ) => {
+        try {
+            if (LoginUser && tgtCategories.length > 0) {
+                tgtCategories = tgtCategories.map((category, index) => ({
+                    ...category, // 既存のカテゴリーデータを展開
+                    filtered_id: index + 1, // index に 1 を加えて filtered_id を設定
+                }));
+                const sortData = {
+                    tgtCategories,
+                };
+                const api =
+                    type === "income"
+                        ? "/api/sortIncomeCategory"
+                        : "/api/sortExpenseCategory";
+                await axios
+                    .post(api, {
+                        sortData: sortData,
+                        user_id: LoginUser.id,
+                    })
+                    .then(async (res) => {
+                        type === "expense"
+                            ? await getExpenseCategory()
+                            : await getIncomeCategory();
+                    })
+                    .catch((err) => {});
+            }
+        } catch (err) {
+            console.log(err);
+        }
+    };
+
     const deleteCategories = async (
         tgtCategories: CategoryItem[],
         type: TransactionType
@@ -163,6 +201,7 @@ export const CategoryProvider = ({ children }: CategoryProviderProps) => {
                 editCategory,
                 deleteCategories,
                 addCategories,
+                sortCategories,
             }}
         >
             {children}

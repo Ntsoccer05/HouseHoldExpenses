@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->onDelete('cascade');
             $table->foreignId('type_id')->onDelete('cascade');
+            $table->unsignedBigInteger('category_id');
             $table->integer('amount');
             $table->string('content');
             $table->dateTime('recorded_at');
