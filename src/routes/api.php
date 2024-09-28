@@ -36,6 +36,8 @@ Route::group(['middleware'=>['auth:sanctum']],function(){
     Route::post('/sortIncomeCategory',[IncomeCategoryController::class, 'sort']);
     Route::post('/addTransaction',[TransactionController::class, 'create']);
     Route::get('/getTransactions',[TransactionController::class, 'index']);
+    Route::post('/updateTransaction',[TransactionController::class, 'update']);
+    Route::post('/deleteTransaction',[TransactionController::class, 'delete']);
     Route::post('/logout',[LoginController::class, 'logout']);
 });
 
