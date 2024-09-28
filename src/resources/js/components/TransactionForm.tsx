@@ -24,6 +24,7 @@ import { Schema, transactionSchema } from "../validations/schema";
 import { useAppContext } from "../context/AppContext";
 import DynamicIcon from "./common/DynamicIcon";
 import { categorySchema } from "../validations/Category";
+import { useTransactionContext } from "../context/TransactionContext";
 interface TransactionFormProps {
     onCloseForm: () => void;
     isEntryDrawerOpen: boolean;
@@ -49,14 +50,11 @@ const TransactionForm = memo(
         setSelectedTransaction,
         setIsDialogOpen,
     }: TransactionFormProps) => {
-        const {
-            isMobile,
-            onSaveTransaction,
-            onDeleteTransaction,
-            onUpdateTransaction,
-        } = useAppContext();
+        const { isMobile, IncomeCategories, ExpenseCategories } =
+            useAppContext();
+        const { onSaveTransaction, onDeleteTransaction, onUpdateTransaction } =
+            useTransactionContext();
         const formWidth = 320;
-        const { IncomeCategories, ExpenseCategories } = useAppContext();
         const [categories, setCategories] = useState<
             CategoryItem[] | undefined
         >([

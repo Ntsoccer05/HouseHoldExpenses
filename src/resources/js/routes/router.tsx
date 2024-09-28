@@ -17,6 +17,7 @@ import ResetPassword from "../pages/ResetPassword";
 import Category from "../pages/Category";
 import PrivateRoute from "./PrivateRoute";
 import OnlyPublicRoute from "./OnlyPublicRoute";
+import { TransactionProvider } from "../context/TransactionContext";
 
 function DefineRouter() {
     return (
@@ -31,7 +32,11 @@ function DefineRouter() {
                             <Route
                                 index
                                 // PrivateRoute：ログインしていなかったらログイン画面へリダイレクト
-                                element={<Home />}
+                                element={
+                                    <TransactionProvider>
+                                        <Home />
+                                    </TransactionProvider>
+                                }
                             />
                             <Route
                                 path="/login"
@@ -52,9 +57,9 @@ function DefineRouter() {
                             <Route
                                 path="/report"
                                 element={
-                                    <PrivateRoute>
+                                    <TransactionProvider>
                                         <Report />
-                                    </PrivateRoute>
+                                    </TransactionProvider>
                                 }
                             />
                             {/* routerの中でcontextを一部に使いたいときはelementの中で指定する */}
