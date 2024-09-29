@@ -67,21 +67,7 @@ const TransactionForm = memo(
         useEffect(() => {
             setCategories(ExpenseCategories);
         }, [ExpenseCategories]);
-        // 支出用カテゴリ
-        // const expenseCategories: CategoryItem[] = [
-        //     { label: "食費", icon: <FastfoodIcon fontSize="small" /> },
-        //     { label: "日用品", icon: <AlarmIcon fontSize="small" /> },
-        //     { label: "住居費", icon: <AddHomeIcon fontSize="small" /> },
-        //     { label: "交際費", icon: <Diversity3Icon fontSize="small" /> },
-        //     { label: "娯楽", icon: <SportsTennisIcon fontSize="small" /> },
-        //     { label: "交通費", icon: <TrainIcon fontSize="small" /> },
-        // ];
-        // 収入用カテゴリ
-        // const incomeCategories: CategoryItem[] = [
-        //     { label: "給与", icon: <WorkIcon fontSize="small" /> },
-        //     { label: "副収入", icon: <AddBusinessIcon fontSize="small" /> },
-        //     { label: "お小遣い", icon: <SavingsIcon fontSize="small" /> },
-        // ];
+
         const {
             control,
             setValue,

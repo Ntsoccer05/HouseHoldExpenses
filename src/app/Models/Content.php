@@ -37,9 +37,11 @@ class Content extends Model
         if($type_name === 'expense'){
             $expenseCategory = new ExpenceCategory();
             $category_name = $expenseCategory->where('id', $content->category_id)->value('content');
+            $category_icon = $expenseCategory->where('id', $content->category_id)->value('icon');
         }elseif($type_name === 'income'){
             $incomeCategory = new IncomeCategory();
             $category_name = $incomeCategory->where('id', $content->category_id)->value('content');
+            $category_icon = $incomeCategory->where('id', $content->category_id)->value('icon');
         }
         $formattedRecordedDay = (new DateTime($content->recorded_at))->format('Y-m-d');
         $formatedTransaction = [
@@ -49,6 +51,7 @@ class Content extends Model
             'content'=> $content->content,
             'type'=> $type_name,
             'category'=> $category_name,
+            'icon'=> $category_icon,
         ];
         return $formatedTransaction;
     }

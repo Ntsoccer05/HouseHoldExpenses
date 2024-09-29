@@ -37,7 +37,7 @@ class TransactionRequest extends FormRequest
             'transaction.type' => 'required|in:expense,income',
             'transaction.date' => 'required|string',
             'transaction.amount' => 'required|numeric|min:1',
-            'transaction.content' => 'nullable|string|min:1|max:50',
+            'transaction.content' => 'nullable|string|max:50',
             'transaction.category' => ['required', Rule::in($validCategories)],
         ];
     }
