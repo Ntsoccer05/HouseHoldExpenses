@@ -30,6 +30,7 @@ export interface Transaction {
     content: string;
     type: TransactionType;
     category: string;
+    icon?: string;
 }
 
 export interface Balance {

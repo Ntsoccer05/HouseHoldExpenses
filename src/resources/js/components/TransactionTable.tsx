@@ -18,11 +18,10 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import { financeCalculations } from "../utils/financeCalculations";
 import { Grid } from "@mui/material";
 import { formatCurrency } from "../utils/formatting";
-import IconComponents from "./common/IconComponents";
 import { compareDesc, parseISO } from "date-fns";
 import useMonthlyTransactions from "../hooks/useMonthlyTransactions";
-import { useAppContext } from "../context/AppContext";
 import { useTransactionContext } from "../context/TransactionContext";
+import DynamicIcon from "./common/DynamicIcon";
 
 interface TransactionTableHeadProps {
     numSelected: number;
@@ -311,11 +310,12 @@ export default function TransactionTable() {
                                                 alignItems: "center",
                                             }}
                                         >
-                                            {
-                                                IconComponents[
-                                                    transaction.category
-                                                ]
-                                            }
+                                            {transaction.icon && (
+                                                <DynamicIcon
+                                                    iconName={transaction.icon}
+                                                    fontSize="medium"
+                                                />
+                                            )}
                                             {transaction.category}
                                         </TableCell>
                                         <TableCell align="left">

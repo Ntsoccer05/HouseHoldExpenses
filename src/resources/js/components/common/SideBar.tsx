@@ -2,6 +2,7 @@ import {
     Box,
     Divider,
     Drawer,
+    IconButton,
     List,
     ListItem,
     ListItemButton,
@@ -21,6 +22,7 @@ import { useAppContext } from "../../context/AppContext";
 import axios from "axios";
 import ModalComponent from "./ModalComponent";
 import CategoryIcon from "@mui/icons-material/Category";
+import CloseIcon from "@mui/icons-material/Close";
 
 interface SidebarProps {
     drawerWidth: number;
@@ -119,6 +121,14 @@ const Sidebar = ({
 
     const drawer = (
         <div>
+            {mobileOpen && (
+                <IconButton
+                    onClick={handleDrawerToggle}
+                    sx={{ float: "right", paddingTop: "20px" }} // ✖ボタンを右端に配置
+                >
+                    <CloseIcon />
+                </IconButton>
+            )}
             <Toolbar />
             <Divider />
             <List>

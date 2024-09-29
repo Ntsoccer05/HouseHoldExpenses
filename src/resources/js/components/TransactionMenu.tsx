@@ -17,8 +17,8 @@ import NotesIcon from "@mui/icons-material/Notes";
 import AddCircleIcon from "@mui/icons-material/AddCircle";
 import { Transaction } from "../types";
 import { formatCurrency } from "../utils/formatting";
-import IconComponents from "./common/IconComponents";
 import { useAppContext } from "../context/AppContext";
+import DynamicIcon from "./common/DynamicIcon";
 interface TransactionMenuProps {
     dailyTransactions: Transaction[];
     currentDay: string;
@@ -132,12 +132,14 @@ const TransactionMenu = memo(
                                                     >
                                                         <Grid item xs={1}>
                                                             {/* icon */}
-                                                            {
-                                                                IconComponents[
-                                                                    transaction
-                                                                        .category
-                                                                ]
-                                                            }
+                                                            {transaction.icon && (
+                                                                <DynamicIcon
+                                                                    iconName={
+                                                                        transaction.icon
+                                                                    }
+                                                                    fontSize="medium"
+                                                                />
+                                                            )}
                                                         </Grid>
                                                         <Grid item xs={2.5}>
                                                             <Typography

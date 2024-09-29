@@ -17,7 +17,7 @@ return new class extends Migration
             $table->foreignId('type_id')->onDelete('cascade');
             $table->unsignedBigInteger('category_id');
             $table->integer('amount');
-            $table->string('content');
+            $table->string('content')->nullable();
             $table->dateTime('recorded_at');
             $table->timestamps();
         });

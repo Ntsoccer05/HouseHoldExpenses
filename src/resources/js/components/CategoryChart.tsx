@@ -19,9 +19,19 @@ import {
     Typography,
     useTheme,
 } from "@mui/material";
-import { ExpenseCategory, IncomeCategory, TransactionType } from "../types";
+import { TransactionType } from "../types";
 import { useAppContext } from "../context/AppContext";
 import useMonthlyTransactions from "../hooks/useMonthlyTransactions";
+import {
+    pink,
+    lightBlue,
+    purple,
+    deepOrange,
+    teal,
+    cyan,
+    lightGreen,
+    amber,
+} from "@mui/material/colors";
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
@@ -40,21 +50,15 @@ const CategoryChart = () => {
     // カテゴリごとの合計金額計算
     const categorySums = monthlyTransactions
         .filter((transaction) => transaction.type === selectedType)
-        .reduce<Record<IncomeCategory | ExpenseCategory, number>>(
-            (acc, transaction) => {
-                if (!acc[transaction.category]) {
-                    acc[transaction.category] = 0;
-                }
-                acc[transaction.category] += transaction.amount;
-                return acc;
-            },
-            {} as Record<IncomeCategory | ExpenseCategory, number>
-        );
+        .reduce<Record<string, number>>((acc, transaction) => {
+            if (!acc[transaction.category]) {
+                acc[transaction.category] = 0;
+            }
+            acc[transaction.category] += transaction.amount;
+            return acc;
+        }, {} as Record<string, number>);
 
-    const categoryLabels = Object.keys(categorySums) as (
-        | IncomeCategory
-        | ExpenseCategory
-    )[];
+    const categoryLabels = Object.keys(categorySums) as string[];
     const categoryValues = Object.values(categorySums);
 
     const options = {
@@ -62,30 +66,52 @@ const CategoryChart = () => {
         responsive: true,
     };
 
-    //収入用カテゴリカラー
-    const incomeCategoryColor: Record<IncomeCategory, string> = {
-        給与: theme.palette.incomeCategoryColor.給与,
-        副収入: theme.palette.incomeCategoryColor.副収入,
-        お小遣い: theme.palette.incomeCategoryColor.お小遣い,
-    };
+    const fixedIncomeColors = [
+        pink[500],
+        lightBlue[600],
+        purple[400],
+        deepOrange[500],
+        teal[400],
+        cyan[600],
+        lightGreen[500],
+        amber[600],
+        pink[300],
+        purple[600],
+    ];
 
-    //支出用カテゴリカラー
-    const expenseCategoryColor: Record<ExpenseCategory, string> = {
-        食費: theme.palette.expenseCategoryColor.食費,
-        日用品: theme.palette.expenseCategoryColor.日用品,
-        住居費: theme.palette.expenseCategoryColor.住居費,
-        交際費: theme.palette.expenseCategoryColor.交際費,
-        交通費: theme.palette.expenseCategoryColor.交通費,
-        娯楽: theme.palette.expenseCategoryColor.娯楽,
-    };
+    const fixedExpenseColors = [
+        deepOrange[400],
+        lightBlue[500],
+        teal[300],
+        amber[500],
+        pink[700],
+        lightGreen[600],
+        cyan[500],
+        purple[700],
+        amber[400],
+        teal[600],
+    ];
 
-    const getCategoryColor = (
-        category: IncomeCategory | ExpenseCategory
-    ): string => {
+    const incomeCategoryColor: Record<string, string> = categoryLabels.reduce(
+        (acc, category, index) => {
+            acc[category] = fixedIncomeColors[index];
+            return acc;
+        },
+        {} as Record<string, string>
+    );
+    const expenseCategoryColor: Record<string, string> = categoryLabels.reduce(
+        (acc, category, index) => {
+            acc[category] = fixedExpenseColors[index];
+            return acc;
+        },
+        {} as Record<string, string>
+    );
+
+    const getCategoryColor = (category: string): string => {
         if (selectedType === "income") {
-            return incomeCategoryColor[category as IncomeCategory];
+            return incomeCategoryColor[category as string];
         } else {
-            return expenseCategoryColor[category as ExpenseCategory];
+            return expenseCategoryColor[category as string];
         }
     };
 
