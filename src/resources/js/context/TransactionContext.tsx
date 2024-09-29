@@ -1,5 +1,5 @@
 import React, { ReactNode, createContext, useContext, useState } from "react";
-import { Transaction } from "../types/index";
+import { Transaction, TransactionData } from "../types/index";
 import { Schema } from "../validations/schema";
 import { useTheme } from "@mui/material";
 import axios from "axios";
@@ -31,11 +31,36 @@ interface TransactionProviderProps {
 export const TransactionProvider = ({ children }: TransactionProviderProps) => {
     const theme = useTheme();
 
-    const { LoginUser, transactions, setTransactions } = useAppContext();
+    const {
+        LoginUser,
+        transactions,
+        setTransactions,
+        ExpenseCategories,
+        IncomeCategories,
+    } = useAppContext();
+
+    const addCategoryIcon = (transaction: TransactionData) => {
+        if (transaction.type === "expense") {
+            const ExpenseCategory = ExpenseCategories?.filter((category) => {
+                return category.label === transaction.category;
+            });
+            if (ExpenseCategory) {
+                return ExpenseCategory[0].icon;
+            }
+        } else if (transaction.type === "income") {
+            const IncomeCategory = IncomeCategories?.filter((category) => {
+                return category.label === transaction.category;
+            });
+            if (IncomeCategory) {
+                return IncomeCategory[0].icon;
+            }
+        }
+    };
 
     //取引を保存する処理
-    const onSaveTransaction = async (transaction: Schema) => {
+    const onSaveTransaction = async (transaction: TransactionData) => {
         try {
+            transaction.icon = addCategoryIcon(transaction);
             //データを保存
             const docRef = await axios.post("/api/addTransaction", {
                 transaction: transaction,
@@ -81,10 +106,11 @@ export const TransactionProvider = ({ children }: TransactionProviderProps) => {
 
     //更新処理
     const onUpdateTransaction = async (
-        transaction: Schema,
+        transaction: TransactionData,
         transactionId: string
     ) => {
         try {
+            transaction.icon = addCategoryIcon(transaction);
             //データを保存
             const docRef = await axios.post("/api/updateTransaction", {
                 transaction: transaction,

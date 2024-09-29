@@ -32,6 +32,14 @@ export interface Transaction {
     category: string;
     icon?: string;
 }
+export interface TransactionData {
+    date: string;
+    amount: number;
+    content: string;
+    type: TransactionType;
+    category: string;
+    icon?: string;
+}
 
 export interface Balance {
     income: number;
