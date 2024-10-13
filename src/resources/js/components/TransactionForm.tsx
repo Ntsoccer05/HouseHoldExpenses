@@ -23,8 +23,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Schema, transactionSchema } from "../validations/schema";
 import { useAppContext } from "../context/AppContext";
 import DynamicIcon from "./common/DynamicIcon";
-import { categorySchema } from "../validations/Category";
 import { useTransactionContext } from "../context/TransactionContext";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faCalculator } from "@fortawesome/free-solid-svg-icons";
+import Caluculator from "./Caluculator/Caluculator";
 interface TransactionFormProps {
     onCloseForm: () => void;
     isEntryDrawerOpen: boolean;
@@ -88,6 +90,8 @@ const TransactionForm = memo(
             // resolver: zodResolver()でバリデーション設定
             resolver: zodResolver(transactionSchema),
         });
+
+        const [showCalculator, setShowCalculator] = useState<boolean>(false);
 
         // 収支タイプを切り替える関数
         const incomeExpenseToggle = (type: IncomeExpense) => {
@@ -187,6 +191,9 @@ const TransactionForm = memo(
             }
         };
 
+        const dispCalculator = () => {
+            setShowCalculator(!showCalculator);
+        };
         const formContent = (
             <>
                 {/* 入力エリアヘッダー */}
@@ -304,20 +311,55 @@ const TransactionForm = memo(
                             name="amount"
                             control={control}
                             render={({ field }) => (
-                                <TextField
-                                    error={!!errors.amount}
-                                    helperText={errors.amount?.message}
-                                    {...field}
-                                    value={field.value === 0 ? "" : field.value}
-                                    onChange={(e) => {
-                                        // parseIntの第二引数は10進数表示とするため
-                                        const newValue =
-                                            parseInt(e.target.value, 10) || 0;
-                                        field.onChange(newValue);
-                                    }}
-                                    label="金額"
-                                    type="number"
-                                />
+                                <Box display="flex">
+                                    <TextField
+                                        sx={{ flexGrow: 1 }}
+                                        error={!!errors.amount}
+                                        helperText={errors.amount?.message}
+                                        {...field}
+                                        value={
+                                            field.value === 0 ? "" : field.value
+                                        }
+                                        onChange={(e) => {
+                                            // parseIntの第二引数は10進数表示とするため
+                                            const newValue =
+                                                parseInt(e.target.value, 10) ||
+                                                0;
+                                            field.onChange(newValue);
+                                        }}
+                                        label="金額"
+                                        type="number"
+                                    />
+                                    <IconButton onClick={dispCalculator}>
+                                        <FontAwesomeIcon icon={faCalculator} />
+                                    </IconButton>
+                                    {showCalculator && (
+                                        <Dialog
+                                            open={showCalculator}
+                                            onClose={dispCalculator}
+                                            fullWidth
+                                            maxWidth={"xs"}
+                                        >
+                                            <DialogContent
+                                                sx={{ textAlign: "center" }}
+                                            >
+                                                <Caluculator
+                                                    setShowCalculator={
+                                                        setShowCalculator
+                                                    }
+                                                    onAmountChange={(
+                                                        newValue
+                                                    ) => {
+                                                        // Calculatorから渡された新しい金額を反映する
+                                                        field.onChange(
+                                                            newValue
+                                                        );
+                                                    }}
+                                                />
+                                            </DialogContent>
+                                        </Dialog>
+                                    )}
+                                </Box>
                             )}
                         />
                         {/* 内容 */}

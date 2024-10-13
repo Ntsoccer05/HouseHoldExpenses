@@ -70,7 +70,6 @@ export interface BaseUserCategory {
     id: number;
     filtered_id: number;
     type_id: number;
-    // fixed_category_id: number;
     icon: string;
     deleted: number;
     updated_at: Date;
@@ -81,5 +80,12 @@ export interface CategoryItem {
     filtered_id?: number;
     label: string;
     icon: string;
-    // fixed_category_id?: number;
+}
+
+export interface CheckBoxItem {
+    key: string;
+    label: string;
+    checked: boolean;
+    disabled?: boolean;
+    onStateChange: (checked?: boolean, key?: string) => void;
 }

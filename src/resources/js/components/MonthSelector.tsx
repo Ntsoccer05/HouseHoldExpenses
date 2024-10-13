@@ -1,19 +1,23 @@
-import { Box, Button } from "@mui/material";
-import React from "react";
+import { Box, Button, TextField, InputAdornment } from "@mui/material";
+import { useState } from "react";
 import { LocalizationProvider } from "@mui/x-date-pickers";
-// import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFnsV3";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { ja } from "date-fns/locale";
 import { addMonths } from "date-fns";
 import { useAppContext } from "../context/AppContext";
+import TodayIcon from "@mui/icons-material/Today";
 
 const MonthSelector = () => {
     const { currentMonth, setCurrentMonth } = useAppContext();
+    const [isOpen, setIsOpen] = useState(false);
 
     const handleDateChange = (newDate: Date | null) => {
         if (newDate) {
             setCurrentMonth(newDate);
+        } else {
+            // Handle the case when the input is cleared
+            setCurrentMonth(new Date());
         }
     };
 
@@ -28,12 +32,17 @@ const MonthSelector = () => {
         const nextMonth = addMonths(currentMonth, 1);
         setCurrentMonth(nextMonth);
     };
+
+    const handleTextFieldClick = () => {
+        setIsOpen(true);
+    };
+
+    const handleIconClick = () => {
+        setIsOpen(true); // Open the DatePicker when CalendarIcon is clicked
+    };
+
     return (
-        <LocalizationProvider
-            dateAdapter={AdapterDateFns}
-            adapterLocale={ja}
-            dateFormats={{ monthAndYear: "yyyy年 MM月" }}
-        >
+        <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={ja}>
             <Box
                 sx={{
                     display: "flex",
@@ -55,7 +64,37 @@ const MonthSelector = () => {
                     sx={{ mx: 2, background: "white" }}
                     views={["year", "month"]}
                     format="yyyy/MM"
-                    slotProps={{ calendarHeader: { format: "yyyy年 M月" } }}
+                    open={isOpen} // Control the open state
+                    onClose={() => setIsOpen(false)} // Handle closing
+                    slots={{ textField: TextField }} // Use 'slots' to render TextField
+                    slotProps={{
+                        textField: {
+                            onClick: handleTextFieldClick, // Open DatePicker on TextField click
+                            sx: { mx: 2, background: "white" },
+                            onKeyDown: (event) => {
+                                // Handle key down events
+                                if (
+                                    event.key === "Delete" ||
+                                    event.key === "Backspace"
+                                ) {
+                                    handleDateChange(null); // Reset on delete
+                                }
+                            },
+                            InputProps: {
+                                endAdornment: (
+                                    <InputAdornment position="end">
+                                        <TodayIcon
+                                            onClick={handleIconClick} // Open on icon click
+                                            sx={{ cursor: "pointer" }}
+                                        />
+                                    </InputAdornment>
+                                ),
+                            },
+                        },
+                        calendarHeader: {
+                            format: "yyyy年MM月",
+                        },
+                    }}
                 />
                 <Button
                     onClick={handleNextMonth}
