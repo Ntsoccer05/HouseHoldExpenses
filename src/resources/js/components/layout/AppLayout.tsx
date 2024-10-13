@@ -6,7 +6,7 @@ import IconButton from "@mui/material/IconButton";
 import MenuIcon from "@mui/icons-material/Menu";
 import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
-import { Outlet } from "react-router-dom";
+import { Outlet, useNavigate } from "react-router-dom";
 import SideBar from "../common/SideBar";
 import axios from "axios";
 import { Transaction } from "../../types";
@@ -18,6 +18,7 @@ const drawerWidth = 240;
 export default function AppLayout() {
     const [mobileOpen, setMobileOpen] = React.useState(false);
     const { LoginUser, setTransactions, setIsLoading } = useAppContext();
+    const navigate = useNavigate();
 
     const handleDrawerToggle = () => {
         setMobileOpen(!mobileOpen);
@@ -54,6 +55,10 @@ export default function AppLayout() {
             fecheTransactions();
         }
     }, [LoginUser]);
+
+    const toHome = () => {
+        navigate("/");
+    };
 
     const topImgLogoStyle: React.CSSProperties = {
         width: "260px",
@@ -99,7 +104,9 @@ export default function AppLayout() {
                             display: "flex",
                             alignItems: "center",
                             margin: "0 auto",
+                            cursor: "pointer",
                         }}
+                        onClick={toHome}
                     >
                         {/* <span className="topTitle">スマート家計簿</span> */}
                         <img

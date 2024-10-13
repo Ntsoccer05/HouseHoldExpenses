@@ -20,6 +20,8 @@ interface AppContextType {
     setTransactions: React.Dispatch<React.SetStateAction<Transaction[]>>;
     currentMonth: Date;
     setCurrentMonth: React.Dispatch<React.SetStateAction<Date>>;
+    currentYear: Date;
+    setCurrentYear: React.Dispatch<React.SetStateAction<Date>>;
     isLoading: boolean;
     setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
     isMobile: boolean;
@@ -46,6 +48,7 @@ export const AppProvider = ({ children }: AppProviderProps) => {
     const theme = useTheme();
     const [transactions, setTransactions] = useState<Transaction[]>([]);
     const [currentMonth, setCurrentMonth] = useState(new Date());
+    const [currentYear, setCurrentYear] = useState(new Date());
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [loginFlg, setLoginFlg] = useState<number>(0);
     const [LoginUser, setLoginUser] = useState<LoginUser | undefined>();
@@ -159,6 +162,8 @@ export const AppProvider = ({ children }: AppProviderProps) => {
                 setTransactions,
                 currentMonth,
                 setCurrentMonth,
+                currentYear,
+                setCurrentYear,
                 isLoading,
                 setIsLoading,
                 isMobile,

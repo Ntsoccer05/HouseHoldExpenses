@@ -1,4 +1,5 @@
 import { Transaction, Balance } from "../types";
+import { returnMonth } from "./formatting";
 
 //収入、支出、残高、の合計金額を求める関数
 export function financeCalculations(transactions: Transaction[]): Balance {
@@ -38,6 +39,30 @@ export function calculateDailyBalances(
         }
 
         acc[day].balance = acc[day].income - acc[day].expense;
+        return acc;
+    }, {});
+}
+
+//月ごとの収支を計算する関数💰
+// Record<string, Balance>はRecord<キー, バリュー>の型定義をしている
+export function calculateMonthlyBalances(
+    transactions: Transaction[]
+): Record<string, Balance> {
+    return transactions.reduce<Record<string, Balance>>((acc, transaction) => {
+        const day = transaction.date;
+        const month = returnMonth(day);
+        if (!acc[month]) {
+            // 新たにキーが月のオブジェクトを生成
+            acc[month] = { income: 0, expense: 0, balance: 0 };
+        }
+
+        if (transaction.type === "income") {
+            acc[month].income += transaction.amount;
+        } else {
+            acc[month].expense += transaction.amount;
+        }
+
+        acc[month].balance = acc[month].income - acc[month].expense;
         return acc;
     }, {});
 }

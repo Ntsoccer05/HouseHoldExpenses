@@ -1,5 +1,4 @@
 import { Card, CardContent, Grid, Stack, Typography } from "@mui/material";
-import React from "react";
 import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
 import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 import AccountBalanceIcon from "@mui/icons-material/AccountBalance";

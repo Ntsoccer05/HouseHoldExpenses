@@ -32,12 +32,18 @@ import {
     lightGreen,
     amber,
 } from "@mui/material/colors";
+import useYearlyTransactions from "../hooks/useYearlyTransactions";
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
-const CategoryChart = () => {
+interface CategoryChartProps {
+    viewType: "monthly" | "yearly";
+}
+
+const CategoryChart = ({ viewType }: CategoryChartProps) => {
     const { isLoading } = useAppContext();
     const monthlyTransactions = useMonthlyTransactions();
+    const yearlyTransactions = useYearlyTransactions();
 
     const theme = useTheme();
     const [selectedType, setSelectedType] =
@@ -48,7 +54,9 @@ const CategoryChart = () => {
     };
 
     // カテゴリごとの合計金額計算
-    const categorySums = monthlyTransactions
+    const categorySums = (
+        viewType === "monthly" ? monthlyTransactions : yearlyTransactions
+    )
         .filter((transaction) => transaction.type === selectedType)
         .reduce<Record<string, number>>((acc, transaction) => {
             if (!acc[transaction.category]) {

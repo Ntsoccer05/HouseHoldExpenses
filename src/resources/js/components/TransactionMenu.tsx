@@ -8,11 +8,10 @@ import {
     Grid,
     List,
     ListItem,
-    ListItemIcon,
     Stack,
     Typography,
 } from "@mui/material";
-import React, { memo } from "react";
+import { memo } from "react";
 import DailySummary from "./DailySummary";
 import NotesIcon from "@mui/icons-material/Notes";
 import AddCircleIcon from "@mui/icons-material/AddCircle";

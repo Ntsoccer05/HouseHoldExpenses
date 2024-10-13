@@ -4,7 +4,7 @@ import dayGridPlugin from "@fullcalendar/daygrid";
 import jaLocale from "@fullcalendar/core/locales/ja";
 import {
     DatesSetArg,
-    EventClickArg,
+    DayCellContentArg,
     EventContentArg,
 } from "@fullcalendar/core";
 import { Balance, CalendarContent } from "../types";
@@ -152,6 +152,25 @@ const Calendar = memo(
             }
         };
 
+        const handleDayCellClassNames = (arg: DayCellContentArg): string[] => {
+            const cellDate = arg.date;
+
+            if (calendarRef.current) {
+                const api = calendarRef.current.getApi();
+                const viewDate = api.getDate(); // This gives us the first date of the current view
+
+                // Check if the year or month of the cell date does not match the view date
+                if (
+                    cellDate.getFullYear() !== viewDate.getFullYear() ||
+                    cellDate.getMonth() !== viewDate.getMonth()
+                ) {
+                    return ["non-current-month"];
+                }
+            }
+
+            return [];
+        };
+
         return (
             <>
                 {/* <button onClick={goNext}>next</button> */}
@@ -166,27 +185,15 @@ const Calendar = memo(
                         backgroundEvent,
                     ]}
                     eventContent={renderEventContent}
-                    // eventClick={(info: EventClickArg) => {
-                    //     console.log(info);
-                    //     // Construct the onDateClick argument based on EventClickArg
-                    //     const dateClicked = {
-                    //         date: new Date(info.event.start as Date), // Use the event's start date
-                    //         allDay: true,
-                    //         dayEl: info.el, // Reference to the element
-                    //         jsEvent: info.jsEvent, // Include the jsEvent for any specific event handling
-                    //         view: info.view, // Pass the current view for context
-                    //         dateStr: (info.event.start as Date)
-                    //             .toISOString()
-                    //             .split("T")[0], // Format date as a string
-                    //     };
-
-                    //     onDateClick(dateClicked); // Call your date click handler here
-                    // }}
+                    dayCellClassNames={handleDayCellClassNames}
                     datesSet={handleDateSet}
                     dateClick={onDateClick}
                     buttonText={{
                         today: "今月",
                     }}
+                    // 翌月、前月を非表示
+                    // showNonCurrentDates={false}
+                    fixedWeekCount={false}
                 />
             </>
         );

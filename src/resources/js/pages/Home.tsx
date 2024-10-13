@@ -13,6 +13,7 @@ import ChangeCalendarMonth from "../components/ChangeCalendarMonth";
 import FullCalendar from "@fullcalendar/react";
 import "../../css/calendar.css";
 import { useNavigate } from "react-router-dom";
+import { CalendarApi } from "fullcalendar";
 
 const Home = () => {
     const today = format(new Date(), "yyyy-MM-dd");
@@ -85,6 +86,22 @@ const Home = () => {
 
     // //日付を選択したときの処理
     const handleDateClick = (dateInfo: DateClickArg) => {
+        console.log(dateInfo.dateStr);
+        const clickedDate = new Date(dateInfo.dateStr);
+        // Get the current view's start and end dates
+        const calendarApi: CalendarApi | null = calendarRef.current?.getApi();
+        const startDate = calendarApi?.view?.currentStart;
+        const endDate = calendarApi?.view?.currentEnd;
+
+        // Check if the clicked date is outside the current view's start and end range
+        if (
+            !startDate ||
+            !endDate ||
+            clickedDate < startDate ||
+            clickedDate >= endDate
+        ) {
+            return; // Do nothing if the date is from the previous or next month
+        }
         setCurrentDay(dateInfo.dateStr);
         if (isMobile) {
             setIsMobileDrawerOpen(true);
