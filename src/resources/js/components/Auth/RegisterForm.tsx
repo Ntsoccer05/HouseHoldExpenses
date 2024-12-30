@@ -1,14 +1,22 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import axios from "axios";
-import { RegisterScheme, registerSchema } from "../../validations/Register";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { RegisterScheme } from "../../validations/Register";
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
-import { Box, Button, Container, Stack, TextField } from "@mui/material";
+import {
+    Box,
+    Container,
+    IconButton,
+    InputAdornment,
+    Stack,
+    TextField,
+} from "@mui/material";
 import { RegisterError } from "../../utils/errorHandling";
 import ModalComponent from "../common/ModalComponent";
-import MeetingRoomIcon from "@mui/icons-material/MeetingRoom";
 import AppTitle from "../layout/AppTitle";
 import LockOpen from "@mui/icons-material/LockOpen";
+import { LoadingButton } from "@mui/lab";
+import { FiEye, FiEyeOff } from "react-icons/fi";
+import SocialLoginBtn from "./Common/SocialLoginBtn";
 
 function RegisterForm() {
     type RegisterErrMsgs = {
@@ -28,6 +36,8 @@ function RegisterForm() {
     const [showModal, setShowModal] = useState<boolean>(false);
     const [modalMainMessage, setModalMainMessage] = useState<string>("");
     const [modalMessage, setModalMessage] = useState<string>("");
+    const [showPassword, setShowPassword] = useState(false);
+    const [showPasswordConf, setShowPasswordConf] = useState(false);
 
     const {
         control,
@@ -36,7 +46,7 @@ function RegisterForm() {
         // errorsにバリデーションメッセージが格納される
         // formState: { errors },
         handleSubmit,
-        // reset,
+        reset,
     } = useForm<RegisterScheme>({
         // フォームの初期値設定
         defaultValues: {
@@ -54,6 +64,14 @@ function RegisterForm() {
     const registerSubmit: SubmitHandler<RegisterScheme> = (data) => {
         //フォームデータ送信時に画面を再更新しないようにする処理
         setIsLoading(true);
+        setErrorMsgs(() => {
+            return {
+                nameErrMsg: "",
+                emailErrMsg: "",
+                passErrMsg: "",
+                passConfErrMsg: "",
+            };
+        });
 
         axios
             .post("/api/register", data)
@@ -64,17 +82,12 @@ function RegisterForm() {
                 setModalMessage(
                     "認証用メールを送信しました。ご確認お願いします。"
                 );
+                reset();
+
+                setIsLoading(false);
             })
             .catch(function (error) {
                 setIsLoading(false);
-                setErrorMsgs(() => {
-                    return {
-                        nameErrMsg: "",
-                        emailErrMsg: "",
-                        passErrMsg: "",
-                        passConfErrMsg: "",
-                    };
-                });
                 const errorResMsgs = error.response.data.errors;
                 RegisterError(errorResMsgs, setErrorMsgs);
                 // 送信失敗時の処理
@@ -135,12 +148,34 @@ function RegisterForm() {
                         control={control}
                         render={({ field }) => (
                             <TextField
-                                error={!!errorMsgs?.passErrMsg}
-                                helperText={errorMsgs?.passErrMsg}
                                 {...field}
-                                label="パスワード"
-                                type="password"
+                                error={!!errorMsgs.passErrMsg}
+                                helperText={errorMsgs?.passErrMsg}
                                 required
+                                label="パスワード"
+                                type={showPassword ? "text" : "password"}
+                                variant="outlined"
+                                fullWidth
+                                InputProps={{
+                                    endAdornment: (
+                                        <InputAdornment position="end">
+                                            <IconButton
+                                                onClick={() =>
+                                                    setShowPassword(
+                                                        !showPassword
+                                                    )
+                                                }
+                                                edge="end"
+                                            >
+                                                {showPassword ? (
+                                                    <FiEyeOff />
+                                                ) : (
+                                                    <FiEye />
+                                                )}
+                                            </IconButton>
+                                        </InputAdornment>
+                                    ),
+                                }}
                             />
                         )}
                     />
@@ -150,28 +185,52 @@ function RegisterForm() {
                         control={control}
                         render={({ field }) => (
                             <TextField
-                                error={!!errorMsgs?.passConfErrMsg}
-                                helperText={errorMsgs?.passConfErrMsg}
                                 {...field}
-                                label="パスワード確認"
-                                type="password"
+                                error={!!errorMsgs.passConfErrMsg}
+                                helperText={errorMsgs?.passConfErrMsg}
                                 required
+                                label="パスワード確認"
+                                type={showPasswordConf ? "text" : "password"}
+                                variant="outlined"
+                                fullWidth
+                                InputProps={{
+                                    endAdornment: (
+                                        <InputAdornment position="end">
+                                            <IconButton
+                                                onClick={() =>
+                                                    setShowPasswordConf(
+                                                        !showPasswordConf
+                                                    )
+                                                }
+                                                edge="end"
+                                            >
+                                                {showPasswordConf ? (
+                                                    <FiEyeOff />
+                                                ) : (
+                                                    <FiEye />
+                                                )}
+                                            </IconButton>
+                                        </InputAdornment>
+                                    ),
+                                }}
                             />
                         )}
                     />
                     {/* 保存ボタン */}
-                    <Button
+                    <LoadingButton
                         type="submit"
                         variant="contained"
                         fullWidth
                         disabled={isLoading}
+                        loading={isLoading}
+                        loadingPosition="start"
                     >
                         {isLoading
                             ? modalMessage
                                 ? "認証メールを確認してください"
                                 : "認証メール送信中"
                             : "登録"}
-                    </Button>
+                    </LoadingButton>
                 </Stack>
             </Box>
         </>
@@ -185,12 +244,14 @@ function RegisterForm() {
                         display: "flex",
                         flexDirection: "column",
                         alignItems: "center",
+                        gap: "20px",
                     }}
                 >
                     <AppTitle
                         title="サインイン"
                         icon={IconComponents}
                     ></AppTitle>
+                    <SocialLoginBtn></SocialLoginBtn>
                     {formContent}
                     <ModalComponent
                         showModal={showModal}

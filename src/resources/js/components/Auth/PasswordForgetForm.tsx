@@ -1,6 +1,6 @@
 import { Box, Button, Container, Stack, TextField } from "@mui/material";
 import axios from "axios";
-import React, { useState } from "react";
+import { useState } from "react";
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
 import ModalComponent from "../common/ModalComponent";
 import { PasswordForgetScheme } from "../../validations/PasswordForget";
@@ -34,7 +34,11 @@ function PasswordForgetForm() {
     const registerSubmit: SubmitHandler<PasswordForgetScheme> = (data) => {
         //フォームデータ送信時に画面を再更新しないようにする処理
         setIsLoading(true);
-
+        setErrorMsgs(() => {
+            return {
+                emailErrMsg: "",
+            };
+        });
         axios
             .post("/api/password/forget", data)
             .then((response) => {
@@ -48,11 +52,6 @@ function PasswordForgetForm() {
             })
             .catch(function (error) {
                 setIsLoading(false);
-                setErrorMsgs(() => {
-                    return {
-                        emailErrMsg: "",
-                    };
-                });
                 const errorResMsgs = error.response.data.errors;
                 PasswordForgetError(errorResMsgs, setErrorMsgs);
                 // 送信失敗時の処理

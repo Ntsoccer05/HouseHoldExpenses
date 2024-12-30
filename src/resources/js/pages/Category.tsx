@@ -14,6 +14,7 @@ import IconButton from "@mui/material/IconButton";
 import Tooltip from "@mui/material/Tooltip";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
+import SaveIcon from "@mui/icons-material/Save";
 import { Button, ButtonGroup } from "@mui/material";
 import { Stack } from "@mui/material";
 import { CategoryItem, TransactionType } from "../types";
@@ -111,7 +112,7 @@ function Category() {
     };
 
     const handleSelectAllClick = (
-        event: React.ChangeEvent<HTMLInputElement>
+        event: React.ChangeEvent<HTMLInputElement>,
     ) => {
         if (!edited) {
             if (event.target.checked) {
@@ -232,7 +233,7 @@ function Category() {
                                 bgcolor: (theme) =>
                                     alpha(
                                         theme.palette.primary.main,
-                                        theme.palette.action.activatedOpacity
+                                        theme.palette.action.activatedOpacity,
                                     ),
                             }),
                         }}
@@ -270,14 +271,14 @@ function Category() {
                                 </IconButton>
                             </Tooltip>
                         ) : (
-                            <Tooltip title="編集">
+                            <Tooltip title={edited ? "保存" : "編集"}>
                                 <IconButton onClick={onUpdateCategories}>
-                                    <EditIcon />
+                                    {edited ? <SaveIcon /> : <EditIcon />}
                                 </IconButton>
                             </Tooltip>
                         )}
                     </Toolbar>
-                    <TableContainer sx={{ maxHeight: 440 }}>
+                    <TableContainer sx={{ maxHeight: 740 }}>
                         <Table
                             aria-labelledby="tableTitle"
                             stickyHeader

@@ -6,11 +6,10 @@ export const passwordResetSchema = z
         email: z.string().min(1, { message: "メールアドレスは必須です" }),
         password: z
             .string()
-            .min(8, "パスワードは8文字以上で入力してください")
-            .regex(
-                /^(?=.*?[a-z])(?=.*?\d)[a-z\d]{8,100}$/i,
-                "パスワードは半角英数字混合で入力してください"
-            ),
+            // .regex(
+            //     /^(?=.*?[a-z])(?=.*?\d)[a-z\d]{8,100}$/i,
+            //     "パスワードは半角英数字混合で入力してください"
+            // ),
         password_confirmation: z
             .string()
             .min(1, "確認用のパスワードを入力してください"),

@@ -53,23 +53,37 @@ class RegisterController extends Controller
     //Googleユーザ登録処理
     public function registerProviderUser(RegisterRequest $request, string $provider)
     {
-        $request->validate([
-            'name' => ['nullable', 'string', 'unique:users'],
-            'token' => ['required', 'string']
+        $providerUser = Socialite::driver($provider)->user();
+
+        $user = User::where('email', $providerUser->email)->first();
+        if ($user) {
+            Auth::login($user);
+        } else {
+            $user = User::updateOrCreate([
+                'name' => $providerUser->name,
+                'email' => $providerUser->email,
+                'email_verified_at' => now(),
+                'password' => null,
+            ]);
+            Auth::login($user);
+        }
+
+        // Sanctum トークンを生成
+        $token = $user->createToken('google-login')->plainTextToken;
+
+        $initialCategory = $user->IncomeCategories()->get();
+        // get() メソッドは、クエリの結果を コレクション として返す。コレクションが空かどうかをチェックするには、Laravel のコレクションメソッド isEmpty() を使用する必要がある
+        if($initialCategory->isEmpty()){
+            $expenseCategory = new ExpenceCategory();
+            $incomeCategory = new IncomeCategory();
+            $expenseCategory->firstCreateData($user);
+            $incomeCategory->firstCreateData($user);
+        }
+
+        // ユーザーとトークンを返す
+        return response()->json([
+            'user' => $user,
+            'token' => $token,
         ]);
-
-        $token = $request->token;
-
-        $providerUser = Socialite::driver($provider)->userFromToken($token);
-
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $providerUser->getEmail(),
-            'password' => null,
-        ]);
-
-        // Auth::guard()->login($user, true);
-
-        return response()->json(["status_code" => 200, "message" => "登録しました", "user" => $user]);
     }
 }

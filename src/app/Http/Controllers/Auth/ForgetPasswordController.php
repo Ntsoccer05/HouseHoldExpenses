@@ -5,11 +5,9 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\ForgetPasswordRequest;
 use App\Http\Requests\Auth\ResetPasswordRequest;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Password; //←パスワードリセットの通知メールを送る処理に必要
 use Illuminate\Auth\Events\PasswordReset; //←パスワードリセットDB更新処理に必要
 use Illuminate\Support\Facades\Hash; //←パスワードリセットDB更新処理に必要
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str; //←パスワードリセットDB更新処理に必要
 
 class ForgetPasswordController extends Controller

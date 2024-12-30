@@ -38,7 +38,13 @@ export function RegisterError(errorMsgs: RegisterErrs, setErrorMsgs) {
         }
         if ("password" in errorMsgs) {
             setErrorMsgs((state) => {
-                if (errorMsgs.password[0].indexOf("パスワード確認")) {
+                if (errorMsgs.password?.length > 1) {
+                    return {
+                        ...state,
+                        passErrMsg: errorMsgs.password[1],
+                    };
+                }
+                if (errorMsgs.password[0].indexOf("パスワード確認") > 0) {
                     return {
                         ...state,
                         passConfErrMsg: errorMsgs.password[0],

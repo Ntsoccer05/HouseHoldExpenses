@@ -39,7 +39,7 @@ td.fc-day-sun {
 
 .fc-view-harness.fc-view-harness-active {
     display: flex;
-    height: 637px !important;
+    height: 528px !important;
 }
 @media screen and (min-width: 768px) {
     .fc-view-harness.fc-view-harness-active {
@@ -72,15 +72,14 @@ td.fc-day-sun {
     background-color: #8080802e !important;
 }
 
-/* .MuiInputBase-input.MuiOutlinedInput-input.MuiInputBase-inputAdornedEnd.Mui-readOnly.MuiInputBase-readOnly.css-nxo287-MuiInputBase-input-MuiOutlinedInput-input {
-    opacity: 0;
-    cursor: pointer;
+.MuiPickersArrowSwitcher-root {
+    visibility: visible !important;
+    opacity: 1 !important;
 }
-.MuiTypography-root.MuiTypography-overline.css-ay2je5-MuiTypography-root,
-.MuiOutlinedInput-notchedOutline.css-1d3z3hw-MuiOutlinedInput-notchedOutline,
-.MuiDialogActions-root.MuiDialogActions-spacing.MuiPickersLayout-actionBar.css-knqc4i-MuiDialogActions-root {
-    display: none;
+
+,
+@media screen and (max-width: 600px) {
+    .fc .fc-scrollgrid table {
+        height: 100% !important;
+    }
 }
-.css-18fy8xu-MuiFormLabel-root-MuiInputLabel-root.Mui-focused {
-    color: black !important;
-} */

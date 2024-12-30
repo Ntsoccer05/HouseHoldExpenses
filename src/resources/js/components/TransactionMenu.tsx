@@ -130,14 +130,24 @@ const TransactionMenu = memo(
                                                         alignItems="center"
                                                         wrap="wrap"
                                                     >
-                                                        <Grid item xs={1}>
+                                                        <Grid
+                                                            item
+                                                            xs={1}
+                                                            sm={0.5}
+                                                            md={1}
+                                                            style={{
+                                                                paddingLeft: 0,
+                                                            }}
+                                                        >
                                                             {/* icon */}
                                                             {transaction.icon && (
                                                                 <DynamicIcon
                                                                     iconName={
                                                                         transaction.icon
                                                                     }
-                                                                    fontSize="medium"
+                                                                    fontSize={
+                                                                        "medium"
+                                                                    }
                                                                 />
                                                             )}
                                                         </Grid>

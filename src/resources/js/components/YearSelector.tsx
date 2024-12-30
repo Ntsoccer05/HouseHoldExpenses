@@ -1,15 +1,18 @@
 import { Box, Button, InputAdornment, TextField } from "@mui/material";
-import { useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFnsV3";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { ja } from "date-fns/locale";
-import { addYears } from "date-fns";
+import { addYears, format } from "date-fns";
 import { useAppContext } from "../context/AppContext";
 import TodayIcon from "@mui/icons-material/Today";
+import { useTransactionContext } from "../context/TransactionContext";
 
 const YearSelector = () => {
     const { currentYear, setCurrentYear } = useAppContext();
+    const { getYearlyTransactions } = useTransactionContext();
+
     const datePickerRef = useRef(null);
     const [isOpen, setIsOpen] = useState(false);
 
@@ -21,6 +24,19 @@ const YearSelector = () => {
             setCurrentYear(new Date());
         }
     };
+
+    const fetchYearlyTransactions = useCallback(
+        async (date: Date) => {
+            const formattedDate = format(date, "yyyy");
+            await getYearlyTransactions(formattedDate);
+        },
+        [getYearlyTransactions]
+    );
+
+    // `currentMonth`が変わったときだけデータ取得
+    useEffect(() => {
+        fetchYearlyTransactions(currentYear);
+    }, [currentYear, fetchYearlyTransactions]);
 
     //前年ボタンを押したときの処理
     const handlePreviousYear = () => {
@@ -103,7 +119,7 @@ const YearSelector = () => {
                     color={"primary"}
                     variant="contained"
                 >
-                    来年
+                    翌年
                 </Button>
             </Box>
         </LocalizationProvider>

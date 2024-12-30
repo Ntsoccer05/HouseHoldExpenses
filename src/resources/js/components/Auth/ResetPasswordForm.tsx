@@ -1,11 +1,11 @@
 import { Box, Button, Container, Stack, TextField } from "@mui/material";
 import axios from "axios";
-import React, { useEffect, useState } from "react";
+import { useState } from "react";
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
 import ModalComponent from "../common/ModalComponent";
 import { PasswordResetError } from "../../utils/errorHandling";
 import { PasswordResetScheme } from "../../validations/PasswordReset";
-import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import AppTitle from "../layout/AppTitle";
 
 function ResetPasswordForm() {
@@ -44,7 +44,12 @@ function ResetPasswordForm() {
     const passwordResetSubmit: SubmitHandler<PasswordResetScheme> = (data) => {
         //フォームデータ送信時に画面を再更新しないようにする処理
         setIsLoading(true);
-
+        setErrorMsgs(() => {
+            return {
+                passErrMsg: "",
+                passConfErrMsg: "",
+            };
+        });
         axios
             .post("/api/password/reset", { ...data, token })
             .then((response) => {
@@ -58,12 +63,6 @@ function ResetPasswordForm() {
             })
             .catch(function (error) {
                 setIsLoading(false);
-                setErrorMsgs(() => {
-                    return {
-                        passErrMsg: "",
-                        passConfErrMsg: "",
-                    };
-                });
                 const errorResMsgs = error.response.data.errors;
                 PasswordResetError(errorResMsgs, setErrorMsgs);
                 // 送信失敗時の処理

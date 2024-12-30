@@ -25,7 +25,14 @@ const MonthlySummary = ({ monthlyTransactions }: MonthlySummaryProps) => {
                 >
                     <CardContent sx={{ padding: { xs: 1, sm: 2 } }}>
                         <Stack direction={"row"}>
-                            <ArrowUpwardIcon sx={{ fontSize: "2rem" }} />
+                            <ArrowUpwardIcon
+                                sx={{
+                                    fontSize: {
+                                        md: "2rem",
+                                        xs: "1.5rem",
+                                    },
+                                }}
+                            />
                             <Typography>収入</Typography>
                         </Stack>
                         <Typography
@@ -58,7 +65,14 @@ const MonthlySummary = ({ monthlyTransactions }: MonthlySummaryProps) => {
                 >
                     <CardContent sx={{ padding: { xs: 1, sm: 2 } }}>
                         <Stack direction={"row"}>
-                            <ArrowDownwardIcon sx={{ fontSize: "2rem" }} />
+                            <ArrowDownwardIcon
+                                sx={{
+                                    fontSize: {
+                                        md: "2rem",
+                                        xs: "1.5rem",
+                                    },
+                                }}
+                            />
                             <Typography>支出</Typography>
                         </Stack>
                         <Typography
@@ -91,7 +105,14 @@ const MonthlySummary = ({ monthlyTransactions }: MonthlySummaryProps) => {
                 >
                     <CardContent sx={{ padding: { xs: 1, sm: 2 } }}>
                         <Stack direction={"row"}>
-                            <AccountBalanceIcon sx={{ fontSize: "2rem" }} />
+                            <AccountBalanceIcon
+                                sx={{
+                                    fontSize: {
+                                        md: "2rem",
+                                        xs: "1.5rem",
+                                    },
+                                }}
+                            />
                             <Typography>残高</Typography>
                         </Stack>
                         <Typography

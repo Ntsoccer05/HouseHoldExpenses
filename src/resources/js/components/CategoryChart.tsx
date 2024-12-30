@@ -21,7 +21,6 @@ import {
 } from "@mui/material";
 import { TransactionType } from "../types";
 import { useAppContext } from "../context/AppContext";
-import useMonthlyTransactions from "../hooks/useMonthlyTransactions";
 import {
     pink,
     lightBlue,
@@ -32,7 +31,7 @@ import {
     lightGreen,
     amber,
 } from "@mui/material/colors";
-import useYearlyTransactions from "../hooks/useYearlyTransactions";
+import { useTransactionContext } from "../context/TransactionContext";
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
@@ -42,8 +41,9 @@ interface CategoryChartProps {
 
 const CategoryChart = ({ viewType }: CategoryChartProps) => {
     const { isLoading } = useAppContext();
-    const monthlyTransactions = useMonthlyTransactions();
-    const yearlyTransactions = useYearlyTransactions();
+    // const monthlyTransactions = useMonthlyTransactions();
+    // const yearlyTransactions = useYearlyTransactions();
+    const { monthlyTransactions, yearlyTransactions } = useTransactionContext();
 
     const theme = useTheme();
     const [selectedType, setSelectedType] =

@@ -26,7 +26,7 @@ class RegisterRequest extends FormRequest
         return [
             'name' => 'nullable|unique:users|string',
             'email' => 'required|unique:users|email:strict,dns,spoof',
-            'password' => 'required|string|confirmed' 
+            'password' => 'required|string|confirmed|min:8' 
         ];
     }
 
@@ -38,6 +38,7 @@ class RegisterRequest extends FormRequest
             'email.unique' => ':attributeは登録できません。',
             'email.email' => '正しいメールアドレスを指定してください。',
             'password.required' => ':attributeは必須項目です。',
+            'password.min' => ':attributeは、:min文字以上にしてください。',
             'password.confirmed' => ':attributeと:attribute確認が一致していません。', 
         ];
     }

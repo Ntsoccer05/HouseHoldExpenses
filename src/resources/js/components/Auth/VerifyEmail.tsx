@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import { useParams } from "react-router-dom";
 import axios from "axios";
 
@@ -22,7 +22,7 @@ const VerifyEmail = () => {
         verifyEmail();
     }, [id, hash]);
 
-    return <div>Verifying your email...</div>;
+    return <div>メールアドレスが一致しているか確認中です</div>;
 };
 
 export default VerifyEmail;

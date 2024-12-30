@@ -2,10 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\FixedCategory;
 use App\Models\IncomeCategory;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
 
 const INCOME_TYPE = 1;
 

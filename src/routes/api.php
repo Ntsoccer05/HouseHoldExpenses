@@ -38,6 +38,8 @@ Route::group(['middleware'=>['auth:sanctum']],function(){
     Route::get('/getTransactions',[TransactionController::class, 'index']);
     Route::post('/updateTransaction',[TransactionController::class, 'update']);
     Route::post('/deleteTransaction',[TransactionController::class, 'delete']);
+    Route::get('/monthly-transaction',[TransactionController::class, 'getMonthlyTransaction']);
+    Route::get('/yearly-transaction',[TransactionController::class, 'getYearlyTransaction']);
     Route::post('/logout',[LoginController::class, 'logout']);
 });
 
@@ -59,9 +61,9 @@ Route::prefix('login')->group(function () {
     Route::post('/{provider}/callback', [LoginController::class, 'handleProviderCallback']);
 });
 
-// Route::prefix('register')->group(function () {
-//     Route::post('/{provider}', [RegisterController::class, 'registerProviderUser']);
-// });
+Route::prefix('register')->group(function () {
+    Route::post('/{provider}', [RegisterController::class, 'registerProviderUser']);
+});
 
 //パスワードリセット
 Route::post('/password/forget', [ForgetPasswordController::class, 'sendemail']);

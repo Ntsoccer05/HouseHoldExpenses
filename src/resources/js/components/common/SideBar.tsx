@@ -190,6 +190,7 @@ const Sidebar = ({
                 variant="temporary"
                 open={mobileOpen}
                 onClose={handleDrawerToggle}
+                onClick={handleDrawerToggle}
                 ModalProps={{
                     keepMounted: true, // Better open performance on mobile.
                 }}

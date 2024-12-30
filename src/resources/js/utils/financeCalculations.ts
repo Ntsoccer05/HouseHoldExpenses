@@ -16,14 +16,14 @@ export function financeCalculations(transactions: Transaction[]): Balance {
 
             return acc;
         },
-        { income: 0, expense: 0, balance: 0 }
+        { income: 0, expense: 0, balance: 0 },
     );
 }
 
 //日付ごとの収支を計算する関数💰
 // Record<string, Balance>はRecord<キー, バリュー>の型定義をしている
 export function calculateDailyBalances(
-    transactions: Transaction[]
+    transactions: Transaction[],
 ): Record<string, Balance> {
     return transactions.reduce<Record<string, Balance>>((acc, transaction) => {
         const day = transaction.date;
@@ -46,7 +46,7 @@ export function calculateDailyBalances(
 //月ごとの収支を計算する関数💰
 // Record<string, Balance>はRecord<キー, バリュー>の型定義をしている
 export function calculateMonthlyBalances(
-    transactions: Transaction[]
+    transactions: Transaction[],
 ): Record<string, Balance> {
     return transactions.reduce<Record<string, Balance>>((acc, transaction) => {
         const day = transaction.date;

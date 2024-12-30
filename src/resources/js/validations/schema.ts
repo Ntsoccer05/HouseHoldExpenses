@@ -4,10 +4,16 @@ import { literal, z } from "zod";
 export const transactionSchema = z.object({
     type: z.enum(["income", "expense"]),
     date: z.string().min(1, { message: "日付は必須です" }),
-    amount: z.number().min(1, { message: "金額は1円以上必須です" }),
+    amount: z
+        .number()
+        .min(1, { message: "金額は1円以上必須です" })
+        .refine((value) => value.toString().length <= 8, {
+            message: "金額は8桁以内にしてください",
+        }),
     content: z
         .string()
-        .max(50, { message: "内容は50文字以内にしてください。" }),
+        .max(50, { message: "内容は50文字以内にしてください。" })
+        .nullable(),
     category: z.string().min(1, { message: "カテゴリを選択してください" }),
 
     // category: z

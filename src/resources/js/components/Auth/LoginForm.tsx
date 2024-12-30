@@ -3,15 +3,26 @@ import axios from "axios";
 import { LoginScheme, loginSchema } from "../../validations/Login";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
-import { Box, Button, Container, Grid, Stack, TextField } from "@mui/material";
+import {
+    Box,
+    Button,
+    Container,
+    Grid,
+    IconButton,
+    InputAdornment,
+    Stack,
+    TextField,
+} from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { LoginError } from "../../utils/errorHandling";
 import ModalComponent from "../common/ModalComponent";
 import { Link } from "react-router-dom";
 import AppTitle from "../layout/AppTitle";
-import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import { useAppContext } from "../../context/AppContext";
 import { MeetingRoomOutlined } from "@mui/icons-material";
+import LoadingButton from "@mui/lab/LoadingButton";
+import { FiEye, FiEyeOff } from "react-icons/fi";
+import SocialLoginBtn from "./Common/SocialLoginBtn";
 
 function LoginForm() {
     type LoginInput = {
@@ -46,6 +57,8 @@ function LoginForm() {
     const [modalMainMessage, setModalMainMessage] = useState<string>("");
     const [modalMessage, setModalMessage] = useState<string>("");
 
+    const [showPassword, setShowPassword] = useState(false);
+
     const navigate = useNavigate();
 
     const {
@@ -70,6 +83,13 @@ function LoginForm() {
     const [isLoading, setIsLoading] = useState<boolean>(false);
 
     const loginSubmit: SubmitHandler<LoginScheme> = async (data) => {
+        setIsLoading(true);
+        setErrorMsgs(() => {
+            return {
+                emailErrMsg: "",
+                passErrMsg: "",
+            };
+        });
         // CSRF保護
         await axios
             .get("/sanctum/csrf-cookie")
@@ -87,12 +107,6 @@ function LoginForm() {
                     .catch(function (error) {
                         // 送信失敗時の処理
                         setIsLoading(false);
-                        setErrorMsgs(() => {
-                            return {
-                                emailErrMsg: "",
-                                passErrMsg: "",
-                            };
-                        });
                         if (error.response.status == 403) {
                             setErrorMsgs((state) => {
                                 return {
@@ -109,6 +123,7 @@ function LoginForm() {
             })
             .catch((e) => {
                 console.log(e);
+                setIsLoading(false);
             });
     };
 
@@ -168,37 +183,60 @@ function LoginForm() {
                         control={control}
                         render={({ field }) => (
                             <TextField
+                                {...field}
                                 error={!!errors.password}
                                 helperText={errorMsgs?.passErrMsg}
-                                {...field}
                                 required
                                 label="パスワード"
-                                type="password"
+                                type={showPassword ? "text" : "password"}
                                 variant="outlined"
+                                fullWidth
+                                InputProps={{
+                                    endAdornment: (
+                                        <InputAdornment position="end">
+                                            <IconButton
+                                                onClick={() =>
+                                                    setShowPassword(
+                                                        !showPassword
+                                                    )
+                                                }
+                                                edge="end"
+                                            >
+                                                {showPassword ? (
+                                                    <FiEyeOff />
+                                                ) : (
+                                                    <FiEye />
+                                                )}
+                                            </IconButton>
+                                        </InputAdornment>
+                                    ),
+                                }}
                             />
                         )}
                     />
                     {/* 保存ボタン */}
                     {/* イベントハンドラで条件式の場合onClick={()=>}のようにアロー関数型で記述する */}
-                    <Button
+                    <LoadingButton
                         type="submit"
                         variant="contained"
                         fullWidth
                         disabled={isLoading}
+                        loading={isLoading}
                     >
                         ログイン
-                    </Button>
+                    </LoadingButton>
                     {reConfirmEmail && (
-                        <Button
+                        <LoadingButton
                             color="error"
                             type="submit"
                             variant="contained"
                             fullWidth
                             disabled={isLoading}
+                            loading={isLoading}
                             onClick={() => resendConfirmEmail()}
                         >
                             {isLoading ? "認証メール送信中" : "再度メール認証"}
-                        </Button>
+                        </LoadingButton>
                     )}
                 </Stack>
             </Box>
@@ -213,9 +251,12 @@ function LoginForm() {
                         display: "flex",
                         flexDirection: "column",
                         alignItems: "center",
+                        gap: "20px",
                     }}
                 >
                     <AppTitle title="ログイン" icon={IconComponents}></AppTitle>
+                    <SocialLoginBtn></SocialLoginBtn>
+
                     {formContent}
                     <Grid container sx={{ mt: 5, display: "block" }}>
                         <Grid item xs sx={{ mb: 1 }}>

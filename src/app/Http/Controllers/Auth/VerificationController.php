@@ -11,7 +11,6 @@ use Illuminate\Auth\Events\Verified;
 use Illuminate\Foundation\Auth\VerifiesEmails;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Facades\Log;
 
 class VerificationController extends Controller
 {
@@ -33,7 +32,7 @@ class VerificationController extends Controller
      *
      * @var string
      */
-    // protected $redirectTo = '/home';
+    protected $redirectTo = '/login';
 
     /**
      * メールアドレスを認証する
@@ -59,7 +58,7 @@ class VerificationController extends Controller
         $incomeCategory->firstCreateData($requestUser);
 
         //最終的に任意のルート先にリダイレクトさせるようにします
-        return redirect()->to(config('app.url').'/login');
+        return redirect()->to('/login');
     }
 
     /**

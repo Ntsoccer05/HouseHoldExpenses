@@ -1,24 +1,33 @@
-import React, { ReactNode, createContext, useContext, useState } from "react";
+import {
+    ReactNode,
+    createContext,
+    useContext,
+    useCallback,
+    useMemo,
+    useState,
+} from "react";
 import { Transaction, TransactionData } from "../types/index";
-import { Schema } from "../validations/schema";
 import { useTheme } from "@mui/material";
 import axios from "axios";
 import { useAppContext } from "../context/AppContext";
 
-//コンテキスト
+// コンテキストの型定義
 interface TransactionContext {
-    //以下から関数（追加、削除、更新）
-    onSaveTransaction: (transaction: Schema) => Promise<void>;
+    onSaveTransaction: (transaction: TransactionData) => Promise<void>;
     onDeleteTransaction: (
         transactionIds: string | readonly string[]
     ) => Promise<void>;
     onUpdateTransaction: (
-        transaction: Schema,
+        transaction: TransactionData,
         transactionId: string
     ) => Promise<void>;
+    getMonthlyTransactions: (currentMonth: string) => Promise<any>;
+    monthlyTransactions: Transaction[];
+    getYearlyTransactions: (currentYear: string) => Promise<any>;
+    yearlyTransactions: Transaction[];
 }
 
-// createContextでグローバルにする値を設定 AppContext.Providerのvalueの設定値の型を指定する必要がある
+// コンテキストの初期化
 const TransactionContext = createContext<TransactionContext | undefined>(
     undefined
 );
@@ -39,105 +48,150 @@ export const TransactionProvider = ({ children }: TransactionProviderProps) => {
         IncomeCategories,
     } = useAppContext();
 
-    const addCategoryIcon = (transaction: TransactionData) => {
-        if (transaction.type === "expense") {
-            const ExpenseCategory = ExpenseCategories?.filter((category) => {
-                return category.label === transaction.category;
-            });
-            if (ExpenseCategory) {
-                return ExpenseCategory[0].icon;
-            }
-        } else if (transaction.type === "income") {
-            const IncomeCategory = IncomeCategories?.filter((category) => {
-                return category.label === transaction.category;
-            });
-            if (IncomeCategory) {
-                return IncomeCategory[0].icon;
-            }
-        }
-    };
+    const [monthlyTransactions, setMonthlyTransactions] = useState<
+        Transaction[]
+    >([]);
 
-    //取引を保存する処理
-    const onSaveTransaction = async (transaction: TransactionData) => {
+    const [yearlyTransactions, setYearlyTransactions] = useState<Transaction[]>(
+        []
+    );
+
+    // 共通アイコン取得処理をメモ化
+    const addCategoryIcon = useMemo(() => {
+        return (transaction: TransactionData) => {
+            const categories =
+                transaction.type === "expense"
+                    ? ExpenseCategories
+                    : IncomeCategories;
+            return categories?.find(
+                (category) => category.label === transaction.category
+            )?.icon;
+        };
+    }, [ExpenseCategories, IncomeCategories]);
+
+    // 月間取引データの取得
+    const getMonthlyTransactions = useCallback(async (currentMonth: string) => {
         try {
-            transaction.icon = addCategoryIcon(transaction);
-            //データを保存
-            const docRef = await axios.post("/api/addTransaction", {
-                transaction: transaction,
-                user_id: LoginUser?.id,
+            const response = await axios.get("/api/monthly-transaction", {
+                params: { currentMonth },
             });
-            const newTransaction = {
-                id: docRef.data.id,
-                ...transaction,
-            } as Transaction;
-            setTransactions((prevTransaction) => [
-                ...prevTransaction,
-                newTransaction,
-            ]);
+            setMonthlyTransactions(response.data.monthlyTransactionData);
+            return response.data.monthlyTransactionData;
         } catch (err) {
-            console.error("一般的なエラーは:", err);
+            console.error("Error fetching monthly transactions:", err);
+            return [];
         }
-    };
+    }, []);
 
-    //削除処理
-    const onDeleteTransaction = async (
-        transactionIds: string | readonly string[]
-    ) => {
+    // 年間取引データの取得
+    const getYearlyTransactions = useCallback(async (currentYear: string) => {
         try {
-            const idsToDelete = Array.isArray(transactionIds)
-                ? transactionIds
-                : [transactionIds];
-            for (const id of idsToDelete) {
-                //firestoreのデータ削除
-                await axios.post("/api/deleteTransaction", {
-                    transactionId: id,
+            const response = await axios.get("/api/yearly-transaction", {
+                params: { currentYear },
+            });
+            setYearlyTransactions(response.data.yearlyTransactionData);
+            return response.data.yearlyTransactionData;
+        } catch (err) {
+            console.error("Error fetching yearly transactions:", err);
+            return [];
+        }
+    }, []);
+
+    // 取引を保存
+    const onSaveTransaction = useCallback(
+        async (transaction: TransactionData) => {
+            try {
+                const transactionWithIcon = {
+                    ...transaction,
+                    icon: addCategoryIcon(transaction),
+                };
+                const response = await axios.post("/api/addTransaction", {
+                    transaction: transactionWithIcon,
                     user_id: LoginUser?.id,
                 });
-            }
-            //複数の取引を削除可能
-            const filterdTransactions = transactions.filter(
-                (transaction) => !idsToDelete.includes(transaction.id)
-            );
-            setTransactions(filterdTransactions);
-        } catch (err) {
-            console.error("一般的なエラーは:", err);
-        }
-    };
+                const newTransaction = {
+                    id: response.data.id,
+                    ...transactionWithIcon,
+                } as Transaction;
 
-    //更新処理
-    const onUpdateTransaction = async (
-        transaction: TransactionData,
-        transactionId: string
-    ) => {
-        try {
-            transaction.icon = addCategoryIcon(transaction);
-            //データを保存
-            const docRef = await axios.post("/api/updateTransaction", {
-                transaction: transaction,
-                transactionId: transactionId,
-                user_id: LoginUser?.id,
-            });
-            const newTransaction = {
-                id: docRef.data.id,
-                ...transaction,
-            } as Transaction;
-            //フロント更新
-            const updatedTransactions = transactions.map((t) =>
-                t.id === transactionId ? { ...t, ...transaction } : t
-            ) as Transaction[];
-            setTransactions(updatedTransactions);
-        } catch (err) {
-            console.error("一般的なエラーは:", err);
-        }
-    };
+                setMonthlyTransactions((prevTransactions) => [
+                    ...prevTransactions,
+                    newTransaction,
+                ]);
+            } catch (err) {
+                console.error("Error saving transaction:", err);
+            }
+        },
+        [addCategoryIcon, LoginUser?.id, setMonthlyTransactions]
+    );
+
+    // 取引を削除
+    const onDeleteTransaction = useCallback(
+        async (transactionIds: string | readonly string[]) => {
+            try {
+                const idsToDelete = Array.isArray(transactionIds)
+                    ? transactionIds
+                    : [transactionIds];
+
+                await Promise.all(
+                    idsToDelete.map((id) =>
+                        axios.post("/api/deleteTransaction", {
+                            transactionId: id,
+                            user_id: LoginUser?.id,
+                        })
+                    )
+                );
+
+                setMonthlyTransactions((prevTransactions) =>
+                    prevTransactions.filter(
+                        (transaction) => !idsToDelete.includes(transaction.id)
+                    )
+                );
+            } catch (err) {
+                console.error("Error deleting transaction(s):", err);
+            }
+        },
+        [LoginUser?.id, setMonthlyTransactions]
+    );
+
+    // 取引を更新
+    const onUpdateTransaction = useCallback(
+        async (transaction: TransactionData, transactionId: string) => {
+            try {
+                const transactionWithIcon = {
+                    ...transaction,
+                    icon: addCategoryIcon(transaction),
+                };
+                await axios.post("/api/updateTransaction", {
+                    transaction: transactionWithIcon,
+                    transactionId,
+                    user_id: LoginUser?.id,
+                });
+
+                setMonthlyTransactions((prevTransactions) =>
+                    prevTransactions.map((t) =>
+                        t.id === transactionId
+                            ? { ...t, ...transactionWithIcon }
+                            : t
+                    )
+                );
+            } catch (err) {
+                console.error("Error updating transaction:", err);
+            }
+        },
+        [addCategoryIcon, LoginUser?.id, setMonthlyTransactions]
+    );
 
     return (
-        // valueで設定した値をchildrenで受け取ることができる
         <TransactionContext.Provider
             value={{
                 onSaveTransaction,
                 onDeleteTransaction,
                 onUpdateTransaction,
+                getMonthlyTransactions,
+                monthlyTransactions,
+                getYearlyTransactions,
+                yearlyTransactions,
             }}
         >
             {children}
@@ -145,9 +199,8 @@ export const TransactionProvider = ({ children }: TransactionProviderProps) => {
     );
 };
 
-// コンテキストを使用するためのカスタムフック
+// カスタムフック
 export const useTransactionContext = () => {
-    // useContextでvalueに設定した値を取得できる
     const context = useContext(TransactionContext);
     if (!context) {
         throw new Error(
