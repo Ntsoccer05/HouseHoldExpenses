@@ -35,7 +35,14 @@ const DailySummary = ({ dailyTransactions, columns }: DailySummaryProps) => {
                                 }
                                 textAlign="right"
                                 fontWeight="fontWeightBold"
-                                sx={{ wordBreak: "break-all" }}
+                                sx={{
+                                    wordBreak: "break-all",
+                                    fontSize: {
+                                        xs: ".8rem",
+                                        sm: "1rem",
+                                        md: "1.2rem",
+                                    },
+                                }}
                             >
                                 ¥{formatCurrency(income)}
                             </Typography>
@@ -64,7 +71,14 @@ const DailySummary = ({ dailyTransactions, columns }: DailySummaryProps) => {
                                 }
                                 textAlign="right"
                                 fontWeight="fontWeightBold"
-                                sx={{ wordBreak: "break-all" }}
+                                sx={{
+                                    wordBreak: "break-all",
+                                    fontSize: {
+                                        xs: ".8rem",
+                                        sm: "1rem",
+                                        md: "1.2rem",
+                                    },
+                                }}
                             >
                                 ¥{formatCurrency(expense)}
                             </Typography>
@@ -93,7 +107,14 @@ const DailySummary = ({ dailyTransactions, columns }: DailySummaryProps) => {
                                 }
                                 textAlign="right"
                                 fontWeight="fontWeightBold"
-                                sx={{ wordBreak: "break-all" }}
+                                sx={{
+                                    wordBreak: "break-all",
+                                    fontSize: {
+                                        xs: ".8rem",
+                                        sm: "1rem",
+                                        md: "1.2rem",
+                                    },
+                                }}
                             >
                                 ¥{formatCurrency(balance)}
                             </Typography>

@@ -23,12 +23,12 @@ const Report = () => {
 
     // 年別/月別の表示を切り替える状態
     const [viewType, setViewType] = React.useState<"monthly" | "yearly">(
-        "monthly"
+        "monthly",
     );
 
     const handleViewTypeChange = (
         event: React.MouseEvent<HTMLElement>,
-        newViewType: "monthly" | "yearly" | null
+        newViewType: "monthly" | "yearly" | null,
     ) => {
         if (newViewType !== null) {
             setViewType(newViewType);

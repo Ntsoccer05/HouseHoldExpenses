@@ -25,7 +25,7 @@ class LoginRequest extends FormRequest
     {
         return [
             'email' => 'required|email|exists:users',
-            'password' => 'required|string' 
+            'password' => 'required|string|min:8' 
         ];
     }
 
@@ -36,6 +36,7 @@ class LoginRequest extends FormRequest
             'email.email' => '正しいメールアドレスを指定してください。',
             'email.exists' => '入力された:attributeは登録されていません。',
             'password.exists' => ':attributeは必須項目です。',
+            'password.min' => ':attributeは、:min文字以上にしてください。',
         ];
     }
 

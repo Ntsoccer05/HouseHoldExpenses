@@ -2,16 +2,21 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\TypeEnum;
 use App\Http\Requests\TransactionRequest;
 use App\Models\Content;
-use App\Models\ExpenceCategory;
-use App\Models\IncomeCategory;
 use App\Models\Type;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use DateTime;
+use Illuminate\Http\Response;
 
+/**
+ * 家計簿管理用コントローラー
+ * 
+ * 家計簿の作成、更新、削除、取得を行うAPIエンドポイントを提供します。
+ */
 class TransactionController extends Controller
 {
     /**
@@ -41,14 +46,14 @@ class TransactionController extends Controller
      * @param \App\Models\Type $type タイプモデルのインスタンス。
      * @return \Illuminate\Http\JsonResponse カテゴリ作成の結果をJSON形式で返します。
      */
-    public function create(TransactionRequest $request, Content $transactionContent, Type $type){
+    public function create(TransactionRequest $request, Content $transactionContent){
         $user_id = $request->user_id;
         $contents = $request->transaction;
         try {
             // Start a new database transaction
             DB::beginTransaction();
             $transactionContent->user_id = $user_id;
-            $transactionContent->type_id = $type->where('en_name', $contents['type'])->value('id');
+            $transactionContent->type_id = TypeEnum::fromLabel($contents['type'])?->value;
             $transactionContent->insertCategory($contents, $transactionContent->type_id);
             $transactionContent->recorded_at = new DateTime($contents['date']);
             $transactionContent->amount = $contents['amount'];
@@ -82,7 +87,7 @@ class TransactionController extends Controller
             try {
                 // Start a new database transaction
                 DB::beginTransaction();
-                $transactionContent->type_id = $type->where('en_name', $contents['type'])->value('id');
+                $transactionContent->type_id = TypeEnum::fromLabel($contents['type'])?->value;
                 $transactionContent->insertCategory($contents, $transactionContent->type_id);
                 $transactionContent->recorded_at = new DateTime($contents['date']);
                 $transactionContent->amount = $contents['amount'];
@@ -100,26 +105,70 @@ class TransactionController extends Controller
             }
         }
     }
+
+    /**
+     * 家計簿を削除
+     *
+     * 指定されたIDの家計簿データを削除します。
+     *
+     * @param Request $request ユーザーIDとトランザクションIDを含むリクエスト。
+     * @param Content $transactionContent 家計簿モデルのインスタンス。
+     * @return \Illuminate\Http\JsonResponse 削除結果をJSON形式で返します。
+     */
     public function delete(Request $request, Content $transactionContent){
         $user_id = $request->user_id;
         $transactionId = $request->transactionId;
         $transactionContent = $transactionContent->where('user_id', $user_id)->where('id', $transactionId)->first();
-        Log::error($transactionContent);
         if($transactionContent){
             try {
-                // Start a new database transaction
                 DB::beginTransaction();
                 $transactionContent->delete();
-                // // Commit the transaction
                 DB::commit();
     
                 return response()->json(['message' => '家計簿を登録しました', 'id' => $transactionContent->id], 200);
             } catch (\Exception $e) {
-                // Roll back the transaction if there's an error
                 DB::rollBack();
-    
                 return response()->json(['error' => $e->getMessage()], 500);
             }
+        }
+    }
+
+    /**
+     * 月次家計簿データを取得
+     *
+     * 指定された月のトランザクションデータを取得します。
+     *
+     * @param Request $request リクエストデータ（currentMonthを含む）。
+     * @param Content $transactionContent 家計簿モデルのインスタンス。
+     * @return \Illuminate\Http\JsonResponse 月次データをJSON形式で返します。
+     */
+    public function getMonthlyTransaction(Request $request, Content $transactionContent)
+    {
+        try {
+            $monthlyTransactionData = $transactionContent->getMonthlyTransaction($request);
+            return response()->json(['message' => '選択月の家計簿を取得しました。', 'monthlyTransactionData' => $monthlyTransactionData], Response::HTTP_OK);
+        }catch (\Exception $e) {
+            return response()->json(['message' => '選択月の家計簿はありません'], Response::HTTP_NOT_FOUND);
+        }
+    }
+    
+    /**
+     * 年次家計簿データを取得
+     *
+     * 指定された年のトランザクションデータを取得します。
+     *
+     * @param Request $request リクエストデータ（currentYearを含む）。
+     * @param Content $transactionContent 家計簿モデルのインスタンス。
+     * @return \Illuminate\Http\JsonResponse 年次データをJSON形式で返します。
+     */
+    public function getYearlyTransaction(Request $request, Content $transactionContent)
+    {
+        try {
+            $yearlyTransactionData = $transactionContent->getYearlyTransaction($request);
+            Log::error($yearlyTransactionData);
+            return response()->json(['message' => '選択年の家計簿を取得しました。', 'yearlyTransactionData' => $yearlyTransactionData], Response::HTTP_OK);
+        }catch (\Exception $e) {
+            return response()->json(['message' => '選択年の家計簿はありません'], Response::HTTP_NOT_FOUND);
         }
     }
 }

@@ -16,8 +16,7 @@ import {
 import { Box, Typography, useTheme } from "@mui/material";
 import CircularProgress from "@mui/material/CircularProgress";
 import { useAppContext } from "../context/AppContext";
-import useMonthlyTransactions from "../hooks/useMonthlyTransactions";
-import useYearlyTransactions from "../hooks/useYearlyTransactions";
+import { useTransactionContext } from "../context/TransactionContext";
 ChartJS.register(
     CategoryScale,
     LinearScale,
@@ -32,8 +31,9 @@ interface BarChartProps {
 
 const BarChart = ({ viewType }: BarChartProps) => {
     const { isLoading } = useAppContext();
-    const monthlyTransactions = useMonthlyTransactions();
-    const yearlyTransactions = useYearlyTransactions();
+    // const monthlyTransactions = useMonthlyTransactions();
+    // const yearlyTransactions = useYearlyTransactions();
+    const { monthlyTransactions, yearlyTransactions } = useTransactionContext();
 
     const theme = useTheme();
     const options = {

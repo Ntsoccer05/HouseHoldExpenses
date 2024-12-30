@@ -4,6 +4,7 @@ import Box from "@mui/material/Box";
 import CssBaseline from "@mui/material/CssBaseline";
 import IconButton from "@mui/material/IconButton";
 import MenuIcon from "@mui/icons-material/Menu";
+import CloseIcon from "@mui/icons-material/Close";
 import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
 import { Outlet, useNavigate } from "react-router-dom";
@@ -11,8 +12,7 @@ import SideBar from "../common/SideBar";
 import axios from "axios";
 import { Transaction } from "../../types";
 import { useAppContext } from "../../context/AppContext";
-// import { collection, getDocs } from "firebase/firestore";
-// import { db } from "../../firebase";
+
 const drawerWidth = 240;
 
 export default function AppLayout() {
@@ -20,9 +20,10 @@ export default function AppLayout() {
     const { LoginUser, setTransactions, setIsLoading } = useAppContext();
     const navigate = useNavigate();
 
-    const handleDrawerToggle = () => {
-        setMobileOpen(!mobileOpen);
-    };
+    // サイドバーの開閉をトグル
+    const handleDrawerToggle = React.useCallback(() => {
+        setMobileOpen((prev) => !prev);
+    }, []);
 
     //家計簿データを全て取得
     React.useEffect(() => {
@@ -56,16 +57,21 @@ export default function AppLayout() {
         }
     }, [LoginUser]);
 
-    const toHome = () => {
+    // ホームへのナビゲーション
+    const toHome = React.useCallback(() => {
+        handleDrawerToggle();
         navigate("/");
-    };
+    }, [navigate]);
 
-    const topImgLogoStyle: React.CSSProperties = {
-        width: "260px",
-        height: "50px",
-        objectFit: "cover",
-        marginRight: "10px",
-    };
+    const topImgLogoStyle = React.useMemo(
+        () => ({
+            width: "260px",
+            height: "50px",
+            objectFit: "cover",
+            marginRight: "10px",
+        }),
+        []
+    );
 
     return (
         <Box
@@ -73,6 +79,7 @@ export default function AppLayout() {
                 display: "flex",
                 bgcolor: (theme) => theme.palette.grey[100],
                 minHeight: "100vh",
+                overflow: "hidden",
             }}
         >
             <CssBaseline />
@@ -84,6 +91,7 @@ export default function AppLayout() {
                     width: { md: `calc(100% - ${drawerWidth}px)` },
                     ml: { md: `${drawerWidth}px` },
                     bgcolor: "#fff",
+                    zIndex: (theme) => theme.zIndex.drawer + 1,
                 }}
             >
                 <Toolbar>
@@ -94,7 +102,7 @@ export default function AppLayout() {
                         onClick={handleDrawerToggle}
                         sx={{ mr: 2, display: { md: "none" }, color: "black" }}
                     >
-                        <MenuIcon />
+                        {mobileOpen ? <CloseIcon /> : <MenuIcon />}
                     </IconButton>
                     <Typography
                         variant="h6"
@@ -131,8 +139,8 @@ export default function AppLayout() {
                 component="main"
                 sx={{
                     flexGrow: 1,
-                    p: 3,
-                    width: { md: `calc(100% - ${drawerWidth}px)` },
+                    p: { xs: 2, sm: 3 },
+                    width: { md: `calc(100% - ${drawerWidth}px)`, xs: "100%" },
                 }}
             >
                 <Toolbar />

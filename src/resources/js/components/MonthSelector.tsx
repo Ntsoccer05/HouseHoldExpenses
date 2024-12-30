@@ -1,16 +1,18 @@
 import { Box, Button, TextField, InputAdornment } from "@mui/material";
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFnsV3";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { ja } from "date-fns/locale";
-import { addMonths } from "date-fns";
+import { addMonths, format } from "date-fns";
 import { useAppContext } from "../context/AppContext";
 import TodayIcon from "@mui/icons-material/Today";
+import { useTransactionContext } from "../context/TransactionContext";
 
 const MonthSelector = () => {
     const { currentMonth, setCurrentMonth } = useAppContext();
     const [isOpen, setIsOpen] = useState(false);
+    const { getMonthlyTransactions } = useTransactionContext();
 
     const handleDateChange = (newDate: Date | null) => {
         if (newDate) {
@@ -20,6 +22,20 @@ const MonthSelector = () => {
             setCurrentMonth(new Date());
         }
     };
+
+    // 非同期処理でデータを取得
+    const fetchMonthlyTransactions = useCallback(
+        async (date: Date) => {
+            const formattedDate = format(date, "yyyyMM");
+            await getMonthlyTransactions(formattedDate);
+        },
+        [getMonthlyTransactions]
+    );
+
+    // `currentMonth`が変わったときだけデータ取得
+    useEffect(() => {
+        fetchMonthlyTransactions(currentMonth);
+    }, [currentMonth, fetchMonthlyTransactions]);
 
     //先月ボタンを押したときの処理
     const handlePreviousMonth = () => {
@@ -55,7 +71,7 @@ const MonthSelector = () => {
                     color={"error"}
                     variant="contained"
                 >
-                    先月
+                    前月
                 </Button>
                 <DatePicker
                     onChange={handleDateChange}
@@ -64,6 +80,7 @@ const MonthSelector = () => {
                     sx={{ mx: 2, background: "white" }}
                     views={["year", "month"]}
                     format="yyyy/MM"
+                    openTo="month"
                     open={isOpen} // Control the open state
                     onClose={() => setIsOpen(false)} // Handle closing
                     slots={{ textField: TextField }} // Use 'slots' to render TextField

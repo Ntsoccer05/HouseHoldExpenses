@@ -18,6 +18,7 @@ import Category from "../pages/Category";
 import PrivateRoute from "./PrivateRoute";
 import OnlyPublicRoute from "./OnlyPublicRoute";
 import { TransactionProvider } from "../context/TransactionContext";
+import GoogleCallback from "../components/Auth/GoogleCallback";
 
 function DefineRouter() {
     return (
@@ -55,10 +56,20 @@ function DefineRouter() {
                                 }
                             />
                             <Route
+                                path="/login/:provider/callback"
+                                element={
+                                    <OnlyPublicRoute>
+                                        <GoogleCallback />
+                                    </OnlyPublicRoute>
+                                }
+                            />
+                            <Route
                                 path="/report"
                                 element={
                                     <TransactionProvider>
-                                        <Report />
+                                        <PrivateRoute>
+                                            <Report />
+                                        </PrivateRoute>
                                     </TransactionProvider>
                                 }
                             />
@@ -66,9 +77,11 @@ function DefineRouter() {
                             <Route
                                 path="/category"
                                 element={
-                                    <CategoryProvider>
-                                        <Category />
-                                    </CategoryProvider>
+                                    <PrivateRoute>
+                                        <CategoryProvider>
+                                            <Category />
+                                        </CategoryProvider>
+                                    </PrivateRoute>
                                 }
                             />
                             <Route

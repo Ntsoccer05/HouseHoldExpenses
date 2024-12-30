@@ -1,5 +1,11 @@
 import { Box, useMediaQuery, Grid, useTheme } from "@mui/material";
-import React, { MutableRefObject, useMemo, useRef, useState } from "react";
+import React, {
+    MutableRefObject,
+    useCallback,
+    useMemo,
+    useRef,
+    useState,
+} from "react";
 import MonthlySummary from "../components/MonthlySummary";
 import Calendar from "../components/Calendar";
 import TransactionMenu from "../components/TransactionMenu";
@@ -14,10 +20,12 @@ import FullCalendar from "@fullcalendar/react";
 import "../../css/calendar.css";
 import { useNavigate } from "react-router-dom";
 import { CalendarApi } from "fullcalendar";
+import { useTransactionContext } from "../context/TransactionContext";
 
 const Home = () => {
     const today = format(new Date(), "yyyy-MM-dd");
     const [currentDay, setCurrentDay] = useState(today);
+    // PCの入力フォーム開閉
     const [isEntryDrawerOpen, setIsEntryDrawerOpen] = useState(false);
     const [selectedTransaction, setSelectedTransaction] =
         useState<Transaction | null>(null);
@@ -35,7 +43,8 @@ const Home = () => {
         null
     );
 
-    const monthlyTransactions = useMonthlyTransactions();
+    // const monthlyTransactions = useMonthlyTransactions();
+    const { monthlyTransactions } = useTransactionContext();
 
     // 一日分のデータを取得
     const dailyTransactions = useMemo(() => {
@@ -59,11 +68,11 @@ const Home = () => {
             if (isMobile) {
                 setIsDialogOpen(true);
             } else {
-                if (selectedTransaction) {
+                if (selectedTransaction && isEntryDrawerOpen) {
                     setSelectedTransaction(null);
-                } else {
-                    setIsEntryDrawerOpen(!isEntryDrawerOpen);
+                    return;
                 }
+                setIsEntryDrawerOpen(!isEntryDrawerOpen);
             }
         } else {
             navigate("/login");
@@ -84,23 +93,23 @@ const Home = () => {
         setIsMobileDrawerOpen(false);
     };
 
-    // //日付を選択したときの処理
+    // 日付を選択したときの処理
     const handleDateClick = (dateInfo: DateClickArg) => {
-        console.log(dateInfo.dateStr);
+        if (isEntryDrawerOpen) {
+            setIsEntryDrawerOpen(false);
+        }
         const clickedDate = new Date(dateInfo.dateStr);
-        // Get the current view's start and end dates
         const calendarApi: CalendarApi | null = calendarRef.current?.getApi();
         const startDate = calendarApi?.view?.currentStart;
         const endDate = calendarApi?.view?.currentEnd;
 
-        // Check if the clicked date is outside the current view's start and end range
         if (
             !startDate ||
             !endDate ||
             clickedDate < startDate ||
             clickedDate >= endDate
         ) {
-            return; // Do nothing if the date is from the previous or next month
+            return;
         }
         setCurrentDay(dateInfo.dateStr);
         if (isMobile) {
@@ -111,9 +120,15 @@ const Home = () => {
     return (
         <Box sx={{ display: "flex" }}>
             {/* 左側コンテンツ */}
-            <Box sx={{ flexGrow: 1 }}>
+            <Box sx={{ flexGrow: 1, fontSize: { xs: "12px", sm: "1em" } }}>
                 <MonthlySummary monthlyTransactions={monthlyTransactions} />
-                <Grid item xs={12}>
+                <Grid
+                    item
+                    xs={12}
+                    sx={{
+                        marginBottom: { xs: "13px", sm: 0 },
+                    }}
+                >
                     {/* 日付選択エリア */}
                     <ChangeCalendarMonth
                         calendarRef={calendarRef.current as FullCalendar}

@@ -33,7 +33,7 @@ class VerificationController extends Controller
      *
      * @var string
      */
-    // protected $redirectTo = '/home';
+    protected $redirectTo = '/login';
 
     /**
      * メールアドレスを認証する
@@ -59,7 +59,7 @@ class VerificationController extends Controller
         $incomeCategory->firstCreateData($requestUser);
 
         //最終的に任意のルート先にリダイレクトさせるようにします
-        return redirect()->to(config('app.url').'/login');
+        return redirect()->to('/login');
     }
 
     /**

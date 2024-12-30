@@ -32,7 +32,8 @@ class UserCustomVerifyEmail extends VerifyEmailBase
 
         return (new MailMessage)
             ->subject('メールアドレスの確認')
-            ->line('以下のボタンをクリックしてメールアドレスを確認してください。')
-            ->action('メールアドレスを確認', $verificationUrl);
+            ->markdown('auth.emails.verify_email', [
+                'verify_url' => $verificationUrl
+            ]);
     }
 }

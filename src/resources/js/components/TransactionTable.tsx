@@ -23,12 +23,10 @@ import {
     formatJPYear,
 } from "../utils/formatting";
 import { compareDesc, format, parseISO } from "date-fns";
-import useMonthlyTransactions from "../hooks/useMonthlyTransactions";
 import { useTransactionContext } from "../context/TransactionContext";
 import DynamicIcon from "./common/DynamicIcon";
 import TableSortLabel from "@mui/material/TableSortLabel"; // 並び替えラベルのインポート
 import HeightIcon from "@mui/icons-material/Height";
-import useYearlyTransactions from "../hooks/useYearlyTransactions";
 import { useAppContext } from "../context/AppContext";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import { CheckBoxItem, Transaction } from "../types";
@@ -277,11 +275,13 @@ interface Summary {
 
 // 本体
 export default function TransactionTable({ viewType }: TransactionTableProps) {
-    const monthlyTransactions = useMonthlyTransactions();
-    const yearlyTransactions = useYearlyTransactions();
-    const { onDeleteTransaction } = useTransactionContext();
+    // const monthlyTransactions = useMonthlyTransactions();
+    // const yearlyTransactions = useYearlyTransactions();
 
-    const { currentYear, ExpenseCategories, IncomeCategories } =
+    const { onDeleteTransaction, monthlyTransactions, yearlyTransactions } =
+        useTransactionContext();
+
+    const { currentYear, ExpenseCategories, IncomeCategories, isMobile } =
         useAppContext();
 
     const theme = useTheme();
@@ -587,7 +587,10 @@ export default function TransactionTable({ viewType }: TransactionTableProps) {
                 {/* 収支表示エリア */}
                 <Grid
                     container
-                    sx={{ borderBottom: "1px solid rgba(224, 224, 224, 1)" }}
+                    sx={{
+                        borderBottom: "1px solid rgba(224, 224, 224, 1)",
+                        flexDirection: "row",
+                    }}
                 >
                     <FinancialItem
                         title={"収入"}

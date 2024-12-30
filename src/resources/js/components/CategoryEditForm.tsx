@@ -103,7 +103,7 @@ const CategoryEditForm = React.memo(
                     "button",
                 ];
                 return interactiveElements.includes(
-                    target.tagName.toLowerCase()
+                    target.tagName.toLowerCase(),
                 );
             }
             return false;
@@ -119,7 +119,7 @@ const CategoryEditForm = React.memo(
                 activationConstraint: {
                     distance: 10,
                 },
-            })
+            }),
         );
 
         const handleDragStart = (event: any) => {
@@ -132,10 +132,10 @@ const CategoryEditForm = React.memo(
         const handleDragEnd = async (event: DragEndEvent) => {
             if (event.active.id !== event.over?.id && categories) {
                 const oldIndex = categories.findIndex(
-                    (category) => category.filtered_id === event.active.id
+                    (category) => category.filtered_id === event.active.id,
                 );
                 const newIndex = categories.findIndex(
-                    (category) => category.filtered_id === event.over?.id
+                    (category) => category.filtered_id === event.over?.id,
                 );
 
                 const newCategories = arrayMove(categories, oldIndex, newIndex);
@@ -143,14 +143,14 @@ const CategoryEditForm = React.memo(
                 setContentValues(
                     (prevCategory) =>
                         (prevCategory = newCategories.map(
-                            (category) => category.label || ""
-                        ))
+                            (category) => category.label || "",
+                        )),
                 );
                 setIconValues(
                     (prevCategory) =>
                         (prevCategory = newCategories.map(
-                            (category) => category.icon || ""
-                        ))
+                            (category) => category.icon || "",
+                        )),
                 );
                 sortCategories(newCategories, type);
             }
@@ -168,7 +168,7 @@ const CategoryEditForm = React.memo(
             } else if (selectedIndex > 0) {
                 newSelected = newSelected.concat(
                     selected.slice(0, selectedIndex),
-                    selected.slice(selectedIndex + 1)
+                    selected.slice(selectedIndex + 1),
                 );
             }
             setSelected(newSelected);
@@ -177,10 +177,10 @@ const CategoryEditForm = React.memo(
         const isSelected = (id: number) => selected.indexOf(id) !== -1;
 
         const [contentValues, setContentValues] = useState<string[]>(
-            categories?.map((category) => category.label || "") || []
+            categories?.map((category) => category.label || "") || [],
         );
         const [iconValues, setIconValues] = useState<string[]>(
-            categories?.map((category) => category.icon || "") || []
+            categories?.map((category) => category.icon || "") || [],
         );
 
         const setCategoryValues = (option: boolean) => {
@@ -197,14 +197,14 @@ const CategoryEditForm = React.memo(
                     setContentValues(
                         (prevCategory) =>
                             (prevCategory = categories.map(
-                                (category) => category.label || ""
-                            ))
+                                (category) => category.label || "",
+                            )),
                     );
                     setIconValues(
                         (prevCategory) =>
                             (prevCategory = categories.map(
-                                (category) => category.icon || ""
-                            ))
+                                (category) => category.icon || "",
+                            )),
                     );
                     option && setInitialized(() => true); // 初期化完了フラグを立てる
                 }
@@ -300,7 +300,7 @@ const CategoryEditForm = React.memo(
             };
 
         const extractIds = (
-            str: string
+            str: string,
         ): {
             id: string;
             filtered_id: string;
@@ -330,7 +330,7 @@ const CategoryEditForm = React.memo(
                 <SortableContext
                     items={
                         categories?.map(
-                            (category) => category.filtered_id || 0
+                            (category) => category.filtered_id || 0,
                         ) || []
                     }
                     strategy={verticalListSortingStrategy}
@@ -338,7 +338,7 @@ const CategoryEditForm = React.memo(
                     <TableBody>
                         {categories?.map((category, index) => {
                             const isItemSelected = isSelected(
-                                category.filtered_id || 0
+                                category.filtered_id || 0,
                             );
                             const labelId = `enhanced-table-checkbox-${index}`;
 
@@ -385,8 +385,14 @@ const CategoryEditForm = React.memo(
                                                 }
                                                 value={contentValues[index]}
                                                 onChange={handleCategoryChange(
-                                                    index
+                                                    index,
                                                 )}
+                                                InputProps={{
+                                                    style: {
+                                                        height: "36px", // TextField自体の高さ
+                                                        padding: "0", // パディング調整
+                                                    },
+                                                }}
                                             />
                                         ) : (
                                             category.label
@@ -402,7 +408,7 @@ const CategoryEditForm = React.memo(
                                                         String(category.id) +
                                                         "filteredIcon_" +
                                                         String(
-                                                            category.filtered_id
+                                                            category.filtered_id,
                                                         )
                                                         // "fixed_category_id_" +
                                                         // String(
@@ -411,8 +417,9 @@ const CategoryEditForm = React.memo(
                                                         // )
                                                     }
                                                     onChange={handleIconChange(
-                                                        index
+                                                        index,
                                                     )}
+                                                    style={{ height: "36px" }}
                                                 >
                                                     {(type === "expense"
                                                         ? expenseMuiIcons
@@ -420,7 +427,7 @@ const CategoryEditForm = React.memo(
                                                     ).map(
                                                         (
                                                             categoryIcon,
-                                                            index
+                                                            index,
                                                         ) => {
                                                             return (
                                                                 <MenuItem
@@ -439,7 +446,7 @@ const CategoryEditForm = React.memo(
                                                                     </ListItemIcon>
                                                                 </MenuItem>
                                                             );
-                                                        }
+                                                        },
                                                     )}
                                                 </Select>
                                             </FormControl>
@@ -468,7 +475,7 @@ const CategoryEditForm = React.memo(
                                         if (!edited) {
                                             handleClick(
                                                 event,
-                                                category.filtered_id || 0
+                                                category.filtered_id || 0,
                                             );
                                         }
                                     }}
@@ -489,7 +496,7 @@ const CategoryEditForm = React.memo(
                 </SortableContext>
             </DndContext>
         );
-    }
+    },
 );
 
 export default CategoryEditForm;

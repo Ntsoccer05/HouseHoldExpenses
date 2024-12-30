@@ -13,6 +13,12 @@ export type PageProps<
     };
 };
 
+export type Provider = "google" | "github" | undefined;
+export type OAuthParams = {
+    code: string;
+    state: string;
+};
+
 export type TransactionType = "income" | "expense";
 export type IncomeCategory = "給与" | "副収入" | "お小遣い";
 export type ExpenseCategory =

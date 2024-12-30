@@ -103,6 +103,13 @@ const TransactionForm = memo(
         //カレンダー上の選択した日付を取得してセット
         useEffect(() => {
             setValue("date", currentDay);
+            reset({
+                type: "expense",
+                date: currentDay,
+                amount: 0,
+                category: "",
+                content: "",
+            });
         }, [currentDay]);
 
         //収支タイプを監視
