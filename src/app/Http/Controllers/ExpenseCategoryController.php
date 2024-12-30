@@ -3,11 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\ExpenceCategory;
-use App\Models\FixedCategory;
-use App\Models\Type;
-use Error;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
 
 const EXPENCE_TYPE = 2;
 

@@ -16,9 +16,7 @@ use Illuminate\Foundation\Auth\AuthenticatesUsers;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\UnauthorizedException;
-use Symfony\Component\HttpKernel\Exception\UnauthorizedHttpException;
 
 class LoginController extends Controller
 {
@@ -105,9 +103,7 @@ class LoginController extends Controller
     public function handleProviderCallback(string $provider, Request $request)
     {
         try{
-            Log::error(json_encode($provider));
             $providerUser = Socialite::driver($provider)->stateless()->user();
-            Log::error(json_encode($providerUser));
             
             $user = User::where('email', $providerUser->email)->first();
 

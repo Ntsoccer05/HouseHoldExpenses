@@ -8,7 +8,6 @@ use App\Models\Content;
 use App\Models\Type;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use DateTime;
 use Illuminate\Http\Response;
 
@@ -82,7 +81,6 @@ class TransactionController extends Controller
         $user_id = $request->user_id;
         $contents = $request->transaction;
         $transactionContent = $transactionContent->where('user_id', $user_id)->where('id', $request->transactionId)->first();
-        Log::error($transactionContent);
         if($transactionContent){
             try {
                 // Start a new database transaction
@@ -165,7 +163,6 @@ class TransactionController extends Controller
     {
         try {
             $yearlyTransactionData = $transactionContent->getYearlyTransaction($request);
-            Log::error($yearlyTransactionData);
             return response()->json(['message' => '選択年の家計簿を取得しました。', 'yearlyTransactionData' => $yearlyTransactionData], Response::HTTP_OK);
         }catch (\Exception $e) {
             return response()->json(['message' => '選択年の家計簿はありません'], Response::HTTP_NOT_FOUND);
