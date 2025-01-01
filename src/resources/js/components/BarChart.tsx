@@ -1,4 +1,3 @@
-import React from "react";
 import {
     Chart as ChartJS,
     CategoryScale,
@@ -10,11 +9,14 @@ import {
     ChartData,
 } from "chart.js";
 import { Bar } from "react-chartjs-2";
-import { calculateDailyBalances } from "../utils/financeCalculations";
+import {
+    calculateDailyBalances,
+    calculateMonthlyBalances,
+} from "../utils/financeCalculations";
 import { Box, Typography, useTheme } from "@mui/material";
 import CircularProgress from "@mui/material/CircularProgress";
 import { useAppContext } from "../context/AppContext";
-import useMonthlyTransactions from "../hooks/useMonthlyTransactions";
+import { useTransactionContext } from "../context/TransactionContext";
 ChartJS.register(
     CategoryScale,
     LinearScale,
@@ -23,10 +25,15 @@ ChartJS.register(
     Tooltip,
     Legend
 );
+interface BarChartProps {
+    viewType: "monthly" | "yearly";
+}
 
-const BarChart = () => {
+const BarChart = ({ viewType }: BarChartProps) => {
     const { isLoading } = useAppContext();
-    const monthlyTransactions = useMonthlyTransactions();
+    // const monthlyTransactions = useMonthlyTransactions();
+    // const yearlyTransactions = useYearlyTransactions();
+    const { monthlyTransactions, yearlyTransactions } = useTransactionContext();
 
     const theme = useTheme();
     const options = {
@@ -36,32 +43,59 @@ const BarChart = () => {
         plugins: {
             title: {
                 display: true,
-                text: "日別収支",
+                text: viewType === "monthly" ? "日別収支" : "月別収支",
             },
         },
     };
 
     const dailyBalances = calculateDailyBalances(monthlyTransactions);
+    const monthlyBalances = calculateMonthlyBalances(yearlyTransactions);
 
     // sort()で昇順で並び替え
-    const dateLabels = Object.keys(dailyBalances).sort();
-    const expenseData = dateLabels.map((day) => dailyBalances[day].expense);
-    const incomeData = dateLabels.map((day) => dailyBalances[day].income);
+    const dailydateLabels = Object.keys(dailyBalances).sort();
+    const dailyexpenseData = dailydateLabels.map(
+        (day) => dailyBalances[day].expense
+    );
+    const dailyincomeData = dailydateLabels.map(
+        (day) => dailyBalances[day].income
+    );
+
+    const monthlydateLabels = Object.keys(monthlyBalances).sort();
+    const monthlyexpenseData = monthlydateLabels.map(
+        (month) => monthlyBalances[month].expense
+    );
+    const monthlyincomeData = monthlydateLabels.map(
+        (month) => monthlyBalances[month].income
+    );
 
     const data: ChartData<"bar"> = {
-        labels: dateLabels,
-        datasets: [
-            {
-                label: "支出",
-                data: expenseData,
-                backgroundColor: theme.palette.expenseColor.light,
-            },
-            {
-                label: "収入",
-                data: incomeData,
-                backgroundColor: theme.palette.incomeColor.light,
-            },
-        ],
+        labels: viewType === "monthly" ? dailydateLabels : monthlydateLabels,
+        datasets:
+            viewType === "monthly"
+                ? [
+                      {
+                          label: "支出",
+                          data: dailyexpenseData,
+                          backgroundColor: theme.palette.expenseColor.light,
+                      },
+                      {
+                          label: "収入",
+                          data: dailyincomeData,
+                          backgroundColor: theme.palette.incomeColor.light,
+                      },
+                  ]
+                : [
+                      {
+                          label: "支出",
+                          data: monthlyexpenseData,
+                          backgroundColor: theme.palette.expenseColor.light,
+                      },
+                      {
+                          label: "収入",
+                          data: monthlyincomeData,
+                          backgroundColor: theme.palette.incomeColor.light,
+                      },
+                  ],
     };
     return (
         <Box
@@ -74,7 +108,11 @@ const BarChart = () => {
         >
             {isLoading ? (
                 <CircularProgress />
-            ) : monthlyTransactions.length > 0 ? (
+            ) : (
+                  viewType === "monthly"
+                      ? monthlyTransactions.length > 0
+                      : yearlyTransactions.length > 0
+              ) ? (
                 <Bar options={options} data={data} />
             ) : (
                 <Typography>データがありません</Typography>

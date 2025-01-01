@@ -1,141 +1,183 @@
-import React, { ReactNode, createContext, useContext, useState } from "react";
-import { Transaction } from "../types/index";
-import { Schema } from "../validations/schema";
-// import {
-//   addDoc,
-//   collection,
-//   deleteDoc,
-//   doc,
-//   updateDoc,
-// } from "firebase/firestore";
-// import { db } from "../firebase";
-// import { isFirestoreError } from "../utils/errorHandling";
+import React, {
+    ReactNode,
+    createContext,
+    useContext,
+    useEffect,
+    useState,
+    useCallback,
+    useMemo,
+    useLayoutEffect,
+} from "react";
 import { useMediaQuery, useTheme } from "@mui/material";
+import axios from "axios";
+import {
+    BaseUserCategory,
+    CategoryItem,
+    LoginUser,
+    Transaction,
+} from "../types/index";
 
-//コンテキスト
+// コンテキストの型定義
 interface AppContextType {
     transactions: Transaction[];
     setTransactions: React.Dispatch<React.SetStateAction<Transaction[]>>;
     currentMonth: Date;
     setCurrentMonth: React.Dispatch<React.SetStateAction<Date>>;
+    currentYear: Date;
+    setCurrentYear: React.Dispatch<React.SetStateAction<Date>>;
     isLoading: boolean;
     setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
     isMobile: boolean;
-    //以下から関数（追加、削除、更新）
-    onSaveTransaction: (transaction: Schema) => Promise<void>;
-    onDeleteTransaction: (
-        transactionIds: string | readonly string[]
-    ) => Promise<void>;
-    onUpdateTransaction: (
-        transaction: Schema,
-        transactionId: string
-    ) => Promise<void>;
+    setLoginFlg: React.Dispatch<React.SetStateAction<number>>;
+    loginFlg: number;
+    LoginUser: LoginUser | undefined;
+    setLoginUser: React.Dispatch<React.SetStateAction<LoginUser | undefined>>;
+    getLoginUser: () => Promise<void>;
+    getIncomeCategory: () => Promise<void>;
+    getExpenseCategory: () => Promise<void>;
+    IncomeCategories: CategoryItem[] | undefined;
+    ExpenseCategories: CategoryItem[] | undefined;
 }
 
-// createContextでグローバルにする値を設定　AppContext.Providerのvalueの設定値の型を指定する必要がある
+// コンテキスト作成
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 interface AppProviderProps {
     children: ReactNode;
 }
+
 // プロバイダーコンポーネント
 export const AppProvider = ({ children }: AppProviderProps) => {
     const theme = useTheme();
-    const [transactions, setTransactions] = useState<Transaction[]>([]);
-    const [currentMonth, setCurrentMonth] = useState(new Date());
-    const [isLoading, setIsLoading] = useState(true);
     const isMobile = useMediaQuery(theme.breakpoints.down("lg"));
 
-    //取引を保存する処理
-    const onSaveTransaction = async (transaction: Schema) => {
-        // try {
-        //     //firestoreにデータを保存
-        //     const docRef = await addDoc(
-        //         collection(db, "Transactions"),
-        //         transaction
-        //     );
-        //     const newTransaction = {
-        //         id: docRef.id,
-        //         ...transaction,
-        //     } as Transaction;
-        //     setTransactions((prevTransaction) => [
-        //         ...prevTransaction,
-        //         newTransaction,
-        //     ]);
-        // } catch (err) {
-        //     if (isFirestoreError(err)) {
-        //         console.error("firestoreのエラーは：", err);
-        //     } else {
-        //         console.error("一般的なエラーは:", err);
-        //     }
-        // }
-    };
+    // State 管理
+    const [transactions, setTransactions] = useState<Transaction[]>([]);
+    const [currentMonth, setCurrentMonth] = useState(new Date());
+    const [currentYear, setCurrentYear] = useState(new Date());
+    const [isLoading, setIsLoading] = useState<boolean>(true);
+    const [loginFlg, setLoginFlg] = useState<number>(0);
+    const [LoginUser, setLoginUser] = useState<LoginUser | undefined>();
+    const [IncomeCategories, setIncomeCategories] = useState<CategoryItem[]>(
+        []
+    );
+    const [ExpenseCategories, setExpenseCategories] = useState<CategoryItem[]>(
+        []
+    );
 
-    //削除処理
-    const onDeleteTransaction = async (
-        transactionIds: string | readonly string[]
-    ) => {
-        // try {
-        //     const idsToDelete = Array.isArray(transactionIds)
-        //         ? transactionIds
-        //         : [transactionIds];
-        //     for (const id of idsToDelete) {
-        //         //firestoreのデータ削除
-        //         await deleteDoc(doc(db, "Transactions", id));
-        //     }
-        //     //複数の取引を削除可能
-        //     const filterdTransactions = transactions.filter(
-        //         (transaction) => !idsToDelete.includes(transaction.id)
-        //     );
-        //     setTransactions(filterdTransactions);
-        // } catch (err) {
-        //     if (isFirestoreError(err)) {
-        //         console.error("firestoreのエラーは：", err);
-        //     } else {
-        //         console.error("一般的なエラーは:", err);
-        //     }
-        // }
-    };
+    // ログインユーザー取得処理
+    const getLoginUser = useCallback(async () => {
+        try {
+            const { data } = await axios.get("/api/user");
+            setLoginUser(data);
+            setLoginFlg(1);
+        } catch (err) {
+            console.error("ログインユーザー取得エラー:", err);
+            setLoginFlg(2);
+        }
+    }, []);
 
-    //更新処理
-    const onUpdateTransaction = async (
-        transaction: Schema,
-        transactionId: string
-    ) => {
-        // try {
-        //     //firestore更新処理
-        //     const docRef = doc(db, "Transactions", transactionId);
-        //     await updateDoc(docRef, transaction);
-        //     //フロント更新
-        //     const updatedTransactions = transactions.map((t) =>
-        //         t.id === transactionId ? { ...t, ...transaction } : t
-        //     ) as Transaction[];
-        //     setTransactions(updatedTransactions);
-        // } catch (err) {
-        //     if (isFirestoreError(err)) {
-        //         console.error("firestoreのエラーは：", err);
-        //     } else {
-        //         console.error("一般的なエラーは:", err);
-        //     }
-        // }
-    };
+    // 収入カテゴリー取得処理
+    const getIncomeCategory = useCallback(async () => {
+        if (LoginUser) {
+            try {
+                const { data } = await axios.get("/api/IncomeCategory", {
+                    params: { user_id: LoginUser.id },
+                });
+                if (data.incomeUserCategory) {
+                    const incomeCategories = data.incomeUserCategory.map(
+                        (incomeCategory: BaseUserCategory) => ({
+                            id: incomeCategory.id,
+                            filtered_id: incomeCategory.filtered_id,
+                            label: incomeCategory.content,
+                            icon: incomeCategory.icon,
+                            deleted: incomeCategory.deleted,
+                        })
+                    );
+                    setIncomeCategories(incomeCategories);
+                }
+            } catch (err) {
+                console.error("収入カテゴリー取得エラー:", err);
+            }
+        }
+    }, [LoginUser]);
+
+    // 支出カテゴリー取得処理
+    const getExpenseCategory = useCallback(async () => {
+        if (LoginUser) {
+            try {
+                const { data } = await axios.get("/api/ExpenseCategory", {
+                    params: { user_id: LoginUser.id },
+                });
+                if (data.expenseUserCategory) {
+                    const expenseCategories = data.expenseUserCategory.map(
+                        (expenseCategory: BaseUserCategory) => ({
+                            id: expenseCategory.id,
+                            filtered_id: expenseCategory.filtered_id,
+                            label: expenseCategory.content,
+                            icon: expenseCategory.icon,
+                            deleted: expenseCategory.deleted,
+                        })
+                    );
+                    setExpenseCategories(expenseCategories);
+                }
+            } catch (err) {
+                console.error("支出カテゴリー取得エラー:", err);
+            }
+        }
+    }, [LoginUser]);
+
+    // 初回マウント時にログインユーザーを取得(useEffectよりuseLayoutEffectの方が前に実行される)
+    useLayoutEffect(() => {
+        getLoginUser();
+    }, [getLoginUser]);
+
+    // ログインユーザーが変更された場合にカテゴリーを取得
+    useEffect(() => {
+        getIncomeCategory();
+        getExpenseCategory();
+    }, [LoginUser, getIncomeCategory, getExpenseCategory]);
+
+    // Context Value をメモ化
+    const contextValue = useMemo(
+        () => ({
+            transactions,
+            setTransactions,
+            currentMonth,
+            setCurrentMonth,
+            currentYear,
+            setCurrentYear,
+            isLoading,
+            setIsLoading,
+            isMobile,
+            setLoginFlg,
+            loginFlg,
+            LoginUser,
+            setLoginUser,
+            getLoginUser,
+            IncomeCategories,
+            ExpenseCategories,
+            getIncomeCategory,
+            getExpenseCategory,
+        }),
+        [
+            transactions,
+            currentMonth,
+            currentYear,
+            isLoading,
+            isMobile,
+            loginFlg,
+            LoginUser,
+            IncomeCategories,
+            ExpenseCategories,
+            getLoginUser,
+            getIncomeCategory,
+            getExpenseCategory,
+        ]
+    );
 
     return (
-        // valueで設定した値をchildrenで受け取ることができる
-        <AppContext.Provider
-            value={{
-                transactions,
-                setTransactions,
-                currentMonth,
-                setCurrentMonth,
-                isLoading,
-                setIsLoading,
-                isMobile,
-                onSaveTransaction,
-                onDeleteTransaction,
-                onUpdateTransaction,
-            }}
-        >
+        <AppContext.Provider value={contextValue}>
             {children}
         </AppContext.Provider>
     );
@@ -143,11 +185,10 @@ export const AppProvider = ({ children }: AppProviderProps) => {
 
 // コンテキストを使用するためのカスタムフック
 export const useAppContext = () => {
-    // useContextでvalueに設定した値を取得できる
     const context = useContext(AppContext);
     if (!context) {
         throw new Error(
-            "useAppContextは、AppProvider内で使用する必要があります。"
+            "useAppContextはAppProvider内で使用する必要があります。"
         );
     }
     return context;

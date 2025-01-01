@@ -13,6 +13,12 @@ export type PageProps<
     };
 };
 
+export type Provider = "google" | "github" | undefined;
+export type OAuthParams = {
+    code: string;
+    state: string;
+};
+
 export type TransactionType = "income" | "expense";
 export type IncomeCategory = "給与" | "副収入" | "お小遣い";
 export type ExpenseCategory =
@@ -29,7 +35,16 @@ export interface Transaction {
     amount: number;
     content: string;
     type: TransactionType;
-    category: IncomeCategory | ExpenseCategory;
+    category: string;
+    icon?: string;
+}
+export interface TransactionData {
+    date: string;
+    amount: number;
+    content: string;
+    type: TransactionType;
+    category: string;
+    icon?: string;
 }
 
 export interface Balance {
@@ -43,4 +58,40 @@ export interface CalendarContent {
     income: string;
     expense: string;
     balance: string;
+}
+
+export interface LoginUser {
+    id: number;
+    name: string;
+    email: string;
+    email_verified_at: Date;
+    password: string;
+    remember_token: string;
+    created_at: Date;
+    updated_at: Date;
+}
+export interface BaseUserCategory {
+    content: string;
+    created_at: Date;
+    id: number;
+    filtered_id: number;
+    type_id: number;
+    icon: string;
+    deleted: number;
+    updated_at: Date;
+}
+
+export interface CategoryItem {
+    id?: number;
+    filtered_id?: number;
+    label: string;
+    icon: string;
+}
+
+export interface CheckBoxItem {
+    key: string;
+    label: string;
+    checked: boolean;
+    disabled?: boolean;
+    onStateChange: (checked?: boolean, key?: string) => void;
 }

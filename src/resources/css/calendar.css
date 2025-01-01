@@ -39,7 +39,7 @@ td.fc-day-sun {
 
 .fc-view-harness.fc-view-harness-active {
     display: flex;
-    height: 637px !important;
+    height: 528px !important;
 }
 @media screen and (min-width: 768px) {
     .fc-view-harness.fc-view-harness-active {
@@ -51,16 +51,35 @@ td.fc-day-sun {
 .fc-header-toolbar.fc-toolbar {
     margin-top: 10px;
 }
+.fc-toolbar-title {
+    cursor: pointer !important;
+}
+.custom-event {
+    display: flex;
+    flex-grow: 1;
+    flex-direction: column;
+}
 
-.MuiInputBase-input.MuiOutlinedInput-input.MuiInputBase-inputAdornedEnd.Mui-readOnly.MuiInputBase-readOnly.css-nxo287-MuiInputBase-input-MuiOutlinedInput-input {
-    opacity: 0;
-    cursor: pointer;
+.custom-event-content {
+    text-align: right;
 }
-.MuiTypography-root.MuiTypography-overline.css-ay2je5-MuiTypography-root,
-.MuiOutlinedInput-notchedOutline.css-1d3z3hw-MuiOutlinedInput-notchedOutline,
-.MuiDialogActions-root.MuiDialogActions-spacing.MuiPickersLayout-actionBar.css-knqc4i-MuiDialogActions-root {
-    display: none;
+
+.fc-daygrid-event-harness a.fc-daygrid-event {
+    pointer-events: none;
 }
-.css-18fy8xu-MuiFormLabel-root-MuiInputLabel-root.Mui-focused {
-    color: black !important;
+
+.non-current-month {
+    background-color: #8080802e !important;
+}
+
+.MuiPickersArrowSwitcher-root {
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+,
+@media screen and (max-width: 600px) {
+    .fc .fc-scrollgrid table {
+        height: 100% !important;
+    }
 }

@@ -1,5 +1,5 @@
 import { Box } from "@mui/material";
-import { useState } from "react";
+import { memo, useCallback, useMemo } from "react";
 import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFnsV3";
 import { MobileDatePicker } from "@mui/x-date-pickers";
@@ -12,69 +12,126 @@ interface ChangeCalendarMonthProps {
     calendarRef: FullCalendar;
 }
 
-const ChangeCalendarMonth = ({ calendarRef }: ChangeCalendarMonthProps) => {
-    const { currentMonth, setCurrentMonth } = useAppContext();
-    const [open, setOpen] = useState<boolean>(false);
+const ChangeCalendarMonth = memo(
+    ({ calendarRef }: ChangeCalendarMonthProps) => {
+        const { currentMonth, setCurrentMonth } = useAppContext();
 
-    const closeModal = (newMonth: Date) => {
-        if (newMonth) {
-            // setCurrentMonth(newMonth);
-            setCurrentMonth((prevDate) => {
-                if (prevDate !== newMonth) {
-                    if (calendarRef) {
-                        let calendarApi = calendarRef.getApi();
-                        // 指定した月に移動
-                        calendarApi.gotoDate(startOfMonth(newMonth));
+        // モーダルを閉じる関数をメモ化
+        const closeModal = useCallback(
+            (newMonth: Date | null) => {
+                if (!newMonth) return; // 無効な日付は無視
+
+                setCurrentMonth((prevDate) => {
+                    if (prevDate.getTime() !== newMonth.getTime()) {
+                        if (calendarRef) {
+                            const calendarApi = calendarRef.getApi();
+                            // 指定した月に移動
+                            calendarApi.gotoDate(startOfMonth(newMonth));
+                        }
                     }
-                }
-                // currentMonthにnewMonthをセット
-                return newMonth;
-            });
-        }
-        setOpen(false); // 選択時にモーダルを閉じる
-    };
+                    // currentMonth を更新
+                    return newMonth;
+                });
+            },
+            [calendarRef, setCurrentMonth]
+        );
 
-    return (
-        <LocalizationProvider
-            dateAdapter={AdapterDateFns}
-            adapterLocale={ja}
-            dateFormats={{ monthAndYear: "yyyy年 MM月" }}
-        >
-            <Box
-                sx={{
-                    display: "flex",
-                    justifyContent: "left",
-                }}
+        // スタイルをメモ化
+        const myStyle = useMemo(
+            () => ({
+                "& .MuiInputBase-root": {
+                    border: "none",
+                },
+                "& .MuiOutlinedInput-root": {
+                    "& fieldset": {
+                        border: "none",
+                    },
+                },
+                "& .MuiInput-underline:before": {
+                    borderBottom: "none",
+                },
+                "& .MuiInput-underline:hover:before": {
+                    borderBottom: "none",
+                },
+                "& .MuiInput-underline:after": {
+                    borderBottom: "none",
+                },
+            }),
+            []
+        );
+
+        const mobileDatePickerStyles = useMemo(
+            () => ({
+                mx: 2,
+                position: "absolute",
+                top: { xs: "183px", sm: "202px", md: "205px" },
+                left: { xs: "0%", md: "235px" },
+                "& .MuiInputBase-root": {
+                    color: "transparent",
+                    border: "none",
+                },
+                "& .MuiOutlinedInput-root": {
+                    "& fieldset": {
+                        border: "none",
+                        width: "65%",
+                        cursor: "pointer",
+                    },
+                    "& input": {
+                        border: "none",
+                        width: "70%",
+                        cursor: "pointer",
+                    },
+                    cursor: "auto",
+                },
+                "& .MuiPickersArrowSwitcher-root": {
+                    visibility: "visible", // 矢印を表示
+                    opacity: 1, // 不透明度を確保
+                },
+            }),
+            []
+        );
+
+        return (
+            <LocalizationProvider
+                dateAdapter={AdapterDateFns}
+                adapterLocale={ja}
+                dateFormats={{ monthAndYear: "yyyy年 MM月" }}
             >
-                <MobileDatePicker
-                    value={currentMonth}
-                    open={open}
-                    onOpen={() => setOpen(true)}
-                    onClose={() => setOpen(false)}
-                    label="年月を選択"
-                    onMonthChange={closeModal}
+                <Box
                     sx={{
-                        mx: 2,
-                        background: "transparent",
-                        position: "absolute",
-                        top: { xs: "183px", sm: "202px", md: "210px" },
-                        left: { xs: "0%", md: "235px" },
-                        color: "transparent!important",
+                        display: "flex",
+                        justifyContent: "left",
                     }}
-                    views={["year", "month"]}
-                    format="yyyy年MM月"
-                    slotProps={{
-                        toolbar: {
-                            toolbarFormat: "yyyy年 M月",
-                        },
-                        calendarHeader: {
-                            format: "yyyy年 M月",
-                        },
-                    }}
-                />
-            </Box>
-        </LocalizationProvider>
-    );
-};
+                >
+                    <MobileDatePicker
+                        value={currentMonth}
+                        // Open状態は自動制御
+                        label="年月を選択"
+                        // 初期表示を月に変更
+                        openTo="month"
+                        onMonthChange={closeModal}
+                        onAccept={(date) => {
+                            if (date) closeModal(date);
+                        }}
+                        sx={mobileDatePickerStyles}
+                        views={["year", "month"]}
+                        format="yyyy年MM月"
+                        slotProps={{
+                            toolbar: {
+                                toolbarFormat: "yyyy年 M月",
+                                hidden: true,
+                            },
+                            calendarHeader: {
+                                format: "yyyy年 M月",
+                            },
+                            nextIconButton: true,
+                            previousIconButton: true,
+                        }}
+                    />
+                </Box>
+            </LocalizationProvider>
+        );
+    }
+);
 
 export default ChangeCalendarMonth;
