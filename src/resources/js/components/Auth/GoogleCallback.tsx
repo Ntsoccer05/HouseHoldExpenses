@@ -4,6 +4,7 @@ import useSocialLogin from "../../hooks/useSocialLogin";
 import { Provider } from "../../types";
 import { useAppContext } from "../../context/AppContext";
 import queryString from "query-string";
+import Loading from "../common/Loading";
 
 const GoogleCallback = () => {
     const navigate = useNavigate();
@@ -31,7 +32,12 @@ const GoogleCallback = () => {
         handleLogin();
     }, [navigate]);
 
-    return <div>Logging in...</div>;
+    return (
+        <Loading
+            loadingTxt="ログインしています..."
+            loadingColor="info"
+        ></Loading>
+    );
 };
 
 export default GoogleCallback;

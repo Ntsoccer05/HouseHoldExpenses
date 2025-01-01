@@ -8,7 +8,7 @@ ENV_FILE_PATH=${WORK_DIR}/.env
 # php environment for stage
 if [ "${APP_ENV}" = "local" ]; then 
   echo "[Local] Install library"
-  cp "${WORK_DIR}/.env.example" ${ENV_FILE_PATH}
+  # cp "${WORK_DIR}/.env.example" ${ENV_FILE_PATH}
 else
   echo "[Production] Install library"
   cp /var/tmp/env_data ${ENV_FILE_PATH}
@@ -24,6 +24,7 @@ if [ "${APP_DEBUG}" = "true"  ] &&
 
     pecl install -f xdebug-3.3.2 && docker-php-ext-enable xdebug
     echo "
+        zend_extension=/usr/local/lib/php/extensions/no-debug-non-zts-20220829/xdebug.so
         xdebug.mode=debug
         xdebug.client_host=host.docker.internal
         xdebug.client_port=9003
@@ -51,9 +52,3 @@ if [ "${APP_ENV}" = "local" ]; then
 fi
 
 exec "$@"
-
-# アプリ 起動
-if [ "${APP_ENV}" = "local" ]; then
-  echo "Starting npm development server"
-  npm run dev
-fi
