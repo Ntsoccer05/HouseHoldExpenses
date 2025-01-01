@@ -32,3 +32,7 @@ RUN apt-get install -y npm \
 
 #docker-compose exec app bashというコマンドでappコンテナの中に入った場合、/var/www/htmlがカレントディレクトリになる
 WORKDIR /var/www/html
+
+# Entrypoint
+COPY ./docker/php/entrypoint.sh /usr/local/bin/docker-php-entrypoint
+RUN chmod +x /usr/local/bin/docker-php-entrypoint
