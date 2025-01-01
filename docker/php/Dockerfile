@@ -14,10 +14,13 @@ RUN apt-get update \
   # vimをインストール
   # MariaDBデータベースのクライアントアプリケーションである「mysql」を使えるように「mariadb-client」をインストール
   # libzip-devはzip圧縮時に必要となるライブラリ(libzip は、zlib を使用する)
-  && apt-get install -y zlib1g-dev mariadb-client vim libzip-dev libgmp-dev libgd-dev \
+  && apt-get install -y zlib1g-dev mariadb-client vim libzip-dev libgmp-dev libgd-dev libicu-dev \
   # docker-php-ext-installはPHPに標準で備わっている拡張パッケージのインストール＆有効化ができるコマンド
   # PDO_MYSQL は、PHP から MySQL データベースへのアクセスを可能にするための PHP Data Objects (PDO) インターフェイス を実装したドライバ。
-  && docker-php-ext-install zip pdo_mysql gmp gd
+  && docker-php-ext-install zip pdo_mysql gmp gd \
+  # requires the Intl extension対応 libicu-devもinstall
+  && docker-php-ext-configure intl \
+  && docker-php-ext-install intl
 
 # プロキシ環境下でビルドする場合に指定する(LinuxじゃなくWindows下)
 ARG http_proxy
@@ -29,3 +32,7 @@ RUN apt-get install -y npm \
 
 #docker-compose exec app bashというコマンドでappコンテナの中に入った場合、/var/www/htmlがカレントディレクトリになる
 WORKDIR /var/www/html
+
+# Entrypoint
+COPY ./docker/php/entrypoint.sh /usr/local/bin/docker-php-entrypoint
+RUN chmod +x /usr/local/bin/docker-php-entrypoint

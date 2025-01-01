@@ -18,7 +18,6 @@ class TypeFactory extends Factory
     {
         return [
             //
-            'name' => fake()->text(10),
         ];
     }
 }

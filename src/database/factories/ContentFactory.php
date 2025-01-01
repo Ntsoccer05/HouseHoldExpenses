@@ -20,11 +20,12 @@ class ContentFactory extends Factory
     {
         return [
             //
-            'user_id' => User::factory(),
-            'type_id' => Type::factory(),
-            'amount' => fake()->randomNumber(),
-            'content' => fake()->text(100),
-            'recorded_at' => fake()->dateTime()
+            // 'user_id' => User::factory(),
+            // // Typeモデル内にあるidの中からランダムに割り当てられる（新たに生成されない）
+            // 'type_id' => Type::inRandomOrder()->value('id'),
+            // 'amount' => fake()->randomNumber(),
+            // 'content' => fake()->text(100),
+            // 'recorded_at' => fake()->dateTime()
         ];
     }
 }

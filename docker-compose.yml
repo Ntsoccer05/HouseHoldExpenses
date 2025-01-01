@@ -16,12 +16,14 @@ services:
       - /src/node_modules # 処理を早くするため
       - /src/vendor # 処理を早くするため
     environment:
-      - DB_CONNECTION=mysql
-      - DB_HOST=db_household
-      - DB_PORT=3306
+      - DB_CONNECTION=${DB_CONNECTION}
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
       - DB_DATABASE=${DB_NAME}
       - DB_USERNAME=${DB_USER}
       - DB_PASSWORD=${DB_PASSWORD}
+    env_file:
+      - .env
 
   web:
     build:
@@ -48,8 +50,7 @@ services:
       MYSQL_DATABASE: ${DB_NAME}
       MYSQL_USER: ${DB_USER}
       MYSQL_PASSWORD: ${DB_PASSWORD}
-      TZ: "Asia/Tokyo"
-    command: mysqld --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+      TZ: ${TZ}
     volumes:
       - mysql-volume:/var/lib/mysql
 
@@ -59,9 +60,9 @@ services:
       - ${PMA_PORT}:80
     # START phpmyadminに自動ログインする処理
     environment:
-      - PMA_ARBITRARY=1
+      - PMA_ARBITRARY=${PMA_ARBITRARY}
       # dbのサービス名と合わせる必要あり
-      - PMA_HOST=db_household
+      - PMA_HOST=${PMA_HOST}
       - PMA_USER=${DB_USER}
       - PMA_PASSWORD=${DB_PASSWORD}
     # END phpmyadminに自動ログインする処理
@@ -75,7 +76,7 @@ services:
     ports:
       - "8025:8025"
     environment:
-      MH_STORAGE: maildir
-      MH_MAILDIR_PATH: /tmp
+      - MH_STORAGE=${MH_STORAGE}
+      - MH_MAILDIR_PATH=${MH_MAILDIR_PATH}
     volumes:
       - maildir:/tmp

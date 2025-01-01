@@ -168,6 +168,8 @@ return [
         // App\Providers\BroadcastServiceProvider::class,
         App\Providers\EventServiceProvider::class,
         App\Providers\RouteServiceProvider::class,
+        // ユーザー認証機能
+        Laravel\Socialite\SocialiteServiceProvider::class,
     ])->toArray(),
 
     /*
@@ -183,6 +185,20 @@ return [
 
     'aliases' => Facade::defaultAliases()->merge([
         // 'Example' => App\Facades\Example::class,
+        'Socialite' => Laravel\Socialite\Facades\Socialite::class,
     ])->toArray(),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Initial Settings
+    |--------------------------------------------------------------------------
+    */
+
+    'income_type_id' => 1,
+    'expense_type_id' => 2,
+
+    'income_contents' => [ "給与", "副収入", "お小遣い"],
+    'income_icons' => [ "Work", "AddBusiness", "Savings"],
+    'expense_contents' => ["食費", "日用品", "住居費", "交際費", "娯楽", "交通費"],
+    'expense_icons' => ["Fastfood", "Alarm", "AddHome", "Diversity3", "SportsTennis", "Train"],
 ];
