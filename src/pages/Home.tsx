@@ -1,7 +1,5 @@
-import { Box, useMediaQuery, Grid, useTheme } from "@mui/material";
+import { Box, Grid } from "@mui/material";
 import React, {
-    MutableRefObject,
-    useCallback,
     useMemo,
     useRef,
     useState,
@@ -13,7 +11,6 @@ import TransactionForm from "../components/TransactionForm";
 import { Transaction } from "../types";
 import { format } from "date-fns";
 import { DateClickArg } from "@fullcalendar/interaction";
-import useMonthlyTransactions from "../hooks/useMonthlyTransactions";
 import { useAppContext } from "../context/AppContext";
 import ChangeCalendarMonth from "../components/ChangeCalendarMonth";
 import FullCalendar from "@fullcalendar/react";

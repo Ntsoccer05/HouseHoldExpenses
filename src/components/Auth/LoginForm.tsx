@@ -62,12 +62,9 @@ function LoginForm() {
 
     const {
         control,
-        setValue,
-        watch,
         // errorsにバリデーションメッセージが格納される
         formState: { errors },
         handleSubmit,
-        reset,
         getValues,
     } = useForm<LoginScheme>({
         // フォームの初期値設定
