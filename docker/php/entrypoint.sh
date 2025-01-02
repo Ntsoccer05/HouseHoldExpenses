@@ -49,6 +49,8 @@ chown www-data:www-data -R ${WORK_DIR}
 if [ "${APP_ENV}" = "local" ]; then
   echo "run migration"
   php artisan migrate --force
+  # typeを登録しておく必要がある
+  php artisan db:seed --class=DatabaseSeeder
 fi
 
 exec "$@"

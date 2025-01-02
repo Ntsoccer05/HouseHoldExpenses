@@ -45,7 +45,7 @@ class VerificationController extends Controller
 
         //メール認証されている時のリダイレクト先
         if ($requestUser->hasVerifiedEmail()) {
-            return redirect()->to(config('app.url').'/login');
+            return redirect()->to(config('app.crient_url').'/login');
         }
 
         if ($requestUser->markEmailAsVerified()) {
@@ -58,7 +58,7 @@ class VerificationController extends Controller
         $incomeCategory->firstCreateData($requestUser);
 
         //最終的に任意のルート先にリダイレクトさせるようにします
-        return redirect()->to('/login');
+        return redirect()->to(config('app.crient_url').'/login');
     }
 
     /**

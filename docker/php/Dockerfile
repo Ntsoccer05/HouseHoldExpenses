@@ -1,8 +1,5 @@
 FROM php:8.2-fpm
 
-# vite用のポート番号
-EXPOSE 5173
-
 # COPY php.ini
 COPY ./docker/php/php.ini /usr/local/etc/php/php.ini
 

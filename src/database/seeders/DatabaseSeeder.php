@@ -29,7 +29,7 @@ class DatabaseSeeder extends Seeder
         //     'name' => 'Test User',
         //     'email' => 'test@example.com',
         // ]);
-        User::factory(10)->create();
+        // User::factory(10)->create();
         DB::table('types')->insert([
             [
                 'id' => 1,
@@ -60,9 +60,9 @@ class DatabaseSeeder extends Seeder
         //         'icon' => config('app.expense_icons')[$key]
         //     ]);
         // }
-        ExpenceCategory::factory(5)->create();
-        IncomeCategory::factory(5)->create();
-        // Content::factory(10)->create();
-        MonthlyAmount::factory(10)->create();
+        // ExpenceCategory::factory(5)->create();
+        // IncomeCategory::factory(5)->create();
+        // // Content::factory(10)->create();
+        // MonthlyAmount::factory(10)->create();
     }
 }

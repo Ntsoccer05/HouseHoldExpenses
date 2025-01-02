@@ -10,11 +10,9 @@ services:
       context: .
       dockerfile: ./docker/php/Dockerfile #dockerfile：buildするDockerfileまでのパス
     ports:
-      - 5173:5173 # vite用のポート番号
+      - ${APP_PORT}:9000
     volumes:
       - ./src/:/var/www/html
-      - /src/node_modules # 処理を早くするため
-      - /src/vendor # 処理を早くするため
     environment:
       - DB_CONNECTION=${DB_CONNECTION}
       - DB_HOST=${DB_HOST}
