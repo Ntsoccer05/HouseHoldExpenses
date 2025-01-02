@@ -24,7 +24,6 @@ if [ "${APP_DEBUG}" = "true"  ] &&
 
     pecl install -f xdebug-3.3.2 && docker-php-ext-enable xdebug
     echo "
-        zend_extension=/usr/local/lib/php/extensions/no-debug-non-zts-20220829/xdebug.so
         xdebug.mode=debug
         xdebug.client_host=host.docker.internal
         xdebug.client_port=9003
