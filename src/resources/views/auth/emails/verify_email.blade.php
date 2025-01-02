@@ -9,7 +9,9 @@
 @endcomponent
 
 何かご不明点などがありましたら、下記よりお問い合わせください。<br>
-{{ config('app.crient_url') . '/contact' }}
+<a href="{{ config('app.crient_url') . '/contact' }}">
+  {{ config('app.crient_url') . '/contact' }}
+</a>
 
 ※こちらのメールは送信専用のメールアドレスより送信しております。恐れ入りますが、直接ご返信しないようお願いいたします。
 
