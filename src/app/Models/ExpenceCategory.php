@@ -34,6 +34,7 @@ class ExpenceCategory extends Model
                 'icon' => config('app.expense_icons')[$key]
             ]);
         }
+        return $this;
     }
 
     public function saveTgtUpdateContent($updateData)
@@ -43,6 +44,7 @@ class ExpenceCategory extends Model
             $this->content = $updateData['icon'];
             $this->save();
         }
+        return $this;
     }
 
     public function createOrUpdateData($tgtModel, $data){
@@ -52,6 +54,7 @@ class ExpenceCategory extends Model
             $tgtModel->icon = isset($data['icon']) ? $data['icon'] : "";
             $tgtModel->content = $data['content'];
             $tgtModel->save();
+            return $tgtModel;
         } else {
             // 存在しない場合、新しいレコードを作成
             // $this->fixed_category_id = $data['fixed_category_id'];
@@ -61,6 +64,7 @@ class ExpenceCategory extends Model
             $this->content = $data['content'];
             $this->save();
         }
+        return $this;
     }
     public function deleteData($tgtModel, $data){
         // if(isset($data->fixed_category_id)){
@@ -87,6 +91,7 @@ class ExpenceCategory extends Model
         if($tgtModel){
             $tgtModel->filtered_id = $data->filtered_id;
             $tgtModel->save();
+            return $tgtModel;
         }
     }
 }

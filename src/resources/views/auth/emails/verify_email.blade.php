@@ -1,19 +1,17 @@
-@component('mail::message')
-# ご登録ありがとうございます
+<!DOCTYPE html>
+<html lang="en">
 
-この度はご登録いただき、ありがとうございます。<br>
-ご登録を続けるには、以下のボタンをクリックしてください。
+<head>
+  <meta charset="UTF-8">
+  <title></title>
+</head>
 
-@component('mail::button', ['url' => $verify_url])
-ご登録を続ける
-@endcomponent
+<body>
+  <h1>会員本登録のご案内</h1>
+  <p>{{ config('app.name')}}への仮登録ありがとうございます。</p>
+  <p>以下のURLから、会員本登録を完了させてください。</p>
+  <a href="{{ $verificationUrl }}">{{ $verificationUrl }}</a>
+  <p>※有効期限は60分です。</p>
+</body>
 
-何かご不明点などがありましたら、下記よりお問い合わせください。<br>
-<a href="{{ config('app.crient_url') . '/contact' }}">
-  {{ config('app.crient_url') . '/contact' }}
-</a>
-
-※こちらのメールは送信専用のメールアドレスより送信しております。恐れ入りますが、直接ご返信しないようお願いいたします。
-
-{{ config('app.name') }}
-@endcomponent
+</html>

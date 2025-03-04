@@ -1,6 +1,7 @@
 #!/bin/bash
 WORK_DIR="/var/www/html"
 cd $WORK_DIR
+chmod -R 777 ${WORK_DIR}/*
 
 # Environment variables
 ENV_FILE_PATH=${WORK_DIR}/.env
@@ -48,8 +49,6 @@ chown www-data:www-data -R ${WORK_DIR}
 if [ "${APP_ENV}" = "local" ]; then
   echo "run migration"
   php artisan migrate --force
-  # typeを登録しておく必要がある
-  php artisan db:seed --class=DatabaseSeeder
 fi
 
 exec "$@"

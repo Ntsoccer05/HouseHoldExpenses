@@ -35,6 +35,7 @@ return [
         'client_id' => env('GOOGLE_CLIENT_ID'),
         'client_secret' => env('GOOGLE_CLIENT_SECRET'),
         'redirect' => env('CLIENT_URL') . '/login/google/callback',
+        'guard' => 'client_api'
     ],
 
 ];

@@ -32,16 +32,13 @@ class DatabaseSeeder extends Seeder
         // User::factory(10)->create();
         DB::table('types')->insert([
             [
-                'id' => 1,
                 'name' => '収入',
                 'en_name' => 'income'
             ],
             [
-                'id' => 2,
                 'name' => '支出',
                 'en_name' => 'expense'
             ],
-          
         ]);
         // foreach(config('app.income_contents') as $key => $incomeContent){
         //     FixedCategory::factory()->create([

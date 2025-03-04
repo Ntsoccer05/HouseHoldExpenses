@@ -15,6 +15,7 @@ use GuzzleHttp\Exception\RequestException;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\UnauthorizedException;
 
@@ -102,6 +103,7 @@ class LoginController extends Controller
 
     public function handleProviderCallback(string $provider, Request $request)
     {
+        DB::beginTransaction();
         try{
             $providerUser = Socialite::driver($provider)->stateless()->user();
             
@@ -135,8 +137,10 @@ class LoginController extends Controller
             Auth::guard('web')->login($user);
             
             $request->session()->regenerate();
+            DB::commit();
             return response()->json(['status_code' => 200,'message' => 'ログインしました'], 200);
         }catch(RequestException  $e){
+            DB::rollBack();
             return response()->json([
                 'provider' => $provider,
             ], 400);

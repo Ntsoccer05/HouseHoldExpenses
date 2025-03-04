@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Notifications\UserCustomVerifyEmail;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -65,10 +64,10 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->hasMany(MonthlyAmount::class);
     }
-    public function sendEmailVerificationNotification()
-    {
-        $this->notify(new UserCustomVerifyEmail);
-    }
+    // public function sendEmailVerificationNotification()
+    // {
+    //     $this->notify(new UserCustomVerifyEmail);
+    // }
 
     // public function hasVerifiedEmail()
     // {

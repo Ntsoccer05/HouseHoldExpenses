@@ -7,10 +7,13 @@ use App\Http\Requests\Auth\EmailCustomVerificationRequest;
 use App\Models\ExpenceCategory;
 use App\Models\IncomeCategory;
 use App\Models\User;
+use Exception;
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Foundation\Auth\VerifiesEmails;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class VerificationController extends Controller
 {
@@ -38,27 +41,39 @@ class VerificationController extends Controller
      * メールアドレスを認証する
      */
     // __invokeはインスタンス後にメソッド呼出し時に実行される
-    public function __invoke(EmailCustomVerificationRequest $request, User $user): RedirectResponse
+    public function __invoke(EmailCustomVerificationRequest $request, User $user)
     {
 
-        $requestUser = $user->find($request->id);
+        try{
+            $requestUser = $user->findOrFail($request->id);
+    
+            //メール認証されている時のリダイレクト先
+            if ($requestUser->hasVerifiedEmail()) {
+                return redirect()->to(config('app.crient_url').'/login');
+            }
+    
+            if ($requestUser->markEmailAsVerified()) {
+                event(new Verified($requestUser));
+                // 認証成功後にログイン
+                Auth::login($user);
 
-        //メール認証されている時のリダイレクト先
-        if ($requestUser->hasVerifiedEmail()) {
-            return redirect()->to(config('app.crient_url').'/login');
+                // セッション再生成
+                $request->session()->regenerate();
+            }
+    
+            $expenseCategory = new ExpenceCategory();
+            $incomeCategory = new IncomeCategory();
+            DB::transaction(function () use ($expenseCategory, $incomeCategory, $requestUser) {
+                $expenseCategory->firstCreateData($requestUser);
+                $incomeCategory->firstCreateData($requestUser);
+            });
+    
+            //最終的に任意のルート先にリダイレクトさせるようにします
+            return response()->json(['status_code' => 200, 'message' => 'メール認証が完了し、ログインしました。']);
+
+        }catch(Exception $e){
+            return response()->json(['status_code' => 400, 'message' => 'メール認証に失敗しました。'], 400);
         }
-
-        if ($requestUser->markEmailAsVerified()) {
-            event(new Verified($requestUser));
-        }
-
-        $expenseCategory = new ExpenceCategory();
-        $incomeCategory = new IncomeCategory();
-        $expenseCategory->firstCreateData($requestUser);
-        $incomeCategory->firstCreateData($requestUser);
-
-        //最終的に任意のルート先にリダイレクトさせるようにします
-        return redirect()->to(config('app.crient_url').'/login');
     }
 
     /**

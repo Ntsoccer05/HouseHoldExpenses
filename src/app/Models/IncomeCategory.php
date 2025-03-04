@@ -48,6 +48,7 @@ class IncomeCategory extends Model
                 'content' => $incomeContent,
                 'icon' => config('app.income_icons')[$key]
             ]);
+            return $this;
         }
     }
 
@@ -58,6 +59,7 @@ class IncomeCategory extends Model
             $tgtModel->icon = isset($data['icon']) ? $data['icon'] : "";
             $tgtModel->content = $data['content'];
             $tgtModel->save();
+            return $tgtModel;
         } else {
             // 存在しない場合、新しいレコードを作成
             // $this->fixed_category_id = $data['fixed_category_id'];
@@ -67,6 +69,7 @@ class IncomeCategory extends Model
             $this->content = $data['content'];
             $this->save();
         }
+        return $this;
     }
 
     public function deleteData($tgtModel, $data){
@@ -93,6 +96,7 @@ class IncomeCategory extends Model
         if($tgtModel){
             $tgtModel->filtered_id = $data->filtered_id;
             $tgtModel->save();
+            return $tgtModel;
         }
     }
 }
