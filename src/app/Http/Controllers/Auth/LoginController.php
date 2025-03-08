@@ -109,9 +109,7 @@ class LoginController extends Controller
             
             $user = User::where('email', $providerUser->email)->first();
 
-            if ($user) {
-                Auth::login($user);
-            } else {
+            if (!$user) {
                 $user = User::updateOrCreate([
                     'name' => $providerUser->name,
                     'email' => $providerUser->email,
