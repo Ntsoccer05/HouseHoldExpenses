@@ -10,7 +10,6 @@ class ExpenceCategory extends Model
 {
     use HasFactory;
 
-    // protected $fillable = ['type_id', 'icon', 'content', 'fixed_category_id', 'user_id']; // これらの属性のみが保存される
     protected $fillable = ['type_id', 'icon', 'content', 'user_id', 'filtered_id']; // これらの属性のみが保存される
 
     public function user():BelongsTo
@@ -57,7 +56,6 @@ class ExpenceCategory extends Model
             return $tgtModel;
         } else {
             // 存在しない場合、新しいレコードを作成
-            // $this->fixed_category_id = $data['fixed_category_id'];
             $this->type_id = Type::where("en_name", $data['type'])->first()->id;
             $this->user_id = $data['user_id'];
             $this->icon = isset($data['icon']) ? $data['icon'] : "";
@@ -67,24 +65,7 @@ class ExpenceCategory extends Model
         return $this;
     }
     public function deleteData($tgtModel, $data){
-        // if(isset($data->fixed_category_id)){
-        //     if(isset($tgtModel)){
-        //         $tgtModel->deleted = 1;
-        //         $tgtModel->save();
-        //     }else{
-        //         $model = new ExpenceCategory();
-        //         $model->fixed_category_id = $data->fixed_category_id;
-        //         $model->type_id = config('app.expense_type_id');
-        //         $model->user_id = $data->user_id;
-        //         $model->icon = $data->icon;
-        //         $model->content = isset($data->content) ? $data->content : $data->label;
-        //         $model->deleted = 1;
-        //         $model->save();
-        //     }
-        // }else{
-            $tgtModel->deleted = 1;
-            $tgtModel->delete();
-        // }
+        $tgtModel->delete();
     }
 
     public function sortData($tgtModel, $data, $first_id){
