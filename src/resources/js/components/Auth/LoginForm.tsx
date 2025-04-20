@@ -1,11 +1,9 @@
 import { useState } from "react";
-import axios from "axios";
 import { LoginScheme, loginSchema } from "../../validations/Login";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
 import {
     Box,
-    Button,
     Container,
     Grid,
     IconButton,
@@ -18,25 +16,17 @@ import { LoginError } from "../../utils/errorHandling";
 import ModalComponent from "../common/ModalComponent";
 import { Link } from "react-router-dom";
 import AppTitle from "../layout/AppTitle";
-import { useAppContext } from "../../context/AppContext";
 import { MeetingRoomOutlined } from "@mui/icons-material";
 import LoadingButton from "@mui/lab/LoadingButton";
 import { FiEye, FiEyeOff } from "react-icons/fi";
 import SocialLoginBtn from "./Common/SocialLoginBtn";
+import apiClient from "../../utils/axios";
+import { useAuthContext } from "../../context/AuthContext";
 
 function LoginForm() {
-    type LoginInput = {
-        email: string;
-        password: string;
-    };
-
     type LoginErrMsgs = {
         emailErrMsg?: string;
         passErrMsg?: string;
-    };
-
-    type ResendConfirmEmail = {
-        email: string;
     };
 
     const [errorMsgs, setErrorMsgs] = useState<LoginErrMsgs>({
@@ -44,12 +34,7 @@ function LoginForm() {
         passErrMsg: "",
     });
 
-    const [loginInput, setLogin] = useState<LoginInput>({
-        email: "",
-        password: "",
-    });
-
-    const { setLoginFlg, getLoginUser, LoginUser } = useAppContext();
+    const { login } = useAuthContext();
 
     const [reConfirmEmail, setReConfirmEmail] = useState<boolean>(false);
 
@@ -63,12 +48,9 @@ function LoginForm() {
 
     const {
         control,
-        setValue,
-        watch,
         // errorsにバリデーションメッセージが格納される
         formState: { errors },
         handleSubmit,
-        reset,
         getValues,
     } = useForm<LoginScheme>({
         // フォームの初期値設定
@@ -91,40 +73,25 @@ function LoginForm() {
             };
         });
         // CSRF保護
-        await axios
-            .get("/sanctum/csrf-cookie")
-            .then(async (res) => {
-                //フォームデータ送信時に画面を再更新しないようにする処理
-                await axios
-                    .post("/api/login", data)
-                    .then(async (response) => {
-                        if (response.data.status_code === 200) {
-                            await getLoginUser();
-                            setLoginFlg(1);
-                            navigate("/");
-                        }
-                    })
-                    .catch(function (error) {
-                        // 送信失敗時の処理
-                        setIsLoading(false);
-                        if (error.response.status == 403) {
-                            setErrorMsgs((state) => {
-                                return {
-                                    ...state,
-                                    emailErrMsg: error.response.data.error,
-                                };
-                            });
-                            setReConfirmEmail(true);
-                        }
-                        const errorResMsgs = error.response.data.errors;
-                        LoginError(errorResMsgs, setErrorMsgs);
-                        console.log("通信に失敗しました");
-                    });
-            })
-            .catch((e) => {
-                console.log(e);
-                setIsLoading(false);
-            });
+        try{
+            await login(data);
+            navigate("/");
+        }catch(error){
+            // 送信失敗時の処理
+            if (error.response.status == 403) {
+                setErrorMsgs((state) => {
+                    return {
+                        ...state,
+                        emailErrMsg: error.response.data.error,
+                    };
+                });
+                setReConfirmEmail(true);
+            }
+            const errorResMsgs = error.response.data.errors;
+            LoginError(errorResMsgs, setErrorMsgs);
+        }finally{
+            setIsLoading(false);
+        }
     };
 
     const resendConfirmEmail: () => void = async () => {
@@ -133,8 +100,8 @@ function LoginForm() {
         const formEmailVal = getValues("email");
         setModalMainMessage("認証用メール");
         setModalMessage("認証用メールを送信しました。ご確認お願いします。");
-        await axios
-            .post("/api/email/verification-notification", {
+        await apiClient
+            .post("/email/verification-notification", {
                 email: formEmailVal,
             })
             .then((res) => {
@@ -181,11 +148,18 @@ function LoginForm() {
                     <Controller
                         name="password"
                         control={control}
-                        render={({ field }) => (
+                        rules={{
+                            required: "パスワードは必須です",
+                            minLength: {
+                                value: 8,
+                                message: "パスワードは8文字以上で入力してください",
+                            },
+                        }}
+                        render={({ field, fieldState }) => (
                             <TextField
                                 {...field}
-                                error={!!errors.password}
-                                helperText={errorMsgs?.passErrMsg}
+                                error={!!fieldState.error || !!errors.password}
+                                helperText={fieldState.error?.message || errorMsgs?.passErrMsg}
                                 required
                                 label="パスワード"
                                 type={showPassword ? "text" : "password"}

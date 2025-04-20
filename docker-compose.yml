@@ -10,7 +10,7 @@ services:
       context: .
       dockerfile: ./docker/php/Dockerfile #dockerfile：buildするDockerfileまでのパス
     ports:
-      - ${APP_PORT}:9000
+      - ${VITE_PORT}:5173 # vite用のポート番号
     volumes:
       - ./src/:/var/www/html
     environment:

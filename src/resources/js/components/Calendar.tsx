@@ -7,11 +7,10 @@ import {
     DayCellContentArg,
     EventContentArg,
 } from "@fullcalendar/core";
-import { Balance, CalendarContent, Transaction } from "../types";
 import { calculateDailyBalances } from "../utils/financeCalculations";
 import { formatCurrency } from "../utils/formatting";
 import interactionPlugin, { DateClickArg } from "@fullcalendar/interaction";
-import { useTheme } from "@mui/material";
+import { Box, useTheme } from "@mui/material";
 import {
     isSameMonth,
     startOfMonth,
@@ -55,7 +54,7 @@ const Calendar = memo(
     }: CalendarProps) => {
         const { getMonthlyTransactions, monthlyTransactions } =
             useTransactionContext();
-        const { setCurrentMonth, currentMonth } = useAppContext();
+        const { setCurrentMonth, currentMonth, isMobile } = useAppContext();
         const theme = useTheme();
 
         // 状態をまとめて管理
@@ -101,13 +100,32 @@ const Calendar = memo(
 
         // 祝日イベントを生成する関数
         const backgroundHoliday = useCallback((): HolidayEvent[] => {
-            return calendarState.holidays.map((holiday) => ({
-                start: format(holiday.date, "yyyy-MM-dd"),
-                title: holiday.name,
-                display: "background",
-                backgroundColor: theme.palette.holidayColor.main,
-            }));
-        }, [calendarState.holidays, theme]);
+            if (!calendarRef?.current) return [];
+        
+            const api = calendarRef.current.getApi();
+            const viewDate = api.getDate();
+        
+            return calendarState.holidays
+            .filter((holiday) => {
+                    const holidayDate = new Date(holiday.date);
+                    
+                    // 非表示にする条件：
+                    // 1. 表示されている月以外の祝日
+                    // 2. 祝日が日曜日の場合
+                    const isNonCurrentMonth =
+                        holidayDate.getFullYear() !== viewDate.getFullYear() ||
+                        holidayDate.getMonth() !== viewDate.getMonth();
+                    const isSunday = holidayDate.getDay() === 0;
+        
+                    return !isNonCurrentMonth && !isSunday;
+                })
+                .map((holiday) => ({
+                    start: format(holiday.date, "yyyy-MM-dd"),
+                    title: holiday.name,
+                    display: "background",
+                    backgroundColor: theme.palette.holidayColor.main,
+                }));
+        }, [calendarState.holidays, theme, calendarRef]);
 
         useEffect(() => {
             setCalendarState((prevState) => ({
@@ -159,7 +177,7 @@ const Calendar = memo(
         // イベントレンダリング関数
         const renderEventContent = useCallback(
             (eventInfo: EventContentArg) => (
-                <div className="custom-event">
+                <div className="custom-event" style={{fontSize: isMobile ? "11px" : "auto"}}>
                     <div
                         className="money custom-event-content"
                         id="event-income"
@@ -184,27 +202,36 @@ const Calendar = memo(
         );
 
         return (
-            <FullCalendar
-                ref={calendarRef}
-                locale={jaLocale}
-                plugins={[dayGridPlugin, interactionPlugin]}
-                initialView="dayGridMonth"
-                events={[
-                    ...calendarEvents,
-                    ...calendarState.holidayEvents,
-                    {
-                        start: currentDay,
-                        display: "background",
-                        backgroundColor: theme.palette.incomeColor.light,
+            <Box
+                sx={{
+                    "& .fc-header-toolbar": {
+                    paddingLeft: isMobile ? "16px" : "auto",
+                    paddingRight: isMobile ? "16px" : "auto",
                     },
-                ]}
-                eventContent={renderEventContent}
-                dayCellClassNames={handleDayCellClassNames}
-                datesSet={handleDateSet}
-                dateClick={onDateClick}
-                buttonText={{ today: "今月" }}
-                fixedWeekCount={false}
-            />
+                }}
+            >
+                <FullCalendar
+                    ref={calendarRef}
+                    locale={jaLocale}
+                    plugins={[dayGridPlugin, interactionPlugin]}
+                    initialView="dayGridMonth"
+                    events={[
+                        ...calendarEvents,
+                        ...calendarState.holidayEvents,
+                        {
+                            start: currentDay,
+                            display: "background",
+                            backgroundColor: theme.palette.incomeColor.light,
+                        },
+                    ]}
+                    eventContent={renderEventContent}
+                    dayCellClassNames={handleDayCellClassNames}
+                    datesSet={handleDateSet}
+                    dateClick={onDateClick}
+                    buttonText={{ today: "今月" }}
+                    fixedWeekCount={false}
+                />
+            </Box>
         );
     }
 );

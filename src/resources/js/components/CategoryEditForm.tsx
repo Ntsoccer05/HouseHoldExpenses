@@ -1,4 +1,5 @@
 import * as React from "react";
+import {useRef} from "react";
 import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
 import TableRow from "@mui/material/TableRow";
@@ -33,6 +34,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import DragHandleIcon from "@mui/icons-material/DragHandle";
+import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
 
 interface CategoryEditProps {
     edited: boolean;
@@ -83,15 +85,16 @@ const CategoryEditForm = React.memo(
         added,
         deleted,
         setSelected,
-        setCategories,
         setAdded,
         setEdited,
         setDeleted,
     }: CategoryEditProps) => {
-        // const { editCategory, sortCategory } = useCategoryContext();
         const { editCategory, sortCategories } = useCategoryContext();
 
         const [initialized, setInitialized] = useState<boolean>(false);
+
+        const [debounceTime, setDebounceTime] = useState(500); // デバウンス時間を状態として保存
+        const timer = useRef<ReturnType<typeof setTimeout> | null>(null); // タイマーを保存するためのref
 
         // Check if the target element is interactive
         const isInteractiveElement = (target: EventTarget | null) => {
@@ -241,8 +244,10 @@ const CategoryEditForm = React.memo(
             }
         }, [deleted, categories]);
 
+        // デバウンスとは、一定時間内に複数回のイベントが発生した場合、最後のイベントのみを実行する処理
         const handleCategoryChange =
-            (index: number) => (event: React.ChangeEvent<HTMLInputElement>) => {
+             (index: number) => (event: React.ChangeEvent<HTMLInputElement>) => {
+                if (timer.current) clearTimeout(timer.current); // タイマーが存在する場合はクリア
                 if (categories && categories?.length > 0) {
                     const ids = extractIds(event.target.name);
                     if (ids) {
@@ -251,8 +256,6 @@ const CategoryEditForm = React.memo(
                         setContentValues(newValues);
                         const id = ids && Number(ids.id);
                         const filtered_id = ids && Number(ids.filtered_id);
-                        // const fixed_category_id =
-                        //     ids && Number(ids.fixed_category_id);
                         const content = event.target.value;
                         const tgtCategory = categories.filter((category) => {
                             return category.filtered_id === filtered_id;
@@ -263,9 +266,10 @@ const CategoryEditForm = React.memo(
                             content,
                             icon,
                             type,
-                            // fixed_category_id,
                         };
-                        editCategory(argument);
+                        timer.current = setTimeout(async ()=>{
+                            await editCategory(argument);
+                        }, debounceTime)
                     }
                 }
             };
@@ -280,8 +284,6 @@ const CategoryEditForm = React.memo(
                         setIconValues(newValues);
                         const id = ids && Number(ids.id);
                         const filtered_id = ids && Number(ids.filtered_id);
-                        // const fixed_category_id =
-                        //     ids && Number(ids.fixed_category_id);
                         const icon = event.target.value;
                         const tgtCategory = categories.filter((category) => {
                             return category.filtered_id === filtered_id;
@@ -292,7 +294,6 @@ const CategoryEditForm = React.memo(
                             icon,
                             content,
                             type,
-                            // fixed_category_id,
                         };
                         editCategory(argument);
                     }
@@ -304,16 +305,12 @@ const CategoryEditForm = React.memo(
         ): {
             id: string;
             filtered_id: string;
-            // fixed_category_id: string;
         } | null => {
-            // const regex = /(\D+)(\d+)(\D+)(\d+)(\D+)(\d+)/;
             const regex = /(\D+)(\d+)(\D+)(\d+)/;
             const matches = str.match(regex);
             if (matches) {
                 const id = matches[2];
                 const filtered_id = matches[4];
-                // const fixed_category_id = matches[6];
-                // return { id, filtered_id, fixed_category_id };
                 return { id, filtered_id };
             }
             return null;
@@ -325,7 +322,8 @@ const CategoryEditForm = React.memo(
                 collisionDetection={closestCenter}
                 onDragStart={handleDragStart}
                 onDragEnd={handleDragEnd}
-                // autoScroll={false}
+                // 縦方向だけの移動に制限
+                modifiers={[restrictToVerticalAxis]}
             >
                 <SortableContext
                     items={
@@ -377,11 +375,6 @@ const CategoryEditForm = React.memo(
                                                     String(category.id) +
                                                     "filteredContent_" +
                                                     String(category.filtered_id)
-                                                    // "fixed_category_id_" +
-                                                    // String(
-                                                    //     category.fixed_category_id ||
-                                                    //         0
-                                                    // )
                                                 }
                                                 value={contentValues[index]}
                                                 onChange={handleCategoryChange(
@@ -410,11 +403,6 @@ const CategoryEditForm = React.memo(
                                                         String(
                                                             category.filtered_id,
                                                         )
-                                                        // "fixed_category_id_" +
-                                                        // String(
-                                                        //     category.fixed_category_id ||
-                                                        //         0
-                                                        // )
                                                     }
                                                     onChange={handleIconChange(
                                                         index,

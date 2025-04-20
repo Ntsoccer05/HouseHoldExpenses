@@ -1,25 +1,38 @@
 import { Box, Button, styled, Typography } from "@mui/material";
 import { SocialIcon } from "../../common/SocialIcon";
-import axios from "axios";
+import apiClient from "../../../utils/axios";
 
 const SocialLoginBtn = () => {
     const SocialButton = styled(Button)(({ theme }) => ({
         width: "100%",
         padding: theme.spacing(1.5),
         display: "flex",
-        gap: theme.spacing(2),
+        gap: theme.spacing(1.5),
         justifyContent: "center",
         alignItems: "center",
         textTransform: "none",
-        letterSpacing: "2px",
         fontSize: "15px",
+        fontWeight: 500,
         backgroundColor: "white",
-        color: "black",
-        border: "1px solid red",
+        color: "rgba(0, 0, 0, 0.54)", // Googleのボタンの文字色
+        border: "1px solid #DADCE0", // Googleのボタン枠線
+        borderRadius: "4px", // 角丸を小さめに
+        boxShadow: "0px 1px 3px rgba(0, 0, 0, 0.1)", // 軽い影
+        transition: "all 0.2s ease-in-out",
+    
+        "&:hover": {
+            backgroundColor: "#F8F9FA", // Googleのホバー時背景
+            borderColor: "#C6C6C6",
+        },
+    
+        "&:active": {
+            backgroundColor: "#E8E8E8", // クリック時の背景
+            boxShadow: "0px 0px 2px rgba(0, 0, 0, 0.2)",
+        },
     }));
     const googleLogin = async () => {
         try {
-            const response = await axios.get("/api/login/google");
+            const response = await apiClient.get("/login/google");
             window.location.href = response.data.redirectUrl;
         } catch (e) {
             console.log(e);

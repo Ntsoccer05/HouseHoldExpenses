@@ -1,7 +1,8 @@
 import { ReactNode, createContext, useContext } from "react";
 import { CategoryItem, TransactionType } from "../types/index";
-import axios from "axios";
 import { useAppContext } from "../context/AppContext";
+import apiClient from "../utils/axios";
+import { useAuthContext } from "./AuthContext";
 
 type data = {
     content: string;
@@ -16,13 +17,12 @@ interface CategoryContextType {
         content,
         icon,
         type,
-    }: // fixed_category_id,
+    }:
     {
         id: number;
         content: string;
         icon: string;
         type: TransactionType;
-        // fixed_category_id?: number;
     }) => Promise<void>;
     deleteCategories: (
         tgtCategories: CategoryItem[],
@@ -47,23 +47,24 @@ interface CategoryProviderProps {
 // プロバイダーコンポーネント
 export const CategoryProvider = ({ children }: CategoryProviderProps) => {
     const {
-        LoginUser,
         IncomeCategories,
         ExpenseCategories,
         getExpenseCategory,
         getIncomeCategory,
     } = useAppContext();
 
+    const { loginUser } = useAuthContext();
+
     const addCategories = async (data: data) => {
         try {
-            if (LoginUser && data.content !== "") {
+            if (loginUser && data.content !== "") {
                 const api =
                     data.type === "income"
-                        ? "/api/addIncomeCategory"
-                        : "/api/addExpenseCategory";
-                await axios
+                        ? "/addIncomeCategory"
+                        : "/addExpenseCategory";
+                await apiClient 
                     .post(api, {
-                        user_id: LoginUser.id,
+                        user_id: loginUser.id,
                         data,
                     })
                     .then(async (res) => {
@@ -83,20 +84,19 @@ export const CategoryProvider = ({ children }: CategoryProviderProps) => {
         content,
         icon,
         type,
-    }: // fixed_category_id,
+    }:
     {
         id: number;
         content: string;
         icon: string;
         type: TransactionType;
-        // fixed_category_id?: number;
     }) => {
         try {
             const tgtCategory =
                 type === "expense"
                     ? (ExpenseCategories as CategoryItem[])
                     : (IncomeCategories as CategoryItem[]);
-            if (LoginUser && tgtCategory.length > 0) {
+            if (loginUser && tgtCategory.length > 0) {
                 const updateTgtData = tgtCategory.filter((category) => {
                     return category.id === id;
                 });
@@ -108,16 +108,15 @@ export const CategoryProvider = ({ children }: CategoryProviderProps) => {
                     content,
                     icon,
                     type,
-                    // fixed_category_id: fixed_category_id,
                 };
                 const api =
                     updateData.type === "income"
-                        ? "/api/updateIncomeCategory"
-                        : "/api/updateExpenseCategory";
-                await axios
+                        ? "/updateIncomeCategory"
+                        : "/updateExpenseCategory";
+                await apiClient
                     .post(api, {
                         updateData: updateData,
-                        user_id: LoginUser.id,
+                        user_id: loginUser.id,
                     })
                     .then((res) => {
                         type === "expense"
@@ -135,7 +134,7 @@ export const CategoryProvider = ({ children }: CategoryProviderProps) => {
         type: TransactionType
     ) => {
         try {
-            if (LoginUser && tgtCategories.length > 0) {
+            if (loginUser && tgtCategories.length > 0) {
                 tgtCategories = tgtCategories.map((category, index) => ({
                     ...category, // 既存のカテゴリーデータを展開
                     filtered_id: index + 1, // index に 1 を加えて filtered_id を設定
@@ -145,12 +144,12 @@ export const CategoryProvider = ({ children }: CategoryProviderProps) => {
                 };
                 const api =
                     type === "income"
-                        ? "/api/sortIncomeCategory"
-                        : "/api/sortExpenseCategory";
-                await axios
+                        ? "/sortIncomeCategory"
+                        : "/sortExpenseCategory";
+                await apiClient
                     .post(api, {
                         sortData: sortData,
-                        user_id: LoginUser.id,
+                        user_id: loginUser.id,
                     })
                     .then(async (res) => {
                         type === "expense"
@@ -169,18 +168,18 @@ export const CategoryProvider = ({ children }: CategoryProviderProps) => {
         type: TransactionType
     ) => {
         try {
-            if (LoginUser && tgtCategories.length > 0) {
+            if (loginUser && tgtCategories.length > 0) {
                 const deleteData = {
                     tgtCategories,
                 };
                 const api =
                     type === "income"
-                        ? "/api/deleteIncomeCategory"
-                        : "/api/deleteExpenseCategory";
-                await axios
+                        ? "/deleteIncomeCategory"
+                        : "/deleteExpenseCategory";
+                await apiClient
                     .post(api, {
                         deleteData: deleteData,
-                        user_id: LoginUser.id,
+                        user_id: loginUser.id,
                     })
                     .then((res) => {
                         type === "expense"

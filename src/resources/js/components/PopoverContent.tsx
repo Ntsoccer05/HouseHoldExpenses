@@ -10,6 +10,7 @@ import {
 } from "@mui/material";
 import { CheckBoxItem } from "../types";
 import SearchIcon from "@mui/icons-material/Search";
+import { useAppContext } from "../context/AppContext";
 
 type Props = {
     searchPlaceholder: string;
@@ -17,6 +18,7 @@ type Props = {
     initialItems: CheckBoxItem[];
     items: CheckBoxItem[];
     setItems: React.Dispatch<React.SetStateAction<CheckBoxItem[]>>;
+    setPage: React.Dispatch<React.SetStateAction<number>>;
     onPopoverClose: () => void;
     anchorEl: Element | null;
 };
@@ -35,19 +37,21 @@ export const PopoverContent = ({
     initialItems,
     items,
     setItems,
+    setPage,
     onPopoverClose,
     anchorEl,
 }: Props) => {
     const [text, setText] = useState("");
+    const {isMobile} = useAppContext();
 
     return (
         <Popover
             open={Boolean(anchorEl)}
             anchorEl={anchorEl}
             onClose={onPopoverClose}
-            sx={{ top: "50px", left: "120px" }}
+            sx={{ top: "50px", left: isMobile ? "0px" :"120px" }}
         >
-            <Grid container direction="column" sx={{ width: "250px" }}>
+            <Grid container direction="column" sx={{ width: isMobile ? "100%" : "250px" }}>
                 {/* 検索ボックス */}
                 <Paper
                     className="searchText"
@@ -61,6 +65,7 @@ export const PopoverContent = ({
                         placeholder={searchPlaceholder}
                         value={text}
                         onChange={(e) => {
+                            setPage(0);
                             setText(e.target.value);
                             setItems(filterItems(initialItems, e.target.value));
                         }}
@@ -86,6 +91,7 @@ export const PopoverContent = ({
                                 React.SetStateAction<CheckBoxItem[]>
                             >
                         }
+                        setPage={setPage}
                     />
                 </Paper>
             </Grid>
