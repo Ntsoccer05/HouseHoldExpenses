@@ -7,9 +7,9 @@ import {
     useState,
 } from "react";
 import { Transaction, TransactionData } from "../types/index";
-import { useTheme } from "@mui/material";
-import axios from "axios";
 import { useAppContext } from "../context/AppContext";
+import apiClient from "../utils/axios";
+import { useAuthContext } from "./AuthContext";
 
 // コンテキストの型定義
 interface TransactionContext {
@@ -38,15 +38,12 @@ interface TransactionProviderProps {
 
 // プロバイダーコンポーネント
 export const TransactionProvider = ({ children }: TransactionProviderProps) => {
-    const theme = useTheme();
-
     const {
-        LoginUser,
-        transactions,
-        setTransactions,
         ExpenseCategories,
         IncomeCategories,
     } = useAppContext();
+
+    const { loginUser } = useAuthContext();
 
     const [monthlyTransactions, setMonthlyTransactions] = useState<
         Transaction[]
@@ -72,7 +69,7 @@ export const TransactionProvider = ({ children }: TransactionProviderProps) => {
     // 月間取引データの取得
     const getMonthlyTransactions = useCallback(async (currentMonth: string) => {
         try {
-            const response = await axios.get("/api/monthly-transaction", {
+            const response = await apiClient.get("/monthly-transaction", {
                 params: { currentMonth },
             });
             setMonthlyTransactions(response.data.monthlyTransactionData);
@@ -86,7 +83,7 @@ export const TransactionProvider = ({ children }: TransactionProviderProps) => {
     // 年間取引データの取得
     const getYearlyTransactions = useCallback(async (currentYear: string) => {
         try {
-            const response = await axios.get("/api/yearly-transaction", {
+            const response = await apiClient.get("/yearly-transaction", {
                 params: { currentYear },
             });
             setYearlyTransactions(response.data.yearlyTransactionData);
@@ -105,9 +102,9 @@ export const TransactionProvider = ({ children }: TransactionProviderProps) => {
                     ...transaction,
                     icon: addCategoryIcon(transaction),
                 };
-                const response = await axios.post("/api/addTransaction", {
+                const response = await apiClient.post("/addTransaction", {
                     transaction: transactionWithIcon,
-                    user_id: LoginUser?.id,
+                    user_id: loginUser?.id,
                 });
                 const newTransaction = {
                     id: response.data.id,
@@ -122,7 +119,7 @@ export const TransactionProvider = ({ children }: TransactionProviderProps) => {
                 console.error("Error saving transaction:", err);
             }
         },
-        [addCategoryIcon, LoginUser?.id, setMonthlyTransactions]
+        [addCategoryIcon, loginUser?.id, setMonthlyTransactions]
     );
 
     // 取引を削除
@@ -135,9 +132,9 @@ export const TransactionProvider = ({ children }: TransactionProviderProps) => {
 
                 await Promise.all(
                     idsToDelete.map((id) =>
-                        axios.post("/api/deleteTransaction", {
+                        apiClient.post("/deleteTransaction", {
                             transactionId: id,
-                            user_id: LoginUser?.id,
+                            user_id: loginUser?.id,
                         })
                     )
                 );
@@ -151,7 +148,7 @@ export const TransactionProvider = ({ children }: TransactionProviderProps) => {
                 console.error("Error deleting transaction(s):", err);
             }
         },
-        [LoginUser?.id, setMonthlyTransactions]
+        [loginUser?.id, setMonthlyTransactions]
     );
 
     // 取引を更新
@@ -162,10 +159,10 @@ export const TransactionProvider = ({ children }: TransactionProviderProps) => {
                     ...transaction,
                     icon: addCategoryIcon(transaction),
                 };
-                await axios.post("/api/updateTransaction", {
+                await apiClient.post("/updateTransaction", {
                     transaction: transactionWithIcon,
                     transactionId,
-                    user_id: LoginUser?.id,
+                    user_id: loginUser?.id,
                 });
 
                 setMonthlyTransactions((prevTransactions) =>
@@ -179,7 +176,7 @@ export const TransactionProvider = ({ children }: TransactionProviderProps) => {
                 console.error("Error updating transaction:", err);
             }
         },
-        [addCategoryIcon, LoginUser?.id, setMonthlyTransactions]
+        [addCategoryIcon, loginUser?.id, setMonthlyTransactions]
     );
 
     return (

@@ -1,5 +1,4 @@
 import { Box, Button, Container, Stack, TextField } from "@mui/material";
-import axios from "axios";
 import { useState } from "react";
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
 import ModalComponent from "../common/ModalComponent";
@@ -7,6 +6,7 @@ import { PasswordResetError } from "../../utils/errorHandling";
 import { PasswordResetScheme } from "../../validations/PasswordReset";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import AppTitle from "../layout/AppTitle";
+import apiClient from "../../utils/axios";
 
 function ResetPasswordForm() {
     type PasswordResetErrMsgs = {
@@ -50,8 +50,8 @@ function ResetPasswordForm() {
                 passConfErrMsg: "",
             };
         });
-        axios
-            .post("/api/password/reset", { ...data, token })
+        apiClient
+            .post("/password/reset", { ...data, token })
             .then((response) => {
                 // 送信成功時の処理
                 setShowModal(true);

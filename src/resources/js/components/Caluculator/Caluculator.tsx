@@ -6,7 +6,7 @@ import OperatorKey from "./OperatorKey";
 import DelKey from "./DelKey";
 import ClearKey from "./ClearKey";
 import EqualKey from "./EqualKey";
-import "../../../css/calculator.css";
+import "../../assets/css/calculator.css"
 import PlusMinusKey from "./PlusMinusKey";
 import { Button } from "@mui/material";
 

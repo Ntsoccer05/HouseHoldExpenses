@@ -29,7 +29,7 @@ import TableSortLabel from "@mui/material/TableSortLabel"; // 並び替えラベ
 import HeightIcon from "@mui/icons-material/Height";
 import { useAppContext } from "../context/AppContext";
 import FilterListIcon from "@mui/icons-material/FilterList";
-import { CheckBoxItem, Transaction } from "../types";
+import { CheckBoxItem, Transaction, TransactionType } from "../types";
 import { PopoverContent } from "./PopoverContent";
 
 interface TransactionTableHeadProps {
@@ -42,13 +42,6 @@ interface TransactionTableHeadProps {
     onSelectAllClick?: (event: React.ChangeEvent<HTMLInputElement>) => void;
     onRequestSort: (event: React.MouseEvent<unknown>, property: string) => void;
     setAnchorEl: React.Dispatch<React.SetStateAction<null>>;
-}
-
-interface YearlyTransactionTableHeadProps {
-    order: "asc" | "desc" | undefined;
-    orderBy: string;
-    onRequestSort: (event: React.MouseEvent<unknown>, property: string) => void;
-    rowCount: number;
 }
 
 // テーブルヘッド
@@ -66,6 +59,7 @@ function TransactionTableHead(props: TransactionTableHeadProps) {
     } = props;
 
     const popoverRef = React.useRef(null);
+    const {isMobile} = useAppContext();
 
     const createSortHandler =
         (property: string) => (event: React.MouseEvent<unknown>) => {
@@ -78,7 +72,7 @@ function TransactionTableHead(props: TransactionTableHeadProps) {
                 {viewType === "monthly" && (
                     <TableCell
                         padding="checkbox"
-                        sx={{ width: "50px", minWidth: "50px" }}
+                        sx={{ width: "50px", minWidth: "50px", display: isMobile ? "none" : "masonry"}}
                     >
                         <Checkbox
                             color="primary"
@@ -98,8 +92,9 @@ function TransactionTableHead(props: TransactionTableHeadProps) {
                 <TableCell
                     align="left"
                     sx={{
-                        width: { xs: "100px", sm: "150px", md: "200px" },
-                        minWidth: "100px",
+                        whiteSpace: "nowrap",
+                        width: "auto",
+                        minWidth: "0",
                     }} // 固定幅
                 >
                     {viewType === "monthly" ? "日付" : "月"}
@@ -107,8 +102,9 @@ function TransactionTableHead(props: TransactionTableHeadProps) {
                 <TableCell
                     align="left"
                     sx={{
-                        width: { xs: "150px", sm: "200px", md: "250px" },
-                        minWidth: "150px",
+                        whiteSpace: "nowrap",
+                        width: "auto",
+                        minWidth: "0",
                     }} // 固定幅
                     ref={popoverRef}
                 >
@@ -168,6 +164,25 @@ function TransactionTableHead(props: TransactionTableHeadProps) {
                 >
                     {viewType === "monthly" && "内容"}
                 </TableCell>
+                {viewType === "monthly" && (
+                    <TableCell
+                        padding="checkbox"
+                        sx={{ width: "50px", minWidth: "50px", display: isMobile ? "masonry" : "none"}}
+                    >
+                        <Checkbox
+                            color="primary"
+                            indeterminate={
+                                (numSelected as number) > 0 &&
+                                (numSelected as number) < rowCount
+                            }
+                            checked={rowCount > 0 && numSelected === rowCount}
+                            onChange={onSelectAllClick}
+                            inputProps={{
+                                "aria-label": "select all desserts",
+                            }}
+                        />
+                    </TableCell>
+                )}
             </TableRow>
         </TableHead>
     );
@@ -182,7 +197,7 @@ interface TransactionTableToolbarProps {
 // ツールバー
 function TransactionTableToolbar(props: TransactionTableToolbarProps) {
     const { numSelected, viewType, onDelete } = props;
-    const { currentYear, currentMonth } = useAppContext();
+    const { currentYear, currentMonth, isMobile } = useAppContext();
 
     const jpCurrentMonth = formatJPMonth(currentMonth);
     const jpCurrentYear = formatJPYear(currentYear);
@@ -250,7 +265,7 @@ function FinancialItem({ title, value, color }: FinancialItemProps) {
                 fontWeight={"fontWeightBold"}
                 sx={{
                     color: color,
-                    fontSize: { xs: ".8rem", sm: "1rem", md: "1.2rem" },
+                    fontSize: { xs: ".9rem", sm: "1rem", md: "1.2rem" },
                     wordBreak: "break-word",
                 }}
             >
@@ -266,6 +281,7 @@ interface TransactionTableProps {
 
 interface Summary {
     id: string;
+    type: TransactionType;
     category: string;
     icon?: string;
     amount: number;
@@ -275,14 +291,8 @@ interface Summary {
 
 // 本体
 export default function TransactionTable({ viewType }: TransactionTableProps) {
-    // const monthlyTransactions = useMonthlyTransactions();
-    // const yearlyTransactions = useYearlyTransactions();
-
-    const { onDeleteTransaction, monthlyTransactions, yearlyTransactions } =
-        useTransactionContext();
-
-    const { currentYear, ExpenseCategories, IncomeCategories, isMobile } =
-        useAppContext();
+    const { onDeleteTransaction, monthlyTransactions, yearlyTransactions } = useTransactionContext();
+    const { currentYear, currentMonth, isMobile } = useAppContext();
 
     const theme = useTheme();
     const [selected, setSelected] = React.useState<readonly string[]>([]);
@@ -292,6 +302,16 @@ export default function TransactionTable({ viewType }: TransactionTableProps) {
     // 並び替えのための状態
     const [order, setOrder] = React.useState<"asc" | "desc" | undefined>();
     const [orderBy, setOrderBy] = React.useState<string>("date"); // 初期状態は日付でのソート
+
+    const [checkBoxItems, setCheckBoxItems] = React.useState<CheckBoxItem[]>(
+        []
+    );
+    const [initialCheckBoxItems, setInitialCheckBoxItems] = React.useState<
+        CheckBoxItem[]
+    >([]);
+    const [anchorEl, setAnchorEl] = React.useState(null);
+
+    const hasInitialized = React.useRef(false);
 
     const handleRequestSort = (
         event: React.MouseEvent<unknown>,
@@ -363,16 +383,6 @@ export default function TransactionTable({ viewType }: TransactionTableProps) {
               )
             : 0;
 
-    // const yearlyCategorySums = yearlyTransactions.reduce<
-    //     Record<string, number>
-    // >((acc, transaction) => {
-    //     if (!acc[transaction.category]) {
-    //         acc[transaction.category] = 0;
-    //     }
-    //     acc[transaction.category] += transaction.amount;
-    //     return acc;
-    // }, {} as Record<string, number>);
-
     const summarizeTransactions = (transactions: Transaction[]): Summary[] => {
         const summary: { [key: string]: Summary } = {};
 
@@ -384,6 +394,7 @@ export default function TransactionTable({ viewType }: TransactionTableProps) {
             if (!summary[key]) {
                 summary[key] = {
                     id: (index + 1).toString(), // トランザクションのIDを保持
+                    type: transaction.type,
                     category: transaction.category,
                     icon: transaction.icon, // アイコンを初期化
                     amount: 0, // 初期金額
@@ -414,6 +425,7 @@ export default function TransactionTable({ viewType }: TransactionTableProps) {
         // idを設定
         const dataWithUniqueIds = summarizedData.map((item, index) => ({
             id: (index + 1).toString(), // 新しい ID を設定
+            type: item.type,
             category: item.category,
             icon: item.icon,
             amount: item.amount,
@@ -424,47 +436,7 @@ export default function TransactionTable({ viewType }: TransactionTableProps) {
         return dataWithUniqueIds;
     };
 
-    const yearlyCategoryTransactions: Summary[] =
-        summarizeTransactions(yearlyTransactions);
-
-    // const categories =
-    //     IncomeCategories || ExpenseCategories
-    //         ? [
-    //               ...(IncomeCategories as CategoryItem[]),
-    //               ...(ExpenseCategories as CategoryItem[]),
-    //           ]
-    //         : [];
-
-    // const yearlyCategoryIcons = Object.entries(yearlyCategorySums).map(
-    //     ([key, value]) => {
-    //         const yearlyTransactionIcon = categories.filter((category) => {
-    //             return category.label === key;
-    //         });
-    //         return {
-    //             category: key,
-    //             icon: yearlyTransactionIcon[0]?.icon || "",
-    //         };
-    //     }
-    // );
-
-    // Object.entriesは[key, value]に分割される
-    // const yearlyCategoryTransactions = Object.entries(yearlyCategorySums).map(
-    //     ([key, value], index) => {
-    //         // Use find to get the specific icon for the category
-    //         const iconEntry = yearlyCategoryIcons.find(
-    //             (yearlyIcon) => yearlyIcon.category === key
-    //         );
-    //         const icon = iconEntry ? iconEntry.icon : "";
-    //         return {
-    //             id: (index + 1).toString(),
-    //             category: key,
-    //             icon: icon,
-    //             amount: value,
-    //             date: format(new Date(currentYear), "yyyy"),
-    //             content: "",
-    //         };
-    //     }
-    // );
+    const yearlyCategoryTransactions: Summary[] = summarizeTransactions(yearlyTransactions);
 
     // 並び替え処理: 月別トランザクション
     const monthlySortedTransactions = React.useMemo(() => {
@@ -504,15 +476,27 @@ export default function TransactionTable({ viewType }: TransactionTableProps) {
         return [];
     }, [yearlyCategoryTransactions, order, orderBy]);
 
+    React.useEffect(() => {
+        setPage(0);
+    }, [order, orderBy]);
+
+    const checkedItems = checkBoxItems
+        .filter((item) => item.checked)
+        .map((item) => item.label);
+
     // 表示する行
     const visibleRows = React.useMemo(() => {
         if (viewType === "monthly") {
-            return monthlySortedTransactions.slice(
+            return monthlySortedTransactions.filter((transaction) =>
+                checkedItems.includes(transaction.category)
+              ).slice(
                 page * rowsPerPage,
                 page * rowsPerPage + rowsPerPage
             );
         } else if (viewType === "yearly") {
-            return yearlySortedTransactions.slice(
+            return yearlySortedTransactions.filter((transaction) =>
+                checkedItems.includes(transaction.category)
+              ).slice(
                 page * rowsPerPage,
                 page * rowsPerPage + rowsPerPage
             );
@@ -524,30 +508,18 @@ export default function TransactionTable({ viewType }: TransactionTableProps) {
         monthlySortedTransactions,
         yearlySortedTransactions,
         viewType,
+        checkedItems,
     ]);
 
-    const items = React.useMemo(() => {
-        return (
-            viewType === "yearly"
-                ? yearlyCategoryTransactions
-                : monthlyTransactions
-        ).map((transaction) => ({
-            key: transaction.category,
-            label: transaction.category,
-        }));
-    }, [viewType, yearlyCategoryTransactions, monthlyTransactions]);
-    const uniqueItems = Array.from(
-        new Map(items.map((item) => [item.key, item])).values()
-    );
-
-    const hasInitialized = React.useRef(false);
-
-    const [checkBoxItems, setCheckBoxItems] = React.useState<CheckBoxItem[]>(
-        []
-    );
-    const [initialCheckBoxItems, setInitialCheckBoxItems] = React.useState<
-        CheckBoxItem[]
-    >([]);
+    const uniqueItems = React.useMemo(() => {
+        const source = viewType === "yearly" ? yearlyCategoryTransactions : monthlyTransactions;
+        return Array.from(new Map(
+            source.map((transaction) => [
+                transaction.category,
+                { key: transaction.category, label: transaction.category }
+            ])
+        ).values());
+    }, [viewType, monthlyTransactions, yearlyCategoryTransactions]);
 
     React.useEffect(() => {
         if (!hasInitialized.current && uniqueItems.length > 0) {
@@ -563,15 +535,10 @@ export default function TransactionTable({ viewType }: TransactionTableProps) {
             setCheckBoxItems(initialCheckBoxItems);
             hasInitialized.current = true; // 処理を一度だけ走らせるためのフラグ
         }
-    }, [uniqueItems, viewType]); // viewTypeを追加
+    }, [uniqueItems]);
     React.useEffect(() => {
         hasInitialized.current = false; // viewTypeが変わったらフラグをリセット
-    }, [viewType]);
-
-    const checkedItems = checkBoxItems
-        .filter((item) => item.checked)
-        .map((item) => item.label);
-    const [anchorEl, setAnchorEl] = React.useState(null);
+    }, [currentYear, currentMonth, viewType]);
 
     React.useEffect(() => {
         setSelected([]);
@@ -615,8 +582,9 @@ export default function TransactionTable({ viewType }: TransactionTableProps) {
                     initialItems={initialCheckBoxItems}
                     items={checkBoxItems}
                     setItems={setCheckBoxItems}
-                    searchPlaceholder={"Search"}
-                    checkBoxListLabel={"All items"}
+                    setPage={setPage}
+                    searchPlaceholder={"検索"}
+                    checkBoxListLabel={"全カテゴリ"}
                     onPopoverClose={() => {
                         setAnchorEl(null);
                     }}
@@ -633,7 +601,7 @@ export default function TransactionTable({ viewType }: TransactionTableProps) {
                 {/* 取引一覧*/}
                 <TableContainer>
                     <Table
-                        sx={{ minWidth: 750 }}
+                        sx={{ minWidth: isMobile ? "none" : 750, whiteSpace: "nowrap" }}
                         aria-labelledby="tableTitle"
                         size={"medium"}
                     >
@@ -702,21 +670,20 @@ export default function TransactionTable({ viewType }: TransactionTableProps) {
                                             }}
                                         >
                                             {viewType === "monthly" && (
-                                                <TableCell padding="checkbox">
+                                                <TableCell padding="checkbox" sx={{display: isMobile ? "none" : "masonry",}}>
                                                     <Checkbox
                                                         color="primary"
                                                         checked={isItemSelected}
                                                     />
                                                 </TableCell>
                                             )}
-
                                             <TableCell
                                                 component="th"
                                                 scope="row"
                                                 padding="none"
                                                 sx={{
                                                     paddingLeft:
-                                                        viewType === "yearly"
+                                                        isMobile || viewType === "yearly"
                                                             ? "12px"
                                                             : "",
                                                 }}
@@ -740,12 +707,20 @@ export default function TransactionTable({ viewType }: TransactionTableProps) {
                                                 )}
                                                 {transaction.category}
                                             </TableCell>
-                                            <TableCell align="left">
-                                                {transaction.amount}
+                                            <TableCell align="left" sx={{fontWeight: 'bold', color: transaction.type === 'expense' ? theme.palette.expenseColor.main : theme.palette.incomeColor.main}}>
+                                                {`￥${formatCurrency(transaction.amount)}`}
                                             </TableCell>
                                             <TableCell align="left">
                                                 {transaction.content}
                                             </TableCell>
+                                            {viewType === "monthly" && (
+                                                <TableCell padding="checkbox" sx={{display: isMobile ? "masonry" : "none"}}>
+                                                    <Checkbox
+                                                        color="primary"
+                                                        checked={isItemSelected}
+                                                    />
+                                                </TableCell>
+                                            )}
                                         </TableRow>
                                     )
                                 );
@@ -769,8 +744,12 @@ export default function TransactionTable({ viewType }: TransactionTableProps) {
                     component="div"
                     count={
                         viewType === "monthly"
-                            ? monthlyTransactions.length
-                            : yearlyCategoryTransactions.length
+                            ? monthlyTransactions.filter((transaction) =>
+                                checkedItems.includes(transaction.category)
+                              ).length
+                            : yearlyCategoryTransactions.filter((transaction) =>
+                                checkedItems.includes(transaction.category)
+                              ).length
                     }
                     rowsPerPage={rowsPerPage}
                     page={page}
