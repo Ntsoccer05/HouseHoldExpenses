@@ -64,23 +64,4 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->hasMany(MonthlyAmount::class);
     }
-    // public function sendEmailVerificationNotification()
-    // {
-    //     $this->notify(new UserCustomVerifyEmail);
-    // }
-
-    // public function hasVerifiedEmail()
-    // {
-    //     // $thisには使用先で$user->hasVerifiedEmail()とした場合の$userが入る
-    //     return ! is_null($this->email_verified_at);
-    // }
-
-    // public function markEmailAsVerified()
-    // {
-    //     // $thisには使用先で$user->markEmailAsVerified()とした場合の$userが入る
-    //     return $this->forceFill([
-    //         'email_verified_at' => $this->freshTimestamp(),
-    //     ])->save();
-    // }
-
 }

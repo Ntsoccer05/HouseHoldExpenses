@@ -122,4 +122,14 @@ class Content extends Model
         }
         return $yearlyData;
     }
+
+    /**
+     * カテゴリを削除
+     * @param ExpenceCategory|IncomeCategory $userCategory
+     */
+    public static function deleteContentsByCategory($userCategory)
+    {
+        //static メソッド内では $this は使えない
+        self::where('category_id', $userCategory->id)->where('type_id', $userCategory->type_id)->delete();
+    }
 }
