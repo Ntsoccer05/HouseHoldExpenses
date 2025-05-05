@@ -31,7 +31,7 @@ COPY ./docker/production/default.conf /etc/nginx/conf.d/default.conf
 COPY ./docker/production/php.ini /usr/local/etc/php/php.ini
 COPY ./docker/production/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
-# Laravel アプリケーションと一緒にコピー
+# Laravel アプリケーションと一緒にコピー docker-compose.ymlのvolumesと一緒
 COPY ./src /var/www/html
 
 # artisan の存在確認（無ければビルド失敗）
