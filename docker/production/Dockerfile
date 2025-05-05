@@ -32,7 +32,7 @@ COPY ./docker/production/php.ini /usr/local/etc/php/php.ini
 COPY ./docker/production/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 # Laravel アプリケーションと一緒にコピー
-COPY . /var/www/html
+COPY ./src /var/www/html
 
 # artisan の存在確認（無ければビルド失敗）
 RUN test -f /var/www/html/artisan || (echo "❌ artisan not found!" && exit 1)
@@ -47,8 +47,7 @@ COPY ./docker/production/entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
 # Laravel パーミッション設定
-RUN mkdir -p /var/www/html/storage /var/www/html/bootstrap/cache \
-    && chown -R www-data:www-data /var/www/html \
+RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
 EXPOSE 8080
