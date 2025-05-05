@@ -80,7 +80,7 @@ jobs:
           role-to-assume: ${{ env.AWS_ROLE_TO_ASSUME }}
 
       - name: Download the artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: house-hold-api-image-uri
           path: artifacts
