@@ -28,7 +28,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Run Build
-        run: docker image build -t temp_api_image:latest docker/production/
+        run: docker image build -t temp_api_image:latest .
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
