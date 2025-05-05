@@ -31,8 +31,11 @@ COPY ./docker/production/default.conf /etc/nginx/conf.d/default.conf
 COPY ./docker/production/php.ini /usr/local/etc/php/php.ini
 COPY ./docker/production/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
-# Laravel アプリケーションと一緒にコピー
-COPY . /var/www/html
+# Laravel アプリケーションと一緒にコピー docker-compose.ymlのvolumesと一緒
+COPY ./src /var/www/html
+
+# artisan の存在確認（無ければビルド失敗）
+RUN test -f /var/www/html/artisan || (echo "❌ artisan not found!" && exit 1)
 
 # ビルド時に渡される .env を保存
 # 後に entrypoint.sh がこのファイルを /var/www/html/.env にコピー
@@ -47,7 +50,7 @@ RUN chmod +x /usr/local/bin/entrypoint.sh
 RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
-EXPOSE 80
+EXPOSE 8080
 
 # Entrypoint → entrypoint.sh → 最終的に supervisord 起動
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]

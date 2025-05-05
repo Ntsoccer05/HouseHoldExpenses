@@ -27,8 +27,13 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Generate .env.production from Secret
+        run: |
+          echo "${{ secrets.LARAVEL_PRODUCTION_ENV }}" > docker/production/.env.production
+
       - name: Run Build
-        run: docker image build -t temp_api_image:latest docker/production/
+        # -f で Dockerfile の パスを指定 . で ルートディレクトリ全体をビルドコンテキストに設定
+        run: docker image build -f ./docker/production/Dockerfile -t temp_api_image:latest .
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -44,9 +49,9 @@ jobs:
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         run: |
-          docker image tag temp_api_image:latest $ECR_REGISTRY/${{ env.ECR_REPOSITORY }}/${{ github.sha }}
-          docker push $ECR_REGISTRY/${{ env.ECR_REPOSITORY }}/${{ github.sha }}
-          echo $ECR_REGISTRY/${{ env.ECR_REPOSITORY }}/${{ github.sha }} > house-hold-api-image-uri.txt
+          docker image tag temp_api_image:latest $ECR_REGISTRY/${{ env.ECR_REPOGITORY }}:${{ github.sha }}
+          docker push $ECR_REGISTRY/${{ env.ECR_REPOGITORY }}:${{ github.sha }}
+          echo $ECR_REGISTRY/${{ env.ECR_REPOGITORY }}:${{ github.sha }} > house-hold-api-image-uri.txt
 
       - name: Upload the image uri file as an artifact
         uses: actions/upload-artifact@v4
@@ -75,7 +80,7 @@ jobs:
           role-to-assume: ${{ env.AWS_ROLE_TO_ASSUME }}
 
       - name: Download the artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: house-hold-api-image-uri
           path: artifacts
