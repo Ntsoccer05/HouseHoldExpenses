@@ -33,9 +33,7 @@ jobs:
 
       - name: Run Build
         # -f で Dockerfile の パスを指定 . で ルートディレクトリ全体をビルドコンテキストに設定
-        run: docker image build -f docker/production/Dockerfile -t temp_api_image:latest .
-        # laravelアプリのルート設定
-        working-directory: ./src
+        run: docker image build -f ./docker/production/Dockerfile -t temp_api_image:latest ./src
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
