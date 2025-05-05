@@ -1,0 +1,101 @@
+name: Deploy Laravel to ECS
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  ENV_DATA_PATH: docker/production/env_data
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Inject .env from Secrets
+        run: |
+          echo "${{ secrets.PRODUCTION_ENV }}" > .env
+          cat .env >> $GITHUB_ENV  # GitHub Actions 用に環境変数として読み込む
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Build
+        run: docker image build -t temp_api_image:latest docker/production/
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: ${{ env.AWS_REGION }}
+          role-to-assume: ${{ env.AWS_ROLE_TO_ASSUME }}
+
+      - name: Log in to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Push the image to Amazon ECR
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        run: |
+          docker image tag temp_api_image:latest $ECR_REGISTRY/${{ env.ECR_REPOSITORY }}/${{ github.sha }}
+          docker push $ECR_REGISTRY/${{ env.ECR_REPOSITORY }}/${{ github.sha }}
+          echo $ECR_REGISTRY/${{ env.ECR_REPOSITORY }}/${{ github.sha }} > house-hold-api-image-uri.txt
+
+      - name: Upload the image uri file as an artifact
+        uses: actions/Upload-artifact@v2
+        with:
+          name: house-hold-api-image-uri
+          path: house-hold-api-image-uri.txt
+
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    needs: [build]
+
+    steps:
+      - name: Inject .env from Secrets
+        run: |
+          echo "${{ secrets.PRODUCTION_ENV }}" > .env
+          cat .env >> $GITHUB_ENV  # GitHub Actions 用に環境変数として読み込む
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: ${{ env.AWS_REGION }}
+          role-to-assume: ${{ env.AWS_ROLE_TO_ASSUME }}
+
+      - name: Download the artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: house-hold-api-image-uri
+          path: artifacts
+
+      - name: Define the image URI
+        run: |
+          IMAGE_URI=$(cat artifacts/house-hold-api-image-uri.txt)
+          echo "HOUSE_HOLD_API_IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
+
+      - name: Fill in the new image URI in the amazon ECS task definition
+        id: render-task-definition
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: ${{ env.ECS_TASK_DEFINITION_API }}
+          container-name: api
+          image: ${{ env.HOUSE_HOLD_API_IMAGE_URI }}
+
+      - name: Deploy ECS Task
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+          task-definition: ${{ steps.render-task-definition.outputs.task-definition }}
+          service: ${{ env.ECS_SERVICE }}
+          cluster: ${{ env.ECS_CLUSTER }}
+          wait-for-service-stability: true
