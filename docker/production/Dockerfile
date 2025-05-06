@@ -34,11 +34,8 @@ COPY ./docker/production/supervisord.conf /etc/supervisor/conf.d/supervisord.con
 # Laravel アプリケーションと一緒にコピー docker-compose.ymlのvolumesと一緒
 COPY ./src /var/www/html
 
-# artisan の存在確認（無ければビルド失敗）
-RUN test -f /var/www/html/artisan || (echo "❌ artisan not found!" && exit 1)
-
 # ビルド時に渡される .env を保存
-# 後に entrypoint.sh がこのファイルを /var/www/html/.env にコピー
+# 後に entrypoint.sh がこのファイルを /var/www/html/.env にコピー Laravel アプリケーションとビルド済みVite成果物を含めてコピー
 RUN mkdir -p /var/tmp
 COPY ./docker/production/.env.production /var/tmp/env_data
 

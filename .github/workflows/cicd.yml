@@ -31,6 +31,21 @@ jobs:
         run: |
           echo "${{ secrets.LARAVEL_PRODUCTION_ENV }}" > docker/production/.env.production
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install Node.js dependencies
+        run: |
+          cd src
+          npm ci
+
+      - name: Build Vite frontend
+        run: |
+          cd src
+          npm run build
+
       - name: Run Build
         # -f で Dockerfile の パスを指定 . で ルートディレクトリ全体をビルドコンテキストに設定
         run: docker image build -f ./docker/production/Dockerfile -t temp_api_image:latest .
