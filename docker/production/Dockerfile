@@ -34,8 +34,11 @@ COPY ./docker/production/supervisord.conf /etc/supervisor/conf.d/supervisord.con
 # Laravel アプリケーションと一緒にコピー docker-compose.ymlのvolumesと一緒
 COPY ./src /var/www/html
 
+# Vite ビルド成果物（buildフォルダ）を明示的に public に上書きコピー
+COPY ./src/public/build /var/www/html/public/build
+
 # ビルド時に渡される .env を保存
-# 後に entrypoint.sh がこのファイルを /var/www/html/.env にコピー Laravel アプリケーションとビルド済みVite成果物を含めてコピー
+# 後に entrypoint.sh がこのファイルを /var/www/html/.env にコピー
 RUN mkdir -p /var/tmp
 COPY ./docker/production/.env.production /var/tmp/env_data
 

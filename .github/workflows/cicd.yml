@@ -46,6 +46,9 @@ jobs:
           cd src
           npm run build
 
+      - name: Check if Vite build output exists
+        run: ls -al src/public/build
+
       - name: Run Build
         # -f で Dockerfile の パスを指定 . で ルートディレクトリ全体をビルドコンテキストに設定
         run: docker image build -f ./docker/production/Dockerfile -t temp_api_image:latest .
