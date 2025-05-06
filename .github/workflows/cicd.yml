@@ -45,6 +45,7 @@ jobs:
         run: |
           cd src
           npm run build
+          cp -r dist/* ../public/
 
       - name: Run Build
         # -f で Dockerfile の パスを指定 . で ルートディレクトリ全体をビルドコンテキストに設定
