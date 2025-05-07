@@ -23,12 +23,11 @@ RUN apt-get update && apt-get install -y \
     && docker-php-ext-configure zip \
     && docker-php-ext-install pdo pdo_mysql zip intl gd opcache
     ##　追加リソースが必要となる
-    # && curl -fsSL https://nodejs.org/dist/v22.14.0/node-v22.14.0-linux-x64.tar.xz -o node.tar.xz \
-    # && tar -xf node.tar.xz -C /usr/local --strip-components=1 \
-    # && rm node.tar.xz \
-    # && ln -s /usr/local/bin/node /usr/bin/node \
-    # && ln -s /usr/local/bin/npm /usr/bin/npm \
-    # && node -v && npm -v
+    && curl -fsSL https://nodejs.org/dist/v22.14.0/node-v22.14.0-linux-x64.tar.xz -o node.tar.xz \
+    && tar -xf node.tar.xz -C /usr/local --strip-components=1 \
+    && rm node.tar.xz \
+    && ln -s /usr/local/bin/node /usr/bin/node \
+    && ln -s /usr/local/bin/npm /usr/bin/npm
 
 # Composer のインストール
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
