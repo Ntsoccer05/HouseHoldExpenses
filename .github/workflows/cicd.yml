@@ -31,21 +31,6 @@ jobs:
         run: |
           echo "${{ secrets.LARAVEL_PRODUCTION_ENV }}" > docker/production/.env.production
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-
-      - name: Install Node.js dependencies
-        run: |
-          cd src
-          npm ci
-
-      - name: Build Vite frontend
-        run: |
-          cd src
-          npm run build
-
       - name: Check if Vite build output exists
         run: ls -al src/public/build
 
