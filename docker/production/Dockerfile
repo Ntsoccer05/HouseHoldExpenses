@@ -21,7 +21,7 @@ RUN apt-get update && apt-get install -y \
     mariadb-client \
     zlib1g-dev \
     && docker-php-ext-configure zip \
-    && docker-php-ext-install pdo pdo_mysql zip intl gd opcache
+    && docker-php-ext-install pdo pdo_mysql zip intl gd opcache \
     ##　追加リソースが必要となる
     && curl -fsSL https://nodejs.org/dist/v22.14.0/node-v22.14.0-linux-x64.tar.xz -o node.tar.xz \
     && tar -xf node.tar.xz -C /usr/local --strip-components=1 \
