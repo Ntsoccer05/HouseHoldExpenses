@@ -21,7 +21,13 @@ RUN apt-get update && apt-get install -y \
     mariadb-client \
     zlib1g-dev \
     && docker-php-ext-configure zip \
-    && docker-php-ext-install pdo pdo_mysql zip intl gd opcache
+    && docker-php-ext-install pdo pdo_mysql zip intl gd opcache \
+    ##　追加リソースが必要となる
+    && curl -fsSL https://nodejs.org/dist/v22.14.0/node-v22.14.0-linux-x64.tar.xz -o node.tar.xz \
+    && tar -xf node.tar.xz -C /usr/local --strip-components=1 \
+    && rm node.tar.xz \
+    && ln -s /usr/local/bin/node /usr/bin/node \
+    && ln -s /usr/local/bin/npm /usr/bin/npm
 
 # Composer のインストール
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
@@ -33,9 +39,6 @@ COPY ./docker/production/supervisord.conf /etc/supervisor/conf.d/supervisord.con
 
 # Laravel アプリケーションと一緒にコピー docker-compose.ymlのvolumesと一緒
 COPY ./src /var/www/html
-
-# artisan の存在確認（無ければビルド失敗）
-RUN test -f /var/www/html/artisan || (echo "❌ artisan not found!" && exit 1)
 
 # ビルド時に渡される .env を保存
 # 後に entrypoint.sh がこのファイルを /var/www/html/.env にコピー

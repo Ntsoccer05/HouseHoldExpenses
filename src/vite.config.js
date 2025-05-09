@@ -34,4 +34,12 @@ export default defineConfig({
             "@": "./resources/js",
         },
     },
+    build: {
+        rollupOptions: {
+            input: {
+                app: "resources/js/app.tsx",
+                style: "resources/css/app.css",
+            },
+        },
+    },
 });
