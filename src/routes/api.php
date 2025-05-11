@@ -8,8 +8,6 @@ use App\Http\Controllers\ExpenseCategoryController;
 use App\Http\Controllers\IncomeCategoryController;
 use App\Http\Controllers\TransactionController;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -50,17 +48,9 @@ Route::group(['middleware'=>['auth:sanctum']],function(){
     Route::post('/logout',[LoginController::class, 'logout']);
 });
 
-Route::get('/user', function (Request $request) {
-    Log::errpr('Auth check: ' . Auth::check());
-    Log::errpr('User: ' . json_encode(Auth::user()));
-    Log::errpr('Cookies: ', $request->cookies->all());
-    Log::errpr('Session ID: ' . session()->getId());
+Route::middleware(['auth:sanctum'])->get('/user', function (Request $request) {
     return $request->user();
 });
-// Route::middleware(['auth:sanctum'])->get('/user', function (Request $request) {
-//     return $request->user();
-// });
-
 
 Route::post('/login', [LoginController::class, 'login'])->name('login');;
 Route::post('/register', [RegisterController::class, 'temporaryRegister']);
