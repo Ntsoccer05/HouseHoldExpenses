@@ -8,6 +8,7 @@ use App\Http\Controllers\ExpenseCategoryController;
 use App\Http\Controllers\IncomeCategoryController;
 use App\Http\Controllers\TransactionController;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -49,6 +50,7 @@ Route::group(['middleware'=>['auth:sanctum']],function(){
 });
 
 Route::middleware(['auth:sanctum'])->get('/user', function (Request $request) {
+    Log::debug(request()->headers->all());
     return $request->user();
 });
 
