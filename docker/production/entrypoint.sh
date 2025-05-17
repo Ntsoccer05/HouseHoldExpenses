@@ -29,16 +29,16 @@ echo "Running migrations..."
 php artisan migrate --force
 
 USER_EXISTS=$(php artisan tinker --execute "echo \App\Models\User::where('email', '${FILAMENT_ADMIN_EMAIL}')->exists();")
-# if [ "$USER_EXISTS" = "false" ]; then
+if [ "$USER_EXISTS" = "false" ]; then
   echo "Creating Filament admin user..."
   php artisan make:filament-user \
     --name="${FILAMENT_ADMIN_NAME}" \
     --email="${FILAMENT_ADMIN_EMAIL}" \
     --password="${FILAMENT_ADMIN_PASSWORD}" \
     --no-interaction
-# else
-  # echo "Filament admin user already exists."
-# fi
+else
+  echo "Filament admin user already exists."
+fi
 
 # supervisord 起動
 exec "$@"
