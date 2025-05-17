@@ -168,9 +168,13 @@ return [
         App\Providers\AuthServiceProvider::class,
         // App\Providers\BroadcastServiceProvider::class,
         App\Providers\EventServiceProvider::class,
+        App\Providers\Filament\AdminPanelProvider::class,
         App\Providers\RouteServiceProvider::class,
         // ユーザー認証機能
         Laravel\Socialite\SocialiteServiceProvider::class,
+
+        // Filament パネルのプロバイダーを追加
+        App\Providers\Filament\AdminPanelProvider::class,
     ])->toArray(),
 
     /*
