@@ -32,11 +32,17 @@ class ExpenseCategoryController extends Controller
      */
     public function add(Request $request, ExpenceCategory $expenseCategory){
         $user_id = $request->user_id;
-        $last_filter_id = $expenseCategory->where('user_id', $user_id)->where('deleted', 0)->orderBy('filtered_id', 'DESC')->first('filtered_id');
+        $last = $expenseCategory->where('user_id', $user_id)
+            ->where('deleted', 0)
+            ->orderBy('filtered_id', 'DESC')
+            ->first('filtered_id');
+
+        // null チェックして初期値を決める
+        $newFilteredId = $last ? $last->filtered_id + 1 : 1;
         $createData = $request->data;
         $expenseCategory->type_id = config('app.expense_type_id');
         $expenseCategory->user_id = $user_id;
-        $expenseCategory->filtered_id = $last_filter_id->filtered_id + 1;
+        $expenseCategory->filtered_id = $newFilteredId;
         $expenseCategory->icon = isset($createData['icon']) ? $createData['icon'] : "";
         $expenseCategory->content = $createData['content'];
         $expenseCategory->save();
