@@ -86,7 +86,7 @@ class TransactionController extends Controller
                 // Start a new database transaction
                 DB::beginTransaction();
                 $transactionContent->type_id = TypeEnum::fromLabel($contents['type'])?->value;
-                $transactionContent->insertCategory($contents, $transactionContent->type_id);
+                $transactionContent->insertCategory($contents, $transactionContent);
                 $transactionContent->recorded_at = new DateTime($contents['date']);
                 $transactionContent->amount = $contents['amount'];
                 $transactionContent->content = $contents['content'];
