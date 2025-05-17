@@ -32,11 +32,18 @@ class IncomeCategoryController extends Controller
      */
     public function add(Request $request, IncomeCategory $incomeCategory){
         $user_id = $request->user_id;
-        $last_filter_id = $incomeCategory->where('user_id', $user_id)->where('deleted', 0)->orderBy('filtered_id', 'DESC')->first('filtered_id');
+        // 最後の filtered_id を取得（なければ null）
+        $last = $incomeCategory->where('user_id', $user_id)
+            ->where('deleted', 0)
+            ->orderBy('filtered_id', 'DESC')
+            ->first('filtered_id');
+
+        // null チェックして初期値を決める
+        $newFilteredId = $last ? $last->filtered_id + 1 : 1;
         $createData = $request->data;
         $incomeCategory->type_id = config('app.expense_type_id');
         $incomeCategory->user_id = $user_id;
-        $incomeCategory->filtered_id = $last_filter_id->filtered_id + 1;
+        $incomeCategory->filtered_id = $newFilteredId;
         $incomeCategory->icon = isset($createData['icon']) ? $createData['icon'] : "";
         $incomeCategory->content = $createData['content'];
         $incomeCategory->save();
