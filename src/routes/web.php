@@ -17,9 +17,6 @@ Route::get('/health', function () {
     return response()->json(['status' => 'ok'], 200);
 });
 
-// Filament パスを config から取得して、ルーティングから除外する
-$filamentPath = ltrim(config('filament.path'), '/'); // 先頭スラッシュを除去
-
 Route::get('/{any}', function () {
     return view('index');
-})->where('any', "^(?!{$filamentPath}).*");
+})->where('any', '.*');
