@@ -19,4 +19,4 @@ Route::get('/health', function () {
 
 Route::get('/{any}', function () {
     return view('index');
-})->where('any', '.*');
+})->where('any', '^(?!' . config('filament.path') . ').*');
