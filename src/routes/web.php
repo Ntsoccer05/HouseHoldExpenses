@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Filament\Facades\Filament;
 
 /*
 |--------------------------------------------------------------------------
@@ -16,6 +17,13 @@ use Illuminate\Support\Facades\Route;
 Route::get('/health', function () {
     return response()->json(['status' => 'ok'], 200);
 });
+
+// Filamentのルート（この例ではURLパスが隠されています）
+Route::middleware(['web', 'auth'])
+    ->prefix(config('filament.path'))
+    ->group(function () {
+        Filament::routes();
+    });
 
 Route::get('/{any}', function () {
     return view('index');
