@@ -15,16 +15,9 @@
   <link rel="dns-prefetch" href="//fonts.bunny.net">
   <link href="https://fonts.bunny.net/css?family=Nunito" rel="stylesheet">
   <link rel="preload" as="image" href="{{ asset('/logo/スマカケ.webp') }}">
-
-  <!-- Scripts -->
-  <!-- Scripts -->
-  {{-- @viteReactRefresh --}}
-  {{-- @vite(['resources/css/app.css', 'resources/js/app.tsx']) --}}
 </head>
 
 <body>
-  <div id="app">
-  </div>
 </body>
 
 </html>
