@@ -29,7 +29,6 @@ Route::get(config('filament.path'), function () {
             'headers' => request()->headers->all(),
         ]);
 
-        return redirect(config('filament.path')); // Filament のトップページへ
     } catch (\Throwable $e) {
         Log::error('Error occurred while accessing /admin', [
             'message' => $e->getMessage(),
