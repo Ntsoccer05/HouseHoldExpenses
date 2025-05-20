@@ -19,28 +19,6 @@ Route::get('/health', function () {
     return response()->json(['status' => 'ok'], 200);
 });
 
-
-
-Route::get(config('filament.path'), function () {
-    try {
-        Log::info('Accessed /admin', [
-            'ip' => request()->ip(),
-            'user_agent' => request()->userAgent(),
-            'headers' => request()->headers->all(),
-        ]);
-
-    } catch (\Throwable $e) {
-        Log::error('Error occurred while accessing /admin', [
-            'message' => $e->getMessage(),
-            'trace' => $e->getTraceAsString(),
-            'ip' => request()->ip(),
-            'url' => request()->fullUrl(),
-        ]);
-
-        abort(500, 'Internal Server Error');
-    }
-});
-
 Route::get('/{any}', function () {
     return view('index');
 })->where('any', '.*');
