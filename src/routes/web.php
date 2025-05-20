@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Filament\Facades\Filament;
 
 /*
 |--------------------------------------------------------------------------
@@ -19,4 +20,4 @@ Route::get('/health', function () {
 
 Route::get('/{any}', function () {
     return view('index');
-})->where('any', '^(?!' . config('filament.path') . ').*');
+})->where('any', '.*');

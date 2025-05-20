@@ -4,6 +4,7 @@ namespace App\Exceptions;
 
 use Illuminate\Validation\ValidationException;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
+use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Throwable;
 
@@ -49,6 +50,12 @@ class Handler extends ExceptionHandler
                 'message' => '入力項目に誤りがあります。',
                 'errors' => $errors,
             ], $exception->status);
+        });
+
+        $this->reportable(function (Throwable $e) {
+            Log::error('Unhandled Exception: ' . $e->getMessage(), [
+                'exception' => $e,
+            ]);
         });
 
         // HTTPエラー
