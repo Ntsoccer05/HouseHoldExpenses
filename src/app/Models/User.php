@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Log;
 use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable implements MustVerifyEmail
@@ -47,6 +48,7 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function canAccessFilament(): bool
     {
+        Log::error($this->email == env('FILAMENT_ADMIN_EMAIL'));
         return $this->email == env('FILAMENT_ADMIN_EMAIL');
     }
 
