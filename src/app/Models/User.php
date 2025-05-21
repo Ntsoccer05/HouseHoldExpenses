@@ -47,7 +47,7 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function canAccessFilament(): bool
     {
-        return str_ends_with($this->email, '@kake-pon.com');
+        return $this->email == env('FILAMENT_ADMIN_EMAIL');
     }
 
     public function Contents():HasMany
