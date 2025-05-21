@@ -45,6 +45,11 @@ class User extends Authenticatable implements MustVerifyEmail
         'password' => 'hashed',
     ];
 
+    public function canAccessFilament(): bool
+    {
+        return str_ends_with($this->email, '@kake-pon.com');
+    }
+
     public function Contents():HasMany
     {
         return $this->hasMany(Content::class);
