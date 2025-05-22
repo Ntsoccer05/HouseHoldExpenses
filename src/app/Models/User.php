@@ -48,9 +48,10 @@ class User extends Authenticatable implements MustVerifyEmail, FilamentUser
         'password' => 'hashed',
     ];
 
+    // 本番ではこれがないと403になる
     public function canAccessPanel(Panel $panel): bool
     {
-        Log::error($this->email == env('FILAMENT_ADMIN_EMAIL'));
+        // 第一引数が第二引数を含んでいるかチェック
         return str_ends_with($this->email, '@gmail.com');
     }
 
