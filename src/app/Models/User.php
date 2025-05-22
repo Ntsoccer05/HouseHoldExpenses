@@ -46,10 +46,10 @@ class User extends Authenticatable implements MustVerifyEmail
         'password' => 'hashed',
     ];
 
-    public function canAccessFilament(): bool
+    public function canAccessPanel(): bool
     {
         Log::error($this->email == env('FILAMENT_ADMIN_EMAIL'));
-        return $this->email == env('FILAMENT_ADMIN_EMAIL');
+        return str_ends_with($this->email, '@gmail.com');
     }
 
     public function Contents():HasMany
