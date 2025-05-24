@@ -40,5 +40,13 @@ else
   echo "Filament admin user already exists."
 fi
 
+STORAGE_LINK="${WORK_DIR}/public/storage"
+if [ ! -L "$STORAGE_LINK" ]; then
+  echo "Creating symbolic link for storage..."
+  php artisan storage:link
+else
+  echo "Symbolic link already exists."
+fi
+
 # supervisord 起動
 exec "$@"
