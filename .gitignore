@@ -1,3 +1,5 @@
 .env
+.env.production
 /phpmyadmin/
 node_modules
+.github/secrets/*_env

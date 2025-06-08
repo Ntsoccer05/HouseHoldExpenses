@@ -14,7 +14,7 @@ export default defineConfig({
     },
     plugins: [
         laravel({
-            input: ["resources/sass/app.scss", "resources/js/app.js"],
+            input: ["resources/sass/app.scss", "resources/js/app.tsx"],
             refresh: true,
         }),
         react(),
@@ -32,6 +32,14 @@ export default defineConfig({
     resolve: {
         alias: {
             "@": "./resources/js",
+        },
+    },
+    build: {
+        rollupOptions: {
+            input: {
+                app: "resources/js/app.tsx",
+                style: "resources/css/app.css",
+            },
         },
     },
 });
