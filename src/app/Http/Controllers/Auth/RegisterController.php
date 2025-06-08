@@ -79,18 +79,17 @@ class RegisterController extends Controller
             $providerUser = Socialite::driver($provider)->user();
     
             $user = User::where('email', $providerUser->email)->first();
-            if ($user) {
-                Auth::login($user);
-            } else {
+            if (!$user) {
                 $user = User::updateOrCreate([
                     'name' => $providerUser->name,
                     'email' => $providerUser->email,
                     'email_verified_at' => now(),
                     'password' => null,
                 ]);
-                Auth::login($user);
             }
     
+            Auth::guard('web')->login($user);
+            
             // Sanctum トークンを生成
             $token = $user->createToken('google-login')->plainTextToken;
     

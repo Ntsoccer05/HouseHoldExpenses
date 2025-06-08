@@ -11,7 +11,6 @@ use Exception;
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Foundation\Auth\VerifiesEmails;
 use Illuminate\Http\Request;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
@@ -54,8 +53,9 @@ class VerificationController extends Controller
     
             if ($requestUser->markEmailAsVerified()) {
                 event(new Verified($requestUser));
+                
                 // 認証成功後にログイン
-                Auth::login($user);
+                Auth::guard('web')->login($requestUser);
 
                 // セッション再生成
                 $request->session()->regenerate();
@@ -69,10 +69,9 @@ class VerificationController extends Controller
             });
     
             //最終的に任意のルート先にリダイレクトさせるようにします
-            return response()->json(['status_code' => 200, 'message' => 'メール認証が完了し、ログインしました。']);
-
+            return redirect()->to(config('app.crient_url'));
         }catch(Exception $e){
-            return response()->json(['status_code' => 400, 'message' => 'メール認証に失敗しました。'], 400);
+            return redirect()->to(config('app.crient_url').'/login');
         }
     }
 

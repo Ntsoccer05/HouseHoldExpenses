@@ -2,8 +2,11 @@
 
 namespace App\Providers;
 
+use Livewire\Livewire;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use Laravel\Sanctum\Sanctum;
+use Illuminate\Support\Facades\URL;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -21,6 +24,12 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        if (config('app.env') === 'production') {
+            URL::forceScheme('https');
+            URL::forceRootUrl(config('app.url'));
+        }
+        Livewire::setScriptRoute(function ($handle) {
+            return Route::get('/vendor/livewire/livewire.js', $handle);
+        });
     }
 }

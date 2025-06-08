@@ -21,6 +21,11 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
+// ヘルスチェック
+Route::get('/health', function () {
+    return response()->json(['status' => 'ok'], 200);
+});
+
 // ログイン済みのみ
 // verifiedでメール認証済み
 Route::group(['middleware'=>['auth:sanctum']],function(){

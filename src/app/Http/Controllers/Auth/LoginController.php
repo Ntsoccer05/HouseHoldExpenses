@@ -43,6 +43,10 @@ class LoginController extends Controller
                 return response()->json(['error' => 'メールアドレス認証がされていません'],403);
             }
 
+            if (is_null($user->password)) {
+                return response()->json(['errors' => ['password'=>['このアカウントはソーシャルログイン専用です。パスワードではログインできません。']]], 401);
+            }
+
             // ソーシャルログイン時はパスワードが必要ないため追加バリデーション
             if(!Hash::check($credentials['password'], $user->password)){
                 return response()->json(['errors' => ['password'=>['パスワードが間違っています']]],401);
@@ -109,9 +113,7 @@ class LoginController extends Controller
             
             $user = User::where('email', $providerUser->email)->first();
 
-            if ($user) {
-                Auth::login($user);
-            } else {
+            if (!$user) {
                 $user = User::updateOrCreate([
                     'name' => $providerUser->name,
                     'email' => $providerUser->email,

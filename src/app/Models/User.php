@@ -7,9 +7,12 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Log;
 use Laravel\Sanctum\HasApiTokens;
+use Filament\Models\Contracts\FilamentUser;
+use Filament\Panel;
 
-class User extends Authenticatable implements MustVerifyEmail
+class User extends Authenticatable implements MustVerifyEmail, FilamentUser
 {
     use HasApiTokens, HasFactory, Notifiable;
 
@@ -45,6 +48,13 @@ class User extends Authenticatable implements MustVerifyEmail
         'password' => 'hashed',
     ];
 
+    // 本番ではこれがないと403になる
+    public function canAccessPanel(Panel $panel): bool
+    {
+        // 第一引数が第二引数を含んでいるかチェック
+        return str_ends_with($this->email, '@gmail.com');
+    }
+
     public function Contents():HasMany
     {
         return $this->hasMany(Content::class);
@@ -64,23 +74,4 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->hasMany(MonthlyAmount::class);
     }
-    // public function sendEmailVerificationNotification()
-    // {
-    //     $this->notify(new UserCustomVerifyEmail);
-    // }
-
-    // public function hasVerifiedEmail()
-    // {
-    //     // $thisには使用先で$user->hasVerifiedEmail()とした場合の$userが入る
-    //     return ! is_null($this->email_verified_at);
-    // }
-
-    // public function markEmailAsVerified()
-    // {
-    //     // $thisには使用先で$user->markEmailAsVerified()とした場合の$userが入る
-    //     return $this->forceFill([
-    //         'email_verified_at' => $this->freshTimestamp(),
-    //     ])->save();
-    // }
-
 }
