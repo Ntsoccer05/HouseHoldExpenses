@@ -38,6 +38,7 @@ class IncomeCategory extends Model
                 'content' => $incomeContent,
                 'icon' => config('app.income_icons')[$key]
             ]);
+            // 一つ目のみ作成
             return $this;
         }
     }
