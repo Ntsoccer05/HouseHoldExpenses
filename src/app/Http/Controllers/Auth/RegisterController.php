@@ -101,14 +101,18 @@ class RegisterController extends Controller
                 $expenseCategory->firstCreateData($user);
                 $incomeCategory->firstCreateData($user);
             }
+            // ユーザーを直接ログインさせる
+            // Auth::guard('web')->attempt() メソッドは通常、認証情報（email や password）を使用してログインを試みるもの
+            Auth::guard('web')->login($user);
+            
+            $request->session()->regenerate();
             DB::commit();
-            // ユーザーとトークンを返す
-            return response()->json([
-                'user' => $user,
-                'token' => $token,
-            ]);
+            return response()->json(['status_code' => 200,'message' => 'ログインしました'], 200);
         }catch(Exception $e){
             DB::rollBack();
+            return response()->json([
+                'provider' => $provider,
+            ], 400);
         }
     }
 }
