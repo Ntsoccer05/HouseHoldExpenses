@@ -144,7 +144,8 @@ class TransactionController extends Controller
     {
         try {
             $monthlyTransactionData = $transactionContent->getMonthlyTransaction($request);
-            return response()->json(['message' => '選択月の家計簿を取得しました。', 'monthlyTransactionData' => $monthlyTransactionData], Response::HTTP_OK);
+            $preMonthlyTransactionData = $transactionContent->getPreMonthlyTransaction($request);
+            return response()->json(['message' => '選択月の家計簿を取得しました。', 'monthlyTransactionData' => $monthlyTransactionData, 'preMonthlyTransactionData' => $preMonthlyTransactionData], Response::HTTP_OK);
         }catch (\Exception $e) {
             return response()->json(['message' => '選択月の家計簿はありません'], Response::HTTP_NOT_FOUND);
         }
@@ -163,7 +164,8 @@ class TransactionController extends Controller
     {
         try {
             $yearlyTransactionData = $transactionContent->getYearlyTransaction($request);
-            return response()->json(['message' => '選択年の家計簿を取得しました。', 'yearlyTransactionData' => $yearlyTransactionData], Response::HTTP_OK);
+            $preYearlyTransactionData = $transactionContent->getPreYearlyTransaction($request);
+            return response()->json(['message' => '選択年の家計簿を取得しました。', 'yearlyTransactionData' => $yearlyTransactionData, 'preYearlyTransactionData' => $preYearlyTransactionData], Response::HTTP_OK);
         }catch (\Exception $e) {
             return response()->json(['message' => '選択年の家計簿はありません'], Response::HTTP_NOT_FOUND);
         }

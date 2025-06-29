@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use DateTime;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -97,7 +98,27 @@ class Content extends Model
      */
     public function getMonthlyTransaction($request){
         $monthlyData = [];
-        $data = $this::with(['type'])->where('user_id', $request->user_id)->whereRaw('DATE_FORMAT(recorded_at, "%Y%m") = ?', [$request->currentMonth])->get();
+        $data = $this::with(relations: ['type'])->where('user_id', $request->user_id)->whereRaw('DATE_FORMAT(recorded_at, "%Y%m") = ?', [$request->currentMonth])->get();
+        foreach($data as $index => $content){
+            $formatedTransaction = $this->formatedTransaction($content);
+            $monthlyData[] = $formatedTransaction;
+        }
+        return $monthlyData;
+    }
+
+    /**
+     * 前月次トランザクションデータを取得
+     * 
+     * 指定された前月のトランザクションデータを整形して返します。
+     * 
+     * @param object $request リクエストデータ（currentMonthを含む）
+     * @return array 整形された月次データ
+     */
+    public function getPreMonthlyTransaction($request){
+        $monthlyData = [];
+        $selectedMonth = Carbon::createFromFormat('Ym', $request->currentMonth);
+        $preMonth = $selectedMonth->copy()->subMonth()->format('Ym');
+        $data = $this::with(relations: ['type'])->where('user_id', $request->user_id)->whereRaw('DATE_FORMAT(recorded_at, "%Y%m") = ?', [$preMonth])->get();
         foreach($data as $index => $content){
             $formatedTransaction = $this->formatedTransaction($content);
             $monthlyData[] = $formatedTransaction;
@@ -116,6 +137,26 @@ class Content extends Model
     public function getYearlyTransaction($request){
         $yearlyData = [];
         $data = $this::with(['type'])->where('user_id', $request->user_id)->whereRaw('DATE_FORMAT(recorded_at, "%Y") = ?', [$request->currentYear])->get();
+        foreach($data as $index => $content){
+            $formatedTransaction = $this->formatedTransaction($content);
+            $yearlyData[] = $formatedTransaction;
+        }
+        return $yearlyData;
+    }
+
+    /**
+     * 前年次トランザクションデータを取得
+     * 
+     * 指定された前年のトランザクションデータを整形して返します。
+     * 
+     * @param object $request リクエストデータ（currentYearを含む）
+     * @return array 整形された年次データ
+     */
+    public function getPreYearlyTransaction($request){
+        $yearlyData = [];
+        $selectedYear = Carbon::createFromFormat('Y', $request->currentYear);
+        $preYear = $selectedYear->copy()->subYear()->format('Y');
+        $data = $this::with(['type'])->where('user_id', $request->user_id)->whereRaw('DATE_FORMAT(recorded_at, "%Y") = ?', [$preYear])->get();
         foreach($data as $index => $content){
             $formatedTransaction = $this->formatedTransaction($content);
             $yearlyData[] = $formatedTransaction;
