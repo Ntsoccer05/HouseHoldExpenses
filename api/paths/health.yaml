@@ -1,0 +1,13 @@
+/health:
+  get:
+    tags:
+      - Health
+    summary: ヘルスチェック
+    description: API サーバーの稼働確認
+    responses:
+      '200':
+        description: サーバー正常
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/HealthCheckResponse'

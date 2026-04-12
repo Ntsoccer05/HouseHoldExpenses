@@ -1,0 +1,110 @@
+Unauthorized:
+  description: 認証失敗
+  content:
+    application/json:
+      schema:
+        $ref: '../schemas/common.yaml#/UnauthorizedError'
+
+ValidationError:
+  description: バリデーションエラー
+  content:
+    application/json:
+      schema:
+        $ref: '../schemas/common.yaml#/ValidationError'
+
+Success:
+  description: 成功
+  content:
+    application/json:
+      schema:
+        $ref: '../schemas/common.yaml#/MessageResponse'
+
+HealthCheckSuccess:
+  description: サーバー正常
+  content:
+    application/json:
+      schema:
+        $ref: '../schemas/common.yaml#/HealthCheckResponse'
+
+LoginSuccess:
+  description: ログイン成功
+  content:
+    application/json:
+      schema:
+        $ref: '../schemas/common.yaml#/LoginResponse'
+
+RegisterSuccess:
+  description: 仮登録成功（確認メール送信）
+  content:
+    application/json:
+      schema:
+        $ref: '../schemas/common.yaml#/RegisterResponse'
+
+OAuthUrlSuccess:
+  description: OAuth URL
+  content:
+    application/json:
+      schema:
+        $ref: '../schemas/common.yaml#/OAuthUrlResponse'
+
+IncomeCategoryArraySuccess:
+  description: 収入カテゴリ一覧
+  content:
+    application/json:
+      schema:
+        type: array
+        items:
+          $ref: '../schemas/category.yaml#/IncomeCategory'
+
+ExpenseCategoryArraySuccess:
+  description: 支出カテゴリ一覧
+  content:
+    application/json:
+      schema:
+        type: array
+        items:
+          $ref: '../schemas/category.yaml#/ExpenseCategory'
+
+IncomeCategorySuccess:
+  description: カテゴリ追加成功
+  content:
+    application/json:
+      schema:
+        $ref: '../schemas/category.yaml#/IncomeCategory'
+
+ExpenseCategorySuccess:
+  description: カテゴリ追加成功
+  content:
+    application/json:
+      schema:
+        $ref: '../schemas/category.yaml#/ExpenseCategory'
+
+TransactionSuccess:
+  description: 取引記録成功
+  content:
+    application/json:
+      schema:
+        $ref: '../schemas/transaction.yaml#/Transaction'
+
+TransactionArraySuccess:
+  description: 取引一覧
+  content:
+    application/json:
+      schema:
+        type: array
+        items:
+          $ref: '../schemas/transaction.yaml#/Transaction'
+
+MonthlySummarySuccess:
+  description: 月別サマリー
+  content:
+    application/json:
+      schema:
+        $ref: '../schemas/transaction.yaml#/MonthlySummary'
+
+YearlySummarySuccess:
+  description: 年別サマリー
+  content:
+    application/json:
+      schema:
+        $ref: '../schemas/transaction.yaml#/YearlySummary'

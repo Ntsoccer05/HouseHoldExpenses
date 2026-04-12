@@ -1,0 +1,72 @@
+PageParameter:
+  name: page
+  in: query
+  schema:
+    type: integer
+    default: 1
+  description: ページ番号
+
+PerPageParameter:
+  name: per_page
+  in: query
+  schema:
+    type: integer
+    default: 20
+  description: 1ページあたりの件数
+
+CategoryIdParameter:
+  name: category_id
+  in: query
+  schema:
+    type: integer
+  description: カテゴリID でフィルタ
+
+TypeIdParameter:
+  name: type_id
+  in: query
+  schema:
+    type: integer
+  description: タイプID でフィルタ
+
+YearParameter:
+  name: year
+  in: query
+  required: true
+  schema:
+    type: integer
+    example: 2026
+  description: 年
+
+MonthParameter:
+  name: month
+  in: query
+  required: true
+  schema:
+    type: integer
+    example: 4
+  description: 月
+
+ProviderPathParameter:
+  name: provider
+  in: path
+  required: true
+  schema:
+    type: string
+    enum: [google, facebook, twitter]
+  description: OAuth プロバイダー
+
+IdPathParameter:
+  name: id
+  in: path
+  required: true
+  schema:
+    type: string
+  description: ユーザーID
+
+HashPathParameter:
+  name: hash
+  in: path
+  required: true
+  schema:
+    type: string
+  description: 認証ハッシュ

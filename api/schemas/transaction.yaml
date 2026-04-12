@@ -1,0 +1,160 @@
+Transaction:
+  type: object
+  properties:
+    id:
+      type: integer
+      example: 1
+    user_id:
+      type: integer
+      example: 1
+    type_id:
+      type: integer
+      example: 2
+    category_id:
+      type: integer
+      example: 1
+    amount:
+      type: integer
+      example: 5000
+    content:
+      type: string
+      nullable: true
+      example: スーパー
+    recorded_at:
+      type: string
+      format: date-time
+      example: 2026-04-12T10:30:00Z
+    created_at:
+      type: string
+      format: date-time
+      example: 2026-04-12T10:30:00Z
+    updated_at:
+      type: string
+      format: date-time
+      example: 2026-04-12T10:30:00Z
+
+Type:
+  type: object
+  properties:
+    id:
+      type: integer
+      example: 1
+    name:
+      type: string
+      nullable: true
+      example: income
+    en_name:
+      type: string
+      nullable: true
+      example: Income
+    created_at:
+      type: string
+      format: date-time
+      example: 2026-01-01T00:00:00Z
+    updated_at:
+      type: string
+      format: date-time
+      example: 2026-04-12T10:30:00Z
+
+AddTransactionRequest:
+  type: object
+  required:
+    - amount
+    - category_id
+    - type_id
+  properties:
+    amount:
+      type: integer
+      example: 5000
+    content:
+      type: string
+      example: スーパー
+    category_id:
+      type: integer
+      example: 1
+    type_id:
+      type: integer
+      example: 2
+    recorded_at:
+      type: string
+      format: date-time
+      example: 2026-04-12T10:30:00Z
+
+UpdateTransactionRequest:
+  type: object
+  required:
+    - id
+    - amount
+  properties:
+    id:
+      type: integer
+      example: 1
+    amount:
+      type: integer
+      example: 5000
+    content:
+      type: string
+      example: スーパー
+    category_id:
+      type: integer
+      example: 1
+    recorded_at:
+      type: string
+      format: date-time
+
+DeleteTransactionRequest:
+  type: object
+  required:
+    - id
+  properties:
+    id:
+      type: integer
+      example: 1
+
+MonthlySummary:
+  type: object
+  properties:
+    year:
+      type: integer
+      example: 2026
+    month:
+      type: integer
+      example: 4
+    total_income:
+      type: integer
+      example: 500000
+    total_expense:
+      type: integer
+      example: 200000
+    by_category:
+      type: array
+      items:
+        type: object
+        properties:
+          category:
+            type: string
+            example: 食費
+          amount:
+            type: integer
+            example: 50000
+
+YearlySummary:
+  type: object
+  properties:
+    year:
+      type: integer
+      example: 2026
+    months:
+      type: array
+      items:
+        type: object
+        properties:
+          month:
+            type: integer
+            example: 1
+          total_income:
+            type: integer
+            example: 500000
+          total_expense:
+            type: integer
+            example: 200000

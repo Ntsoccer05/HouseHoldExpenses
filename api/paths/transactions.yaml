@@ -1,0 +1,158 @@
+/addTransaction:
+  post:
+    tags:
+      - Transaction
+    summary: 取引記録追加
+    description: 新しい取引（収入または支出）を記録
+    security:
+      - BearerAuth: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/transaction.yaml#/AddTransactionRequest'
+    responses:
+      '200':
+        description: 取引記録成功
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/transaction.yaml#/Transaction'
+
+/getTransactions:
+  get:
+    tags:
+      - Transaction
+    summary: 取引一覧取得
+    description: ログインユーザーの取引一覧を取得（ページネーション対応）
+    security:
+      - BearerAuth: []
+    parameters:
+      - name: page
+        in: query
+        schema:
+          type: integer
+          default: 1
+        description: ページ番号
+      - name: per_page
+        in: query
+        schema:
+          type: integer
+          default: 20
+        description: 1ページあたりの件数
+      - name: category_id
+        in: query
+        schema:
+          type: integer
+        description: カテゴリID でフィルタ
+      - name: type_id
+        in: query
+        schema:
+          type: integer
+        description: タイプID でフィルタ
+    responses:
+      '200':
+        description: 取引一覧
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '../schemas/transaction.yaml#/Transaction'
+
+/updateTransaction:
+  post:
+    tags:
+      - Transaction
+    summary: 取引更新
+    description: 取引内容を更新
+    security:
+      - BearerAuth: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/transaction.yaml#/UpdateTransactionRequest'
+    responses:
+      '200':
+        description: 取引更新成功
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/MessageResponse'
+
+/deleteTransaction:
+  post:
+    tags:
+      - Transaction
+    summary: 取引削除
+    description: 取引を削除
+    security:
+      - BearerAuth: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/transaction.yaml#/DeleteTransactionRequest'
+    responses:
+      '200':
+        description: 取引削除成功
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/MessageResponse'
+
+/monthly-transaction:
+  get:
+    tags:
+      - Transaction
+    summary: 月別取引サマリー
+    description: 指定年月の取引を集計
+    security:
+      - BearerAuth: []
+    parameters:
+      - name: year
+        in: query
+        required: true
+        schema:
+          type: integer
+          example: 2026
+      - name: month
+        in: query
+        required: true
+        schema:
+          type: integer
+          example: 4
+    responses:
+      '200':
+        description: 月別サマリー
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/transaction.yaml#/MonthlySummary'
+
+/yearly-transaction:
+  get:
+    tags:
+      - Transaction
+    summary: 年別取引サマリー
+    description: 指定年の月別取引を集計
+    security:
+      - BearerAuth: []
+    parameters:
+      - name: year
+        in: query
+        required: true
+        schema:
+          type: integer
+          example: 2026
+    responses:
+      '200':
+        description: 年別サマリー
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/transaction.yaml#/YearlySummary'
