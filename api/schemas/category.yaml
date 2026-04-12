@@ -1,0 +1,127 @@
+IncomeCategory:
+  type: object
+  properties:
+    id:
+      type: integer
+      example: 1
+    user_id:
+      type: integer
+      example: 1
+    type_id:
+      type: integer
+      example: 1
+    content:
+      type: string
+      example: 給料
+    icon:
+      type: string
+      example: 💰
+    filtered_id:
+      type: integer
+      nullable: true
+      example: null
+    deleted:
+      type: integer
+      default: 0
+      example: 0
+    created_at:
+      type: string
+      format: date-time
+      example: 2026-01-01T00:00:00Z
+    updated_at:
+      type: string
+      format: date-time
+      example: 2026-04-12T10:30:00Z
+
+ExpenseCategory:
+  type: object
+  properties:
+    id:
+      type: integer
+      example: 1
+    user_id:
+      type: integer
+      example: 1
+    type_id:
+      type: integer
+      example: 2
+    content:
+      type: string
+      example: 食費
+    icon:
+      type: string
+      example: 🍽️
+    filtered_id:
+      type: integer
+      nullable: true
+      example: null
+    deleted:
+      type: integer
+      default: 0
+      example: 0
+    created_at:
+      type: string
+      format: date-time
+      example: 2026-01-01T00:00:00Z
+    updated_at:
+      type: string
+      format: date-time
+      example: 2026-04-12T10:30:00Z
+
+AddCategoryRequest:
+  type: object
+  required:
+    - content
+    - type_id
+  properties:
+    content:
+      type: string
+      example: 給料
+    type_id:
+      type: integer
+      example: 1
+    icon:
+      type: string
+      example: 💰
+
+UpdateCategoryRequest:
+  type: object
+  required:
+    - id
+    - content
+  properties:
+    id:
+      type: integer
+      example: 1
+    content:
+      type: string
+      example: 給料
+    icon:
+      type: string
+      example: 💰
+
+DeleteCategoryRequest:
+  type: object
+  required:
+    - id
+  properties:
+    id:
+      type: integer
+      example: 1
+
+SortCategoryRequest:
+  type: object
+  required:
+    - items
+  properties:
+    items:
+      type: array
+      items:
+        type: object
+        properties:
+          id:
+            type: integer
+            example: 1
+          order:
+            type: integer
+            example: 1

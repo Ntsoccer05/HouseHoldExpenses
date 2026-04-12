@@ -1,0 +1,559 @@
+openapi: 3.0.0
+info:
+  title: HouseHold Expenses API
+  description: 家計簿管理アプリケーション（カケポン）のAPI仕様
+  version: 1.0.0
+  contact:
+    name: Development Team
+
+servers:
+  - url: http://localhost:9000/api
+    description: ローカル開発環境
+  - url: https://api.example.com/api
+    description: 本番環境
+
+tags:
+  - name: Health
+    description: ヘルスチェック
+  - name: Auth
+    description: 認証・ユーザー管理
+  - name: IncomeCategory
+    description: 収入カテゴリ管理
+  - name: ExpenseCategory
+    description: 支出カテゴリ管理
+  - name: Transaction
+    description: 取引（収入・支出）管理
+  - name: Social
+    description: ソーシャルログイン
+
+paths:
+  # ============= Health Check =============
+  /health:
+    get:
+      tags:
+        - Health
+      summary: ヘルスチェック
+      description: API サーバーの稼働確認
+      responses:
+        '200':
+          $ref: './responses/common.yaml#/HealthCheckSuccess'
+
+  # ============= Authentication =============
+  /login:
+    post:
+      tags:
+        - Auth
+      summary: ログイン
+      description: ユーザーのメールアドレスとパスワードでログイン
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: './schemas/user.yaml#/LoginRequest'
+      responses:
+        '200':
+          $ref: './responses/common.yaml#/LoginSuccess'
+        '401':
+          $ref: './responses/common.yaml#/Unauthorized'
+
+  /register:
+    post:
+      tags:
+        - Auth
+      summary: 仮登録
+      description: ユーザーの仮登録（メール認証待ち）
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: './schemas/user.yaml#/RegisterRequest'
+      responses:
+        '200':
+          $ref: './responses/common.yaml#/RegisterSuccess'
+        '422':
+          $ref: './responses/common.yaml#/ValidationError'
+
+  /logout:
+    post:
+      tags:
+        - Auth
+      summary: ログアウト
+      description: ユーザーをログアウト
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          $ref: './responses/common.yaml#/Success'
+        '401':
+          $ref: './responses/common.yaml#/Unauthorized'
+
+  /user:
+    get:
+      tags:
+        - Auth
+      summary: 現在のユーザー情報取得
+      description: ログイン中のユーザー情報を取得
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: ユーザー情報
+          content:
+            application/json:
+              schema:
+                $ref: './schemas/user.yaml#/User'
+        '401':
+          $ref: './responses/common.yaml#/Unauthorized'
+
+  /email/verify/{id}/{hash}:
+    get:
+      tags:
+        - Auth
+      summary: メールアドレス認証
+      description: メール本文のリンクからメールアドレスを認証
+      parameters:
+        - $ref: './parameters/common.yaml#/IdPathParameter'
+        - $ref: './parameters/common.yaml#/HashPathParameter'
+      responses:
+        '200':
+          $ref: './responses/common.yaml#/Success'
+
+  /email/verification-notification:
+    post:
+      tags:
+        - Auth
+      summary: 確認メール再送信
+      description: メール認証メールを再度送信
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          $ref: './responses/common.yaml#/Success'
+
+  /password/forget:
+    post:
+      tags:
+        - Auth
+      summary: パスワードリセット（メール送信）
+      description: パスワードリセット用のメール送信
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: './schemas/user.yaml#/PasswordResetRequest'
+      responses:
+        '200':
+          $ref: './responses/common.yaml#/Success'
+
+  /password/reset:
+    post:
+      tags:
+        - Auth
+      summary: パスワードリセット（確定）
+      description: リセットトークンを使ってパスワードを変更
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: './schemas/user.yaml#/PasswordResetConfirmRequest'
+      responses:
+        '200':
+          $ref: './responses/common.yaml#/Success'
+
+  # ============= Income Category =============
+  /IncomeCategory:
+    get:
+      tags:
+        - IncomeCategory
+      summary: 収入カテゴリ一覧取得
+      description: ログインユーザーの収入カテゴリ一覧を取得
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          $ref: './responses/common.yaml#/IncomeCategoryArraySuccess'
+        '401':
+          $ref: './responses/common.yaml#/Unauthorized'
+
+  /addIncomeCategory:
+    post:
+      tags:
+        - IncomeCategory
+      summary: 収入カテゴリ追加
+      description: 新しい収入カテゴリを追加
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: './schemas/category.yaml#/AddCategoryRequest'
+      responses:
+        '200':
+          $ref: './responses/common.yaml#/IncomeCategorySuccess'
+
+  /updateIncomeCategory:
+    post:
+      tags:
+        - IncomeCategory
+      summary: 収入カテゴリ更新
+      description: 収入カテゴリを更新
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: './schemas/category.yaml#/UpdateCategoryRequest'
+      responses:
+        '200':
+          $ref: './responses/common.yaml#/Success'
+
+  /deleteIncomeCategory:
+    post:
+      tags:
+        - IncomeCategory
+      summary: 収入カテゴリ削除
+      description: 収入カテゴリを削除（ソフトデリート）
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: './schemas/category.yaml#/DeleteCategoryRequest'
+      responses:
+        '200':
+          $ref: './responses/common.yaml#/Success'
+
+  /sortIncomeCategory:
+    post:
+      tags:
+        - IncomeCategory
+      summary: 収入カテゴリソート
+      description: 収入カテゴリの表示順序を変更
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: './schemas/category.yaml#/SortCategoryRequest'
+      responses:
+        '200':
+          $ref: './responses/common.yaml#/Success'
+
+  # ============= Expense Category =============
+  /ExpenseCategory:
+    get:
+      tags:
+        - ExpenseCategory
+      summary: 支出カテゴリ一覧取得
+      description: ログインユーザーの支出カテゴリ一覧を取得
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          $ref: './responses/common.yaml#/ExpenseCategoryArraySuccess'
+        '401':
+          $ref: './responses/common.yaml#/Unauthorized'
+
+  /addExpenseCategory:
+    post:
+      tags:
+        - ExpenseCategory
+      summary: 支出カテゴリ追加
+      description: 新しい支出カテゴリを追加
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: './schemas/category.yaml#/AddCategoryRequest'
+      responses:
+        '200':
+          $ref: './responses/common.yaml#/ExpenseCategorySuccess'
+
+  /updateExpenseCategory:
+    post:
+      tags:
+        - ExpenseCategory
+      summary: 支出カテゴリ更新
+      description: 支出カテゴリを更新
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: './schemas/category.yaml#/UpdateCategoryRequest'
+      responses:
+        '200':
+          $ref: './responses/common.yaml#/Success'
+
+  /deleteExpenseCategory:
+    post:
+      tags:
+        - ExpenseCategory
+      summary: 支出カテゴリ削除
+      description: 支出カテゴリを削除（ソフトデリート）
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: './schemas/category.yaml#/DeleteCategoryRequest'
+      responses:
+        '200':
+          $ref: './responses/common.yaml#/Success'
+
+  /sortExpenseCategory:
+    post:
+      tags:
+        - ExpenseCategory
+      summary: 支出カテゴリソート
+      description: 支出カテゴリの表示順序を変更
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: './schemas/category.yaml#/SortCategoryRequest'
+      responses:
+        '200':
+          $ref: './responses/common.yaml#/Success'
+
+  # ============= Transaction =============
+  /addTransaction:
+    post:
+      tags:
+        - Transaction
+      summary: 取引記録追加
+      description: 新しい取引（収入または支出）を記録
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: './schemas/transaction.yaml#/AddTransactionRequest'
+      responses:
+        '200':
+          $ref: './responses/common.yaml#/TransactionSuccess'
+
+  /getTransactions:
+    get:
+      tags:
+        - Transaction
+      summary: 取引一覧取得
+      description: ログインユーザーの取引一覧を取得（ページネーション対応）
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: './parameters/common.yaml#/PageParameter'
+        - $ref: './parameters/common.yaml#/PerPageParameter'
+        - $ref: './parameters/common.yaml#/CategoryIdParameter'
+        - $ref: './parameters/common.yaml#/TypeIdParameter'
+      responses:
+        '200':
+          $ref: './responses/common.yaml#/TransactionArraySuccess'
+
+  /updateTransaction:
+    post:
+      tags:
+        - Transaction
+      summary: 取引更新
+      description: 取引内容を更新
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: './schemas/transaction.yaml#/UpdateTransactionRequest'
+      responses:
+        '200':
+          $ref: './responses/common.yaml#/Success'
+
+  /deleteTransaction:
+    post:
+      tags:
+        - Transaction
+      summary: 取引削除
+      description: 取引を削除
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: './schemas/transaction.yaml#/DeleteTransactionRequest'
+      responses:
+        '200':
+          $ref: './responses/common.yaml#/Success'
+
+  /monthly-transaction:
+    get:
+      tags:
+        - Transaction
+      summary: 月別取引サマリー
+      description: 指定年月の取引を集計
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: './parameters/common.yaml#/YearParameter'
+        - $ref: './parameters/common.yaml#/MonthParameter'
+      responses:
+        '200':
+          $ref: './responses/common.yaml#/MonthlySummarySuccess'
+
+  /yearly-transaction:
+    get:
+      tags:
+        - Transaction
+      summary: 年別取引サマリー
+      description: 指定年の月別取引を集計
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: './parameters/common.yaml#/YearParameter'
+      responses:
+        '200':
+          $ref: './responses/common.yaml#/YearlySummarySuccess'
+
+  # ============= Social Login =============
+  /login/{provider}:
+    get:
+      tags:
+        - Social
+      summary: ソーシャルログイン URL取得
+      description: OAuth プロバイダーのログイン URL を取得
+      parameters:
+        - $ref: './parameters/common.yaml#/ProviderPathParameter'
+      responses:
+        '200':
+          $ref: './responses/common.yaml#/OAuthUrlSuccess'
+
+  /login/{provider}/callback:
+    post:
+      tags:
+        - Social
+      summary: ソーシャルログイン コールバック
+      description: OAuth プロバイダーからのコールバックを処理
+      parameters:
+        - $ref: './parameters/common.yaml#/ProviderPathParameter'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: './schemas/common.yaml#/SocialLoginRequest'
+      responses:
+        '200':
+          $ref: './responses/common.yaml#/LoginSuccess'
+
+  /register/{provider}:
+    post:
+      tags:
+        - Social
+      summary: ソーシャル登録
+      description: OAuth プロバイダーで新規登録
+      parameters:
+        - $ref: './parameters/common.yaml#/ProviderPathParameter'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: './schemas/common.yaml#/SocialLoginRequest'
+      responses:
+        '200':
+          $ref: './responses/common.yaml#/Success'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      description: Laravel Sanctum トークン
+
+  schemas:
+    # User Schemas
+    User:
+      $ref: './schemas/user.yaml#/User'
+    LoginRequest:
+      $ref: './schemas/user.yaml#/LoginRequest'
+    RegisterRequest:
+      $ref: './schemas/user.yaml#/RegisterRequest'
+    PasswordResetRequest:
+      $ref: './schemas/user.yaml#/PasswordResetRequest'
+    PasswordResetConfirmRequest:
+      $ref: './schemas/user.yaml#/PasswordResetConfirmRequest'
+
+    # Category Schemas
+    IncomeCategory:
+      $ref: './schemas/category.yaml#/IncomeCategory'
+    ExpenseCategory:
+      $ref: './schemas/category.yaml#/ExpenseCategory'
+    AddCategoryRequest:
+      $ref: './schemas/category.yaml#/AddCategoryRequest'
+    UpdateCategoryRequest:
+      $ref: './schemas/category.yaml#/UpdateCategoryRequest'
+    DeleteCategoryRequest:
+      $ref: './schemas/category.yaml#/DeleteCategoryRequest'
+    SortCategoryRequest:
+      $ref: './schemas/category.yaml#/SortCategoryRequest'
+
+    # Transaction Schemas
+    Transaction:
+      $ref: './schemas/transaction.yaml#/Transaction'
+    Type:
+      $ref: './schemas/transaction.yaml#/Type'
+    AddTransactionRequest:
+      $ref: './schemas/transaction.yaml#/AddTransactionRequest'
+    UpdateTransactionRequest:
+      $ref: './schemas/transaction.yaml#/UpdateTransactionRequest'
+    DeleteTransactionRequest:
+      $ref: './schemas/transaction.yaml#/DeleteTransactionRequest'
+    MonthlySummary:
+      $ref: './schemas/transaction.yaml#/MonthlySummary'
+    YearlySummary:
+      $ref: './schemas/transaction.yaml#/YearlySummary'
+
+    # Common Schemas
+    Error:
+      $ref: './schemas/common.yaml#/Error'
+    ValidationError:
+      $ref: './schemas/common.yaml#/ValidationError'
+    UnauthorizedError:
+      $ref: './schemas/common.yaml#/UnauthorizedError'
+    HealthCheckResponse:
+      $ref: './schemas/common.yaml#/HealthCheckResponse'
+    MessageResponse:
+      $ref: './schemas/common.yaml#/MessageResponse'
+    LoginResponse:
+      $ref: './schemas/common.yaml#/LoginResponse'
+    RegisterResponse:
+      $ref: './schemas/common.yaml#/RegisterResponse'
+    SocialLoginRequest:
+      $ref: './schemas/common.yaml#/SocialLoginRequest'
+    OAuthUrlResponse:
+      $ref: './schemas/common.yaml#/OAuthUrlResponse'

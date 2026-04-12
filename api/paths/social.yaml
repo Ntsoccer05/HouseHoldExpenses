@@ -1,0 +1,75 @@
+/login/{provider}:
+  get:
+    tags:
+      - Social
+    summary: ソーシャルログイン URL取得
+    description: OAuth プロバイダーのログイン URL を取得
+    parameters:
+      - name: provider
+        in: path
+        required: true
+        schema:
+          type: string
+          enum: [google, facebook, twitter]
+        description: OAuth プロバイダー
+    responses:
+      '200':
+        description: OAuth URL
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/OAuthUrlResponse'
+
+/login/{provider}/callback:
+  post:
+    tags:
+      - Social
+    summary: ソーシャルログイン コールバック
+    description: OAuth プロバイダーからのコールバックを処理
+    parameters:
+      - name: provider
+        in: path
+        required: true
+        schema:
+          type: string
+          enum: [google, facebook, twitter]
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/common.yaml#/SocialLoginRequest'
+    responses:
+      '200':
+        description: ログイン成功
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/LoginResponse'
+
+/register/{provider}:
+  post:
+    tags:
+      - Social
+    summary: ソーシャル登録
+    description: OAuth プロバイダーで新規登録
+    parameters:
+      - name: provider
+        in: path
+        required: true
+        schema:
+          type: string
+          enum: [google, facebook, twitter]
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/common.yaml#/SocialLoginRequest'
+    responses:
+      '200':
+        description: 登録成功
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/MessageResponse'

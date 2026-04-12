@@ -3,3 +3,5 @@
 /phpmyadmin/
 node_modules
 .github/secrets/*_env
+
+.claude/settings.local.json

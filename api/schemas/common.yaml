@@ -1,0 +1,78 @@
+Error:
+  type: object
+  properties:
+    message:
+      type: string
+      example: エラーメッセージ
+    errors:
+      type: object
+      nullable: true
+      example: null
+
+ValidationError:
+  type: object
+  properties:
+    message:
+      type: string
+      example: バリデーションエラー
+    errors:
+      type: object
+      example:
+        email:
+          - メールアドレスが有効ではありません
+        password:
+          - パスワードは8文字以上である必要があります
+
+UnauthorizedError:
+  type: object
+  properties:
+    message:
+      type: string
+      example: 認証が必要です
+
+HealthCheckResponse:
+  type: object
+  properties:
+    status:
+      type: string
+      example: ok
+
+MessageResponse:
+  type: object
+  properties:
+    message:
+      type: string
+      example: 処理が正常に完了しました
+
+LoginResponse:
+  type: object
+  properties:
+    user:
+      $ref: './user.yaml#/User'
+    token:
+      type: string
+      example: 1|abcdefghijklmnopqrstuvwxyz
+
+RegisterResponse:
+  type: object
+  properties:
+    message:
+      type: string
+      example: メール認証が必要です
+
+SocialLoginRequest:
+  type: object
+  required:
+    - code
+  properties:
+    code:
+      type: string
+      description: OAuth 認可コード
+      example: 4/0AX4XfWh...
+
+OAuthUrlResponse:
+  type: object
+  properties:
+    url:
+      type: string
+      example: https://accounts.google.com/o/oauth2/auth?...

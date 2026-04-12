@@ -1,0 +1,223 @@
+/IncomeCategory:
+  get:
+    tags:
+      - IncomeCategory
+    summary: 収入カテゴリ一覧取得
+    description: ログインユーザーの収入カテゴリ一覧を取得
+    security:
+      - BearerAuth: []
+    responses:
+      '200':
+        description: 収入カテゴリ一覧
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '../schemas/category.yaml#/IncomeCategory'
+      '401':
+        description: 認証失敗
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/UnauthorizedError'
+
+/addIncomeCategory:
+  post:
+    tags:
+      - IncomeCategory
+    summary: 収入カテゴリ追加
+    description: 新しい収入カテゴリを追加
+    security:
+      - BearerAuth: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/category.yaml#/AddCategoryRequest'
+    responses:
+      '200':
+        description: カテゴリ追加成功
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/category.yaml#/IncomeCategory'
+
+/updateIncomeCategory:
+  post:
+    tags:
+      - IncomeCategory
+    summary: 収入カテゴリ更新
+    description: 収入カテゴリを更新
+    security:
+      - BearerAuth: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/category.yaml#/UpdateCategoryRequest'
+    responses:
+      '200':
+        description: カテゴリ更新成功
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/MessageResponse'
+
+/deleteIncomeCategory:
+  post:
+    tags:
+      - IncomeCategory
+    summary: 収入カテゴリ削除
+    description: 収入カテゴリを削除（ソフトデリート）
+    security:
+      - BearerAuth: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/category.yaml#/DeleteCategoryRequest'
+    responses:
+      '200':
+        description: カテゴリ削除成功
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/MessageResponse'
+
+/sortIncomeCategory:
+  post:
+    tags:
+      - IncomeCategory
+    summary: 収入カテゴリソート
+    description: 収入カテゴリの表示順序を変更
+    security:
+      - BearerAuth: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/category.yaml#/SortCategoryRequest'
+    responses:
+      '200':
+        description: ソート成功
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/MessageResponse'
+
+/ExpenseCategory:
+  get:
+    tags:
+      - ExpenseCategory
+    summary: 支出カテゴリ一覧取得
+    description: ログインユーザーの支出カテゴリ一覧を取得
+    security:
+      - BearerAuth: []
+    responses:
+      '200':
+        description: 支出カテゴリ一覧
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '../schemas/category.yaml#/ExpenseCategory'
+      '401':
+        description: 認証失敗
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/UnauthorizedError'
+
+/addExpenseCategory:
+  post:
+    tags:
+      - ExpenseCategory
+    summary: 支出カテゴリ追加
+    description: 新しい支出カテゴリを追加
+    security:
+      - BearerAuth: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/category.yaml#/AddCategoryRequest'
+    responses:
+      '200':
+        description: カテゴリ追加成功
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/category.yaml#/ExpenseCategory'
+
+/updateExpenseCategory:
+  post:
+    tags:
+      - ExpenseCategory
+    summary: 支出カテゴリ更新
+    description: 支出カテゴリを更新
+    security:
+      - BearerAuth: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/category.yaml#/UpdateCategoryRequest'
+    responses:
+      '200':
+        description: カテゴリ更新成功
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/MessageResponse'
+
+/deleteExpenseCategory:
+  post:
+    tags:
+      - ExpenseCategory
+    summary: 支出カテゴリ削除
+    description: 支出カテゴリを削除（ソフトデリート）
+    security:
+      - BearerAuth: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/category.yaml#/DeleteCategoryRequest'
+    responses:
+      '200':
+        description: カテゴリ削除成功
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/MessageResponse'
+
+/sortExpenseCategory:
+  post:
+    tags:
+      - ExpenseCategory
+    summary: 支出カテゴリソート
+    description: 支出カテゴリの表示順序を変更
+    security:
+      - BearerAuth: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/category.yaml#/SortCategoryRequest'
+    responses:
+      '200':
+        description: ソート成功
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/MessageResponse'
