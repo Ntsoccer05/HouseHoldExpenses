@@ -158,3 +158,43 @@ YearlySummary:
           total_expense:
             type: integer
             example: 200000
+
+CopyMultipleContentsRequest:
+  type: object
+  required:
+    - source_date
+    - destination_date
+    - content_ids
+  properties:
+    source_date:
+      type: string
+      format: date
+      example: 2026-03-14
+    destination_date:
+      type: string
+      format: date
+      example: 2026-04-14
+    content_ids:
+      type: array
+      items:
+        type: integer
+      minItems: 1
+      example: [1, 3, 5]
+
+CopyMultipleContentsResponse:
+  type: object
+  properties:
+    success:
+      type: boolean
+      example: true
+    message:
+      type: string
+      example: 3件の支出をコピーしました
+    copied_count:
+      type: integer
+      example: 3
+    created_ids:
+      type: array
+      items:
+        type: integer
+      example: [101, 102, 103]
