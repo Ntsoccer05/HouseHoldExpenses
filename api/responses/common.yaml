@@ -108,3 +108,27 @@ YearlySummarySuccess:
     application/json:
       schema:
         $ref: '../schemas/transaction.yaml#/YearlySummary'
+
+CopyMultipleContentsSuccess:
+  description: 複数支出コピー成功
+  content:
+    application/json:
+      schema:
+        $ref: '../schemas/transaction.yaml#/CopyMultipleContentsResponse'
+
+CopyMultipleContentsError:
+  description: 複数支出コピーエラー
+  content:
+    application/json:
+      schema:
+        type: object
+        properties:
+          success:
+            type: boolean
+            example: false
+          message:
+            type: string
+            example: コピー先の日付は異なる日付を選択してください
+          error_code:
+            type: string
+            example: SAME_DATE_ERROR

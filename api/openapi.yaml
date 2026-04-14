@@ -410,6 +410,30 @@ paths:
         '200':
           $ref: './responses/common.yaml#/Success'
 
+  /copyMultipleContents:
+    post:
+      tags:
+        - Transaction
+      summary: 複数取引コピー
+      description: 同一日付の複数支出を別の日付へコピー
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: './schemas/transaction.yaml#/CopyMultipleContentsRequest'
+      responses:
+        '200':
+          $ref: './responses/common.yaml#/CopyMultipleContentsSuccess'
+        '400':
+          $ref: './responses/common.yaml#/CopyMultipleContentsError'
+        '401':
+          $ref: './responses/common.yaml#/Unauthorized'
+        '422':
+          $ref: './responses/common.yaml#/ValidationError'
+
   /monthly-transaction:
     get:
       tags:
