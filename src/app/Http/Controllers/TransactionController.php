@@ -261,10 +261,8 @@ class TransactionController extends Controller
                 ], 400);
             }
 
-            // 月文字列をCarbon日付に変換（YYYYMm形式 → YYYY-MM-01に変換）
-            $year = substr($month, 0, 4);
-            $monthNum = substr($month, 4, 2);
-            $currentDate = Carbon::createFromDate($year, $monthNum, 1)->startOfMonth();
+            // 月文字列をCarbon日付に変換
+            $currentDate = Carbon::createFromFormat('YmdHis', $month . '010000')->startOfMonth();
 
             // 期間を計算
             $startDate = $currentDate->copy()->subMonths($months - 1)->startOfMonth();
