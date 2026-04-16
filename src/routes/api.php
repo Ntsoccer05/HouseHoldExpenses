@@ -45,7 +45,7 @@ Route::group(['middleware'=>['auth:sanctum']],function(){
     Route::post('/deleteTransaction',[TransactionController::class, 'delete']);
     Route::post('/copyMultipleContents',[TransactionController::class, 'copyMultipleContents']);
     Route::get('/monthly-transaction',[TransactionController::class, 'getMonthlyTransaction']);
-    Route::get('/monthly-transactions-multi',[TransactionController::class, 'getMonthlyTransactions3months']);
+    Route::get('/monthly-transactions-bulk',[TransactionController::class, 'getMonthlyTransactionsBulk']);
     Route::get('/yearly-transaction',[TransactionController::class, 'getYearlyTransaction']);
     Route::post('/logout',[LoginController::class, 'logout']);
 });
