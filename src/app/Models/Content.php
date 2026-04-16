@@ -65,7 +65,18 @@ class Content extends Model
      * @return array 整形されたトランザクションデータ
      */
     public function formatedTransaction($content){
-        $type_name = $content->type->en_name;
+        // type_id から直接判定（types テーブルのリレーションに依存しない）
+        $typeId = $content->type_id;
+        if ($typeId == config('app.income_type_id')) {
+            $type_name = 'income';
+        } elseif ($typeId == config('app.expense_type_id')) {
+            $type_name = 'expense';
+        } else {
+            return null;
+        }
+
+        $category_name = null;
+        $category_icon = null;
         if($type_name === 'expense'){
             $expenseCategory = new ExpenceCategory();
             $category_name = $expenseCategory->where('id', $content->category_id)->value('content');
@@ -76,7 +87,7 @@ class Content extends Model
             $category_icon = $incomeCategory->where('id', $content->category_id)->value('icon');
         }
         $formattedRecordedDay = (new DateTime($content->recorded_at))->format('Y-m-d');
-        $formatedTransaction = [
+        return [
             'id'=> $content->id,
             'date'=> $formattedRecordedDay,
             'amount'=> $content->amount,
@@ -85,7 +96,6 @@ class Content extends Model
             'category'=> $category_name,
             'icon'=> $category_icon,
         ];
-        return $formatedTransaction;
     }
 
      /**
@@ -101,7 +111,31 @@ class Content extends Model
         $data = $this::with(relations: ['type'])->where('user_id', $request->user_id)->whereRaw('DATE_FORMAT(recorded_at, "%Y%m") = ?', [$request->currentMonth])->get();
         foreach($data as $index => $content){
             $formatedTransaction = $this->formatedTransaction($content);
-            $monthlyData[] = $formatedTransaction;
+            if ($formatedTransaction !== null) {
+                $monthlyData[] = $formatedTransaction;
+            }
+        }
+        return $monthlyData;
+    }
+
+    /**
+     * 指定月・ユーザーIDでトランザクションデータを取得（一括取得用）
+     *
+     * @param int $userId ユーザーID
+     * @param string $yearMonth 年月（Ym形式: "202604"）
+     * @return array 整形されたトランザクションデータ
+     */
+    public function getMonthlyTransactionForMonth($userId, $yearMonth){
+        $monthlyData = [];
+        $data = $this::with(['type'])
+            ->where('user_id', $userId)
+            ->whereRaw('DATE_FORMAT(recorded_at, "%Y%m") = ?', [$yearMonth])
+            ->get();
+        foreach ($data as $content) {
+            $formatedTransaction = $this->formatedTransaction($content);
+            if ($formatedTransaction !== null) {
+                $monthlyData[] = $formatedTransaction;
+            }
         }
         return $monthlyData;
     }

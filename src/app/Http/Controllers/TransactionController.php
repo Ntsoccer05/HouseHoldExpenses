@@ -152,6 +152,37 @@ class TransactionController extends Controller
             return response()->json(['message' => '選択月の家計簿はありません'], Response::HTTP_NOT_FOUND);
         }
     }
+
+    /**
+     * 複数月のトランザクションデータを一括取得
+     *
+     * 基準月を中心に前々月・前月・当月・翌月の4ヶ月分を返します。
+     * レスポンス形式: { "202602": [...], "202603": [...], "202604": [...], "202605": [...] }
+     *
+     * @param Request $request base_month（Ym形式）, user_id を含むリクエスト
+     * @param Content $transactionContent 家計簿モデルのインスタンス
+     * @return \Illuminate\Http\JsonResponse 月ごとのデータをJSON形式で返します
+     */
+    public function getMonthlyTransactionsBulk(Request $request, Content $transactionContent)
+    {
+        try {
+            $baseMonth = $request->base_month;
+            $userId = $request->user_id;
+
+            $baseDate = Carbon::createFromFormat('Ym', $baseMonth);
+
+            $result = [];
+            // 前々月(-2), 前月(-1), 当月(0), 翌月(+1) の4ヶ月分
+            for ($i = -2; $i <= 1; $i++) {
+                $targetMonth = $baseDate->copy()->addMonths($i)->format('Ym');
+                $result[$targetMonth] = $transactionContent->getMonthlyTransactionForMonth($userId, $targetMonth);
+            }
+
+            return response()->json($result, Response::HTTP_OK);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'データの取得に失敗しました'], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
     
     /**
      * 年次家計簿データを取得
@@ -233,87 +264,6 @@ class TransactionController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'コピー処理中にエラーが発生しました',
-                'error' => $e->getMessage(),
-            ], 500);
-        }
-    }
-
-    /**
-     * 複数月分のトランザクションを取得（3ヶ月版）
-     *
-     * 指定された月を中心に、前月・当月・次月の3ヶ月分のデータを取得します。
-     * GET /api/monthly-transactions-multi?month=202604&months=3
-     *
-     * @param Request $request クエリパラメータ（month: YYYYMMの形式、months: 月数（デフォルト3））
-     * @return \Illuminate\Http\JsonResponse 3ヶ月分のトランザクションをJSON形式で返します。
-     */
-    public function getMonthlyTransactions3months(Request $request)
-    {
-        try {
-            $userId = auth()->id();
-            $month = $request->query('month'); // 'YYYYMm' 形式
-            $months = (int)$request->query('months', 3); // デフォルト3ヶ月
-
-            if (!$month || !preg_match('/^\d{6}$/', $month)) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'month parameter is required in YYYYMM format',
-                ], 400);
-            }
-
-            // 月文字列をCarbon日付に変換（YYYYMm形式 → YYYY-MM-01に変換）
-            $year = substr($month, 0, 4);
-            $monthNum = substr($month, 4, 2);
-            $currentDate = Carbon::createFromDate($year, $monthNum, 1)->startOfMonth();
-
-            // 期間を計算
-            $startDate = $currentDate->copy()->subMonths($months - 1)->startOfMonth();
-            $endDate = $currentDate->copy()->addMonths($months - 1)->endOfMonth();
-
-            // クエリ実行（複合インデックス活用）
-            $allContents = Content::where('user_id', $userId)
-                ->whereBetween('recorded_at', [$startDate, $endDate])
-                ->orderBy('recorded_at', 'asc')
-                ->select('id', 'user_id', 'type_id', 'category_id', 'amount', 'content', 'recorded_at', 'created_at')
-                ->get();
-
-            // 月ごとにグループ化
-            $prevMonthStart = $currentDate->copy()->subMonth()->startOfMonth();
-            $prevMonthEnd = $prevMonthStart->copy()->endOfMonth();
-
-            $currentMonthStart = $currentDate->copy()->startOfMonth();
-            $currentMonthEnd = $currentDate->copy()->endOfMonth();
-
-            $nextMonthStart = $currentDate->copy()->addMonth()->startOfMonth();
-            $nextMonthEnd = $nextMonthStart->copy()->endOfMonth();
-
-            $prevMonth = $allContents->filter(function($content) use ($prevMonthStart, $prevMonthEnd) {
-                $date = Carbon::parse($content->recorded_at);
-                return $date->between($prevMonthStart, $prevMonthEnd);
-            })->values();
-
-            $currentMonthData = $allContents->filter(function($content) use ($currentMonthStart, $currentMonthEnd) {
-                $date = Carbon::parse($content->recorded_at);
-                return $date->between($currentMonthStart, $currentMonthEnd);
-            })->values();
-
-            $nextMonth = $allContents->filter(function($content) use ($nextMonthStart, $nextMonthEnd) {
-                $date = Carbon::parse($content->recorded_at);
-                return $date->between($nextMonthStart, $nextMonthEnd);
-            })->values();
-
-            return response()->json([
-                'success' => true,
-                'prevMonth' => $prevMonth,
-                'currentMonth' => $currentMonthData,
-                'nextMonth' => $nextMonth,
-                'month' => $month,
-            ], 200)->header('Cache-Control', 'private, max-age=3600');
-
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to fetch monthly transactions',
                 'error' => $e->getMessage(),
             ], 500);
         }

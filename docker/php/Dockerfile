@@ -27,8 +27,23 @@ RUN apt-get install -y npm \
   && npm install n -g \
   && n stable
 
+# XDebugをビルド時にインストール（起動時のpecl installを不要にする）
+# ローカル開発時のみ: docker-compose build 時に INSTALL_XDEBUG=true を渡す
+# 本番ビルド時はデフォルト false のままにすることでイメージに含めない
+ARG INSTALL_XDEBUG=false
+RUN if [ "${INSTALL_XDEBUG}" = "true" ]; then \
+    pecl install xdebug-3.3.2 \
+    && docker-php-ext-enable xdebug \
+    && echo "xdebug.mode=off" > /usr/local/etc/php/conf.d/xdebug.ini; \
+  fi
+
 #docker-compose exec app bashというコマンドでappコンテナの中に入った場合、/var/www/htmlがカレントディレクトリになる
 WORKDIR /var/www/html
+
+# Composerの依存関係をビルド時にインストール
+# vendor/ は named volume (docker-compose.yml) にマウントされるため、ソースの bind mount で上書きされない
+COPY ./src/composer.json ./src/composer.lock ./
+RUN composer install --optimize-autoloader --no-scripts --no-interaction
 
 # Entrypoint
 COPY ./docker/php/entrypoint.sh /usr/local/bin/docker-php-entrypoint

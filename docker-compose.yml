@@ -3,16 +3,22 @@ version: "3.8"
 volumes:
   mysql-volume:
   maildir: {}
+  # vendor/ をnamed volumeで管理することで、ビルド時のcomposer installの成果物を
+  # ソースコードのbind mount (./src:) で上書きされることなく保持する
+  vendor:
 
 services:
   app:
     build:
       context: .
       dockerfile: ./docker/php/Dockerfile #dockerfile：buildするDockerfileまでのパス
+      args:
+        INSTALL_XDEBUG: "true"  # ローカル開発用。本番CIビルドではこのargs指定を外す
     ports:
       - ${APP_PORT}:9000
     volumes:
       - ./src/:/var/www/html
+      - vendor:/var/www/html/vendor  # ビルド時のvendor/をnamed volumeで保持（bind mountで上書きされない）
     environment:
       - DB_CONNECTION=${DB_CONNECTION}
       - DB_HOST=${DB_HOST}
