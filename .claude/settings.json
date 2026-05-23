@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(docker-compose logs app --tail=50 2>&1)",
+      "PowerShell(docker-compose logs web 2>&1)",
+      "PowerShell(docker-compose ps web 2>&1)",
+      "PowerShell(docker-compose up web 2>&1)",
+      "PowerShell(docker-compose up -d web 2>&1)",
+      "PowerShell(docker-compose ps 2>&1)"
+    ]
+  }
+}

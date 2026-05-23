@@ -116,157 +116,58 @@ cd src
 - **管理パネル**: Filament 管理パネルは `/admin` で利用可能です（Filament 認証が必要）
 - **ホットモジュールリプレースメント**: 両方の開発サーバーが実行されている場合、Vite のホットモジュールリプレースメント（HMR）は自動的に動作します
 
-## 開発ワークフロー全体図
+## 開発ワークフロー
 
-このプロジェクトは、以下の段階的なプロセスで機能開発を進めます：
+このプロジェクトは **Superpowers スキル** を使って機能開発を進めます。
+スキルは `.claude/skills/` に配置されており、Claude Code が自動的に読み込みます。
 
 ### フェーズ0: プロジェクト初期化（初回のみ）
 
 ```bash
-# 初回セットアップコマンドを実行
 /setup-project
 ```
 
-**実行内容**:
-対話的に以下の6つの永続ドキュメントを作成します（既に作成済みの場合はスキップ）：
-- `docs/product-requirements.md` - ユーザー要件・成功指標
-- `docs/functional-design.md` - 機能仕様・データモデル
-- `docs/architecture.md` - システム構成・責任分離
-- `docs/repository-structure.md` - ディレクトリ構造・ファイル編成
-- `docs/development-guidelines.md` - コーディング規約・開発プロセス
-- `docs/glossary.md` - 用語集・定義
-
-**参考**: `.claude/commands/setup-project.md`
+対話的に `docs/` 内の永続ドキュメント（product-requirements, functional-design, architecture など）を作成します。参考: `.claude/commands/setup-project.md`
 
 ---
 
-### フェーズ1: アイデア設計（壁打ち）
+### 標準の機能開発フロー
 
-```bash
-# ユーザーとの対話でアイデアを詰める
-# → docs/ideas/pending/ に設計書として記録
-```
+| ステップ | スキル | 出力先 |
+|---------|--------|--------|
+| 1. 設計・要件整理 | `brainstorming` | `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md` |
+| 2. 実装計画作成 | `writing-plans` | `docs/superpowers/plans/YYYY-MM-DD-<feature>.md` |
+| 3. 計画を実行 | `subagent-driven-development`（推奨）または `executing-plans` | コード・テスト・コミット |
+| 4. 完了処理 | ご自身で判断 | `git merge` / `git push` / PR 作成 |
 
-**流れ**:
-1. 新機能 or 改善案について、ユーザーと対話で要件を明確化
-2. `docs/ideas/pending/feature-xxx.md` に以下を記載：
-   - 概要・背景・動機
-   - 機能要件・非機能要件
-   - 設計方針・実装方針
-   - テスト計画・影響範囲
-3. 実装準備完了後、ステップ2へ進む
-
-**テンプレート・ベストプラクティス**: `docs/ideas/README.md` を参照
-
-**例**:
-```markdown
-docs/ideas/pending/feature-monthly-report.md
-- 概要: 月間サマリー機能
-- 要件: 支出合計、カテゴリ別内訳を表示
-- 設計: バックエンド API + フロントエンド UI
-- テスト: ロード時間、大量データでの動作確認
-```
+**アイデアの蓄積**: `docs/ideas/pending/` に要件メモを残すことができます（命名規則: `feature-xxx.md`）。設計フェーズで `brainstorming` スキルがこの内容を取り込みます。完了後は `docs/ideas/done/` に移動してください。
 
 ---
 
-### フェーズ2: 実装（/add-feature）
+### 補助スキル
 
-```bash
-# 機能の実装を開始
-/add-feature feature-monthly-report
-```
-
-**実行内容**:
-このコマンドが以下を自動実行します：
-
-1. **.steering/[日付]-feature-monthly-report/** ディレクトリを作成
-2. **ステアリングファイルの自動生成**:
-   - `requirements.md` - 詳細な要件定義
-   - `design.md` - 実装設計（API、DB、UI）
-   - `tasklist.md` - タスク分割・優先度
-3. **tasklist.md に従って実装を進行**:
-   - 各タスク開始時に `[ ]` → `[x]` に更新（steering スキル使用）
-   - 全タスク完了まで自動継続（スキップ不可）
-4. **実装完了後**:
-   - implementation-validator で品質検証
-   - テスト・リント・型チェック実行
-   - tasklist.md に振り返りを記録
-
-**参考**: `.claude/commands/add-feature.md`
+| 状況 | スキル |
+|------|--------|
+| バグ・テスト失敗 | `systematic-debugging` |
+| 実装前（TDD） | `test-driven-development` |
+| 完了宣言の前 | `verification-before-completion` |
+| コードレビュー依頼 | `requesting-code-review` |
+| レビュー受け取り | `receiving-code-review` |
+| 複数の独立した問題 | `dispatching-parallel-agents` |
+| 機能ブランチの隔離 | `using-git-worktrees` |
 
 ---
 
-### フェーズ3: 完了処理
+### 永続ドキュメント更新の判定
 
-実装完了後：
+実装完了後、以下の基準で `docs/` を更新してください：
 
-```bash
-# 1. アイデアファイルを done に移動
-mv docs/ideas/pending/feature-monthly-report.md docs/ideas/done/
-
-# 2. 永続ドキュメント更新（該当する場合）
-# 例: 新機能を product-requirements.md に追記
-# 例: アーキテクチャ変更があれば architecture.md を更新
-```
-
-**永続ドキュメント更新の判定**:
-- ✅ 新しい機能が追加された → `product-requirements.md` 更新
-- ✅ DB スキーマが変わった → `functional-design.md` 更新
-- ✅ システム構成が変わった → `architecture.md` 更新
-- ✅ コーディング規約を追加した → `development-guidelines.md` 更新
-
----
-
-## ドキュメント層構造
-
-| 層 | ファイル | 更新頻度 | 用途 | 対象者 |
-|----|---------|---------|------|--------|
-| **永続** | `docs/product-requirements.md` | 機能追加時 | プロジェクト全体の要件 | 全員 |
-| **永続** | `docs/functional-design.md` | 機能追加時 | 機能仕様・データモデル | 開発者 |
-| **永続** | `docs/architecture.md` | アーキテクチャ変更時 | システム構成・責任分離 | 開発者 |
-| **永続** | `docs/development-guidelines.md` | 規約変更時 | コーディング規約・開発プロセス | 開発者 |
-| **一時** | `docs/ideas/pending/feature-*.md` | 開発前 | アイデア設計・要件整理 | Claude Code |
-| **一時** | `.steering/[日付]-機能名/` | 開発中 | 実装計画・進捗・タスク | Claude Code + 開発者 |
-| **完了記録** | `docs/ideas/done/feature-*.md` | 開発完了後 | 実装済み機能の履歴・参考 | 全員 |
-
----
-
-## セットアップチェックリスト
-
-新規開発者はこれを確認してください：
-
-- [ ] `/setup-project` で 6つの永続ドキュメントが作成されている
-- [ ] `docs/ideas/README.md` を読み、ideas ワークフロー（フェーズ1）を理解した
-- [ ] この CLAUDE.md を読み、全フェーズの流れを把握した
-- [ ] 実装準備完了 → `/add-feature [機能名]` で開発開始可能
-
----
-
-## よくある質問
-
-**Q1: ideas フェーズは本当に必要？**  
-A: はい。実装前に設計を詰めることで、実装中の手戻りを大幅に削減できます。詳細は `docs/ideas/README.md` を参照。
-
-**Q2: /add-feature 実行中に仕様変更があった場合は？**  
-A: `.steering/[日付]-機能名/design.md` を更新し、理由を記録してください。steering スキル（モード2）がサポートします。
-
-**Q3: 永続ドキュメントの更新を忘れた場合は？**  
-A: 次の機能開発時に一度に更新して大丈夫です。ただし、アーキテクチャ共有が必要な場合は優先してください。
-
-**Q4: ideas ドキュメントはいつ削除する？**  
-A: `docs/ideas/done/` に移動後、いつでも参照可能のため、削除せず保持することをお勧めします。プロジェクト履歴として価値があります。
-
----
-
-## アイデア → 実装ワークフロー
-
-このプロジェクトでは、新機能や改善案を体系的に管理するため、以下のプロセスを採用しています：
-
-**詳細は** `docs/ideas/README.md` **を参照**：
-- アイデアの命名規則（feature-/improvement-/bugfix-）
-- テンプレート（概要・背景・要件・設計方針）
-- ベストプラクティス（すべきこと・避けるべきこと）
-- 実装完了前のチェックリスト
+- 新機能追加 → `docs/product-requirements.md`
+- DB スキーマ変更 → `docs/functional-design.md`
+- システム構成変更 → `docs/architecture.md`
+- コーディング規約追加 → `docs/development-guidelines.md`
+- API 変更 → `api/openapi.yaml`（`update-api-spec` スキル）
+- DB 設計変更 → `docs/database-design.md`（`update-db-design` スキル）
 
 ## よくあるタスク
 
@@ -317,17 +218,17 @@ api/openapi.yaml
 - `npm run build` - Vite ビルド（本番用アセット生成）
 - `npm run dev` - Vite 開発サーバー起動
 
-### テスト・品質チェック（現状未実装）
+### テスト・品質チェック
 
-**注**: 以下のコマンドは現在自動実行していません。将来的にテスト体制を整備した際に実装予定です：
 ```bash
-npm run lint       # ESLint（JavaScript/TypeScript コード品質）
-npm run typecheck  # TypeScript 型チェック
-npm test           # Jest テスト
-php artisan test   # PHPUnit テスト
+cd src
+php artisan test          # PHPUnit（Unit + Feature）
+./vendor/bin/pint         # Laravel Pint（PHP リンター）
+npm run typecheck         # TypeScript 型チェック
+npm run lint              # ESLint
 ```
 
-必要に応じて、開発者が手動で実行してください。
+**注**: フロントエンド（React）側の自動テスト（Jest 等）は未整備です。`test-driven-development` スキルに従って新機能にはテストを先に書いてください。バックエンド（PHP）は `php artisan test` が利用可能です。
 
 ---
 
