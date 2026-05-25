@@ -68,7 +68,7 @@ class TransactionController extends Controller
             // Roll back the transaction if there's an error
             DB::rollBack();
 
-            return response()->json(['error' => $e->getMessage()], 500);
+            return response()->json(['error' => config('app.debug') ? $e->getMessage() : null], 500);
         }
     }
 
@@ -100,8 +100,8 @@ class TransactionController extends Controller
             } catch (\Exception $e) {
                 // Roll back the transaction if there's an error
                 DB::rollBack();
-    
-                return response()->json(['error' => $e->getMessage()], 500);
+
+                return response()->json(['error' => config('app.debug') ? $e->getMessage() : null], 500);
             }
         }
     }
@@ -124,11 +124,11 @@ class TransactionController extends Controller
                 DB::beginTransaction();
                 $transactionContent->delete();
                 DB::commit();
-    
+
                 return response()->json(['message' => '家計簿を登録しました', 'id' => $transactionContent->id], 200);
             } catch (\Exception $e) {
                 DB::rollBack();
-                return response()->json(['error' => $e->getMessage()], 500);
+                return response()->json(['error' => config('app.debug') ? $e->getMessage() : null], 500);
             }
         }
     }
@@ -276,7 +276,7 @@ class TransactionController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'コピー処理中にエラーが発生しました',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : null,
             ], 500);
         }
     }
