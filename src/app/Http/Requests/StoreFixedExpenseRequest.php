@@ -14,7 +14,7 @@ class StoreFixedExpenseRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'user_id'           => 'required|integer|exists:users,id',
+            'type'              => 'required|in:income,expense',
             'category_id'       => 'required|integer',
             'amount'            => 'required|integer|min:1',
             'content'           => 'required|string|max:255',

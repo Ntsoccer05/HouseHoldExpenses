@@ -14,7 +14,7 @@ class UpdateFixedExpenseRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'user_id'           => 'required|integer|exists:users,id',
+            'type'              => 'sometimes|in:income,expense',
             'category_id'       => 'sometimes|integer',
             'amount'            => 'sometimes|integer|min:1',
             'content'           => 'sometimes|string|max:255',
