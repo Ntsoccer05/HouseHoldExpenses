@@ -17,7 +17,8 @@ class TypeFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            'name' => $this->faker->randomElement(['収入', '支出']),
+            'en_name' => $this->faker->randomElement(['income', 'expense']),
         ];
     }
 }
