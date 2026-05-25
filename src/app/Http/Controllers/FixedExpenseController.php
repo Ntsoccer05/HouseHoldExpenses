@@ -13,7 +13,8 @@ class FixedExpenseController extends Controller
     {
         $fixedExpenses = FixedExpense::where('user_id', $request->user()->id)
             ->orderBy('id')
-            ->get();
+            ->get()
+            ->makeHidden(['user_id', 'deleted_at', 'last_replicated_at']);
         return response()->json(['status' => 200, 'fixedExpenses' => $fixedExpenses]);
     }
 
