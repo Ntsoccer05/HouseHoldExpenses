@@ -30,16 +30,7 @@ class DatabaseSeeder extends Seeder
             'email' => 'test-kakep@example.com',
         ]);
         // User::factory(10)->create();
-        DB::table('types')->insert([
-            [
-                'name' => '収入',
-                'en_name' => 'income'
-            ],
-            [
-                'name' => '支出',
-                'en_name' => 'expense'
-            ],
-        ]);
+        $this->call(TypeSeeder::class);
         // foreach(config('app.income_contents') as $key => $incomeContent){
         //     FixedCategory::factory()->create([
         //         'id' => $key + 1,

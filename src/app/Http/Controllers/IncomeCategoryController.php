@@ -2,10 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Content;
 use App\Models\IncomeCategory;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 const INCOME_TYPE = 1;
 
@@ -68,6 +66,18 @@ class IncomeCategoryController extends Controller
     }
 
     /**
+     * 並び替え・ラベル・アイコンをトランザクションで一括更新
+     */
+    public function batchSave(Request $request, IncomeCategory $incomeCategory){
+        try {
+            $incomeCategory->batchUpdateData($request->user_id, $request->categories);
+            return response()->json(['status' => 200, "message" => "カテゴリを更新しました"]);
+        } catch(\Exception $e) {
+            return response()->json(['status' => 500, "message" => "カテゴリ更新に失敗しました"], 500);
+        }
+    }
+
+    /**
      * 収入カテゴリを並び替え
      *
      * @param \Illuminate\Http\Request $request リクエストオブジェクト（並び替え対象のカテゴリリストを含む）
@@ -96,23 +106,11 @@ class IncomeCategoryController extends Controller
     */
     public function delete(Request $request, IncomeCategory $incomeCategory){
         try{
-            DB::beginTransaction();
-            $user_id = $request->user_id;
-            $deleteData = json_encode($request->deleteData['tgtCategories']);
-            $deleteData = json_decode($deleteData);
-            foreach($deleteData as $tgtData){
-                $tgtData->user_id = $user_id;
-                $incomeUserCategory = $incomeCategory->where('user_id', $user_id)->where('id', $tgtData->id)->where('deleted', 0)->first();
-                $incomeCategory->deleteData($incomeUserCategory, $tgtData);
-                if($incomeUserCategory){
-                    Content::deleteContentsByCategory($incomeUserCategory);
-                }
-            }
-            DB::commit();
-            return response()->json(['status' => 200, "message"=>"カテゴリを削除しました"]); 
+            $deleteData = json_decode(json_encode($request->deleteData['tgtCategories']));
+            $incomeCategory->batchDeleteData($request->user_id, $deleteData);
+            return response()->json(['status' => 200, "message"=>"カテゴリを削除しました"]);
         }catch(\Exception $e){
-            DB::rollBack();
-            return response()->json(['status' => 500, "message"=>"カテゴリ削除失敗しました"]); 
+            return response()->json(['status' => 500, "message"=>"カテゴリ削除失敗しました"]);
         }
     }
 }
