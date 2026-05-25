@@ -226,6 +226,18 @@ class TransactionController extends Controller
         }
 
         try {
+            // Check ownership: verify all content_ids belong to the current user
+            $userContentCount = Content::where('user_id', auth()->id())
+                ->whereIn('id', $validated['content_ids'])
+                ->count();
+
+            if ($userContentCount !== count($validated['content_ids'])) {
+                return response()->json([
+                    'success' => false,
+                    'message' => '指定された支出へのアクセス権限がありません',
+                ], 403);
+            }
+
             // Fetch source contents
             $sourceContents = Content::where('user_id', auth()->id())
                 ->where('recorded_at', $validated['source_date'])
