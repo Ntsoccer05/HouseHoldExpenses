@@ -11,7 +11,6 @@ use Illuminate\Support\Facades\Auth;
 use Laravel\Socialite\Facades\Socialite;
 use App\Http\Requests\Auth\LoginRequest;
 use Exception;
-use GuzzleHttp\Exception\RequestException;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Response;
@@ -114,14 +113,16 @@ class LoginController extends Controller
             $user = User::where('email', $providerUser->email)->first();
 
             if (!$user) {
-                $user = User::updateOrCreate([
-                    'name' => $providerUser->name,
-                    'email' => $providerUser->email,
-                    'email_verified_at' => now(),
-                    'password' => null,
-                ]);
+                $user = User::updateOrCreate(
+                    ['email' => $providerUser->email],
+                    [
+                        'name' => $providerUser->name,
+                        'email_verified_at' => now(),
+                        'password' => null,
+                    ]
+                );
             }
-            
+
             // 万が一ログアウトせずセッションが残っていた場合の処理
             $request->session()->invalidate();
 
@@ -137,14 +138,14 @@ class LoginController extends Controller
             // ユーザーを直接ログインさせる
             // Auth::guard('web')->attempt() メソッドは通常、認証情報（email や password）を使用してログインを試みるもの
             Auth::guard('web')->login($user);
-            
+
             $request->session()->regenerate();
             DB::commit();
             return response()->json(['status_code' => 200,'message' => 'ログインしました'], 200);
-        }catch(RequestException  $e){
+        }catch(Exception $e){
             DB::rollBack();
             return response()->json([
-                'provider' => $provider,
+                'message' => 'Googleログインに失敗しました',
             ], 400);
         }
     }
