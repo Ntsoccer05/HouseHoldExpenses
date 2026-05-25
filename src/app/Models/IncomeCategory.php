@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Support\Facades\DB;
 
 class IncomeCategory extends Model
 {
@@ -70,6 +71,50 @@ class IncomeCategory extends Model
             $tgtModel->filtered_id = $data->filtered_id;
             $tgtModel->save();
             return $tgtModel;
+        }
+    }
+
+    public function batchUpdateData($userId, $categories)
+    {
+        DB::beginTransaction();
+        try {
+            foreach ($categories as $data) {
+                $category = $this->where('user_id', $userId)
+                    ->where('id', $data['id'])
+                    ->where('deleted', 0)
+                    ->first();
+                if ($category) {
+                    $category->content = $data['label'];
+                    $category->icon = $data['icon'] ?? '';
+                    $category->filtered_id = $data['filtered_id'];
+                    $category->save();
+                }
+            }
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            throw $e;
+        }
+    }
+
+    public function batchDeleteData($userId, $deleteCategories)
+    {
+        DB::beginTransaction();
+        try {
+            foreach ($deleteCategories as $tgtData) {
+                $tgtCategory = $this->where('user_id', $userId)
+                    ->where('id', $tgtData->id)
+                    ->where('deleted', 0)
+                    ->first();
+                $this->deleteData($tgtCategory, $tgtData);
+                if ($tgtCategory) {
+                    Content::deleteContentsByCategory($tgtCategory);
+                }
+            }
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            throw $e;
         }
     }
 }
