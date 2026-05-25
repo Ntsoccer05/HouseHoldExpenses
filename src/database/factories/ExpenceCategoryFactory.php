@@ -15,7 +15,6 @@ class ExpenceCategoryFactory extends Factory
             'type_id' => Type::factory(),
             'content' => $this->faker->text(20),
             'icon' => '',
-            'deleted' => 0,
         ];
     }
 }
