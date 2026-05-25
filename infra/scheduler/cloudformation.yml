@@ -1,0 +1,176 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'HouseHold Expenses - ECS/RDS weekday night schedule stop'
+
+Parameters:
+  EcsCluster:
+    Type: String
+    Description: ECS Cluster name (e.g. household-cluster)
+  EcsService:
+    Type: String
+    Description: ECS Service name (e.g. household-api-service)
+  RdsInstanceId:
+    Type: String
+    Description: RDS DB Instance Identifier (e.g. household-db)
+
+Resources:
+
+  # Lambda execution role
+  LambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: household-scheduler-lambda-role
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: EcsRdsControl
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - ecs:UpdateService
+                  - ecs:DescribeServices
+                Resource: '*'
+              - Effect: Allow
+                Action:
+                  - rds:StopDBInstance
+                  - rds:StartDBInstance
+                  - rds:DescribeDBInstances
+                Resource: '*'
+
+  # Lambda function
+  SchedulerFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: household-scheduler
+      Runtime: python3.12
+      Handler: index.handler
+      Role: !GetAtt LambdaRole.Arn
+      Timeout: 30
+      Environment:
+        Variables:
+          ECS_CLUSTER: !Ref EcsCluster
+          ECS_SERVICE: !Ref EcsService
+          RDS_INSTANCE_ID: !Ref RdsInstanceId
+      Code:
+        ZipFile: |
+          import boto3, os
+          from botocore.exceptions import ClientError
+          ecs = boto3.client('ecs')
+          rds = boto3.client('rds')
+          CLUSTER     = os.environ['ECS_CLUSTER']
+          SERVICE     = os.environ['ECS_SERVICE']
+          DB_INSTANCE = os.environ['RDS_INSTANCE_ID']
+          def handler(event, context):
+              action = event.get('action')
+              if action == 'stop':
+                  ecs.update_service(cluster=CLUSTER, service=SERVICE, desiredCount=0)
+                  _rds_action('stop_db_instance')
+                  print('[stop] ECS desiredCount=0, RDS stop initiated')
+              elif action == 'start_rds':
+                  _rds_action('start_db_instance')
+                  print('[start_rds] RDS start initiated')
+              elif action == 'start_ecs':
+                  ecs.update_service(cluster=CLUSTER, service=SERVICE, desiredCount=1)
+                  print('[start_ecs] ECS desiredCount=1')
+              else:
+                  raise ValueError('Unknown action: ' + str(action))
+          def _rds_action(method):
+              try:
+                  getattr(rds, method)(DBInstanceIdentifier=DB_INSTANCE)
+              except ClientError as e:
+                  if e.response['Error']['Code'] != 'InvalidDBInstanceState':
+                      raise
+                  print('RDS already in target state, skipping ' + method)
+
+  # Allow EventBridge Scheduler to invoke Lambda
+  LambdaPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref SchedulerFunction
+      Action: lambda:InvokeFunction
+      Principal: scheduler.amazonaws.com
+      SourceAccount: !Ref AWS::AccountId
+
+  # EventBridge Scheduler execution role
+  SchedulerRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: household-eventbridge-scheduler-role
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: scheduler.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: InvokeLambda
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: lambda:InvokeFunction
+                Resource: !GetAtt SchedulerFunction.Arn
+
+  # Schedules (Asia/Tokyo timezone)
+
+  # Daily 01:00 JST: stop ECS + RDS
+  StopSchedule:
+    Type: AWS::Scheduler::Schedule
+    Properties:
+      Name: household-stop
+      Description: 'Daily 01:00 JST: ECS desiredCount=0 + RDS stop'
+      ScheduleExpression: 'cron(0 1 ? * * *)'
+      ScheduleExpressionTimezone: 'Asia/Tokyo'
+      FlexibleTimeWindow:
+        Mode: 'OFF'
+      Target:
+        Arn: !GetAtt SchedulerFunction.Arn
+        RoleArn: !GetAtt SchedulerRole.Arn
+        Input: '{"action":"stop"}'
+
+  # Daily 09:00 JST: start RDS
+  StartRdsSchedule:
+    Type: AWS::Scheduler::Schedule
+    Properties:
+      Name: household-start-rds
+      Description: 'Daily 09:00 JST: RDS start'
+      ScheduleExpression: 'cron(0 9 ? * * *)'
+      ScheduleExpressionTimezone: 'Asia/Tokyo'
+      FlexibleTimeWindow:
+        Mode: 'OFF'
+      Target:
+        Arn: !GetAtt SchedulerFunction.Arn
+        RoleArn: !GetAtt SchedulerRole.Arn
+        Input: '{"action":"start_rds"}'
+
+  # Daily 09:15 JST: start ECS (15 min after RDS to allow DB boot)
+  StartEcsSchedule:
+    Type: AWS::Scheduler::Schedule
+    Properties:
+      Name: household-start-ecs
+      Description: 'Daily 09:15 JST: ECS desiredCount=1'
+      ScheduleExpression: 'cron(15 9 ? * * *)'
+      ScheduleExpressionTimezone: 'Asia/Tokyo'
+      FlexibleTimeWindow:
+        Mode: 'OFF'
+      Target:
+        Arn: !GetAtt SchedulerFunction.Arn
+        RoleArn: !GetAtt SchedulerRole.Arn
+        Input: '{"action":"start_ecs"}'
+
+Outputs:
+  LambdaFunctionName:
+    Value: !Ref SchedulerFunction
+    Description: Lambda function name
+  StopScheduleName:
+    Value: !Ref StopSchedule
+    Description: Stop schedule name

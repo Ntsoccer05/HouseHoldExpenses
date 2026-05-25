@@ -14,19 +14,9 @@ class CopyMultipleContentsRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        // Check if all content_ids belong to the current user
-        $contentIds = $this->input('content_ids', []);
-
-        if (empty($contentIds)) {
-            return false;
-        }
-
-        // Verify that all content_ids belong to the current user
-        $userContentCount = Content::where('user_id', auth()->id())
-            ->whereIn('id', $contentIds)
-            ->count();
-
-        return count($contentIds) === $userContentCount;
+        // Authorization (ownership check) is performed in the controller
+        // after validation to ensure proper 422 vs 403 response ordering.
+        return true;
     }
 
     /**

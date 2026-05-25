@@ -2,30 +2,22 @@
 
 namespace Database\Factories;
 
+use App\Models\ExpenceCategory;
 use App\Models\Type;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
-/**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Content>
- */
 class ContentFactory extends Factory
 {
-    /**
-     * Define the model's default state.
-     *
-     * @return array<string, mixed>
-     */
     public function definition(): array
     {
         return [
-            //
-            // 'user_id' => User::factory(),
-            // // Typeモデル内にあるidの中からランダムに割り当てられる（新たに生成されない）
-            // 'type_id' => Type::inRandomOrder()->value('id'),
-            // 'amount' => fake()->randomNumber(),
-            // 'content' => fake()->text(100),
-            // 'recorded_at' => fake()->dateTime()
+            'user_id' => User::factory(),
+            'type_id' => Type::factory(),
+            'category_id' => ExpenceCategory::factory(),
+            'amount' => $this->faker->numberBetween(100, 100000),
+            'content' => $this->faker->text(50),
+            'recorded_at' => $this->faker->dateTimeBetween('-1 year', 'now')->format('Y-m-d'),
         ];
     }
 }

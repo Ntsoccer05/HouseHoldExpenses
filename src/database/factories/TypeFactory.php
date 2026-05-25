@@ -16,8 +16,11 @@ class TypeFactory extends Factory
      */
     public function definition(): array
     {
+        $enName = $this->faker->randomElement(['income', 'expense']);
+
         return [
-            //
+            'name' => $enName === 'income' ? '収入' : '支出',
+            'en_name' => $enName,
         ];
     }
 }

@@ -5,3 +5,5 @@ node_modules
 .github/secrets/*_env
 
 .claude/settings.local.json
+.claude/settings.json
+.env.scheduler
