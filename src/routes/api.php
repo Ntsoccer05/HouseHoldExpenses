@@ -7,6 +7,7 @@ use App\Http\Controllers\Auth\VerificationController;
 use App\Http\Controllers\ExpenseCategoryController;
 use App\Http\Controllers\FixedExpenseController;
 use App\Http\Controllers\IncomeCategoryController;
+use App\Http\Controllers\SplitGroupController;
 use App\Http\Controllers\TransactionController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -54,6 +55,17 @@ Route::group(['middleware'=>['auth:sanctum']],function(){
     Route::post('/fixed-expenses', [FixedExpenseController::class, 'store']);
     Route::put('/fixed-expenses/{fixedExpense}', [FixedExpenseController::class, 'update']);
     Route::delete('/fixed-expenses/{fixedExpense}', [FixedExpenseController::class, 'destroy']);
+    // 分担グループ
+    Route::prefix('split-groups')->group(function () {
+        Route::get('/', [SplitGroupController::class, 'index']);
+        Route::post('/', [SplitGroupController::class, 'store']);
+        Route::put('/{splitGroup}', [SplitGroupController::class, 'update']);
+        Route::delete('/{splitGroup}', [SplitGroupController::class, 'destroy']);
+        Route::put('/{splitGroup}/settings', [SplitGroupController::class, 'updateSettings']);
+        Route::get('/{splitGroup}/category-overrides', [SplitGroupController::class, 'getCategoryOverrides']);
+        Route::put('/{splitGroup}/category-overrides', [SplitGroupController::class, 'updateCategoryOverrides']);
+        Route::get('/{splitGroup}/preview', [SplitGroupController::class, 'preview']);
+    });
     Route::post('/logout',[LoginController::class, 'logout']);
 });
 
