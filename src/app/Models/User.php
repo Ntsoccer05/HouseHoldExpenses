@@ -70,8 +70,4 @@ class User extends Authenticatable implements MustVerifyEmail, FilamentUser
         return $this->hasMany(ExpenceCategory::class);
     }
 
-    public function MonthlyAmounts():HasMany
-    {
-        return $this->hasMany(MonthlyAmount::class);
-    }
 }

@@ -7,20 +7,20 @@ use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\SoftDeletes;
 
 class FixedExpense extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory;
 
     protected $fillable = [
         'user_id', 'type_id', 'category_id', 'amount',
-        'content', 'fixed_expense_day', 'is_active', 'last_replicated_at',
+        'content', 'fixed_expense_day', 'is_active', 'last_replicated_at', 'deactivated_at',
     ];
 
     protected $casts = [
-        'is_active' => 'boolean',
-        'last_replicated_at' => 'datetime',
+        'is_active'           => 'boolean',
+        'last_replicated_at'  => 'datetime',
+        'deactivated_at'      => 'datetime',
     ];
 
     public function user(): BelongsTo

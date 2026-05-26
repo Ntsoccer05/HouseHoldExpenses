@@ -17,6 +17,11 @@ class Kernel extends ConsoleKernel
             ->monthlyOn(1, '10:00')
             ->timezone('Asia/Tokyo')
             ->onOneServer();
+
+        $schedule->command('fixed-expenses:cleanup')
+            ->monthlyOn(1, '10:30')
+            ->timezone('Asia/Tokyo')
+            ->onOneServer();
     }
 
     /**
