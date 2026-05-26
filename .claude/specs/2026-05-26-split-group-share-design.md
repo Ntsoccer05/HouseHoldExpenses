@@ -324,3 +324,15 @@ export interface SplitPreview {
 - 共有テキストはサーバーサイドで計算した値をフロントでフォーマット
 - プライバシー：共有前にユーザーがチェックボックスで項目を選択
 - `other_ratio` のバリデーション：0〜100 の整数
+
+### 按分計算の端数処理
+
+- **切り捨て（floor）** を使用する
+- 例：100,001円 × 40% = 40,000円（グループ分）、60,001円（自分分）
+- 残高計算も同様に切り捨て後の値で算出
+
+### カテゴリID参照の整合性
+
+- `split_group_category_overrides.category_id` は `income_categories` / `expence_categories` の2テーブルを参照しうるため DB 外部キー制約は設けない
+- `type_id` で参照テーブルを判断し、アプリ側（FormRequest）のバリデーションで存在確認を行う
+- 既存の `contents` テーブルと同じ設計方針
