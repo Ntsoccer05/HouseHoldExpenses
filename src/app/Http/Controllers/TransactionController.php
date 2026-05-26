@@ -75,7 +75,7 @@ class TransactionController extends Controller
                 $fixedExpense->type_id           = $transactionContent->type_id;
                 $fixedExpense->category_id       = $transactionContent->category_id;
                 $fixedExpense->amount            = $transactionContent->amount;
-                $fixedExpense->content           = $transactionContent->content;
+                $fixedExpense->content           = $transactionContent->content ?? '';
                 $fixedExpense->fixed_expense_day = $transactionContent->fixed_expense_day;
                 $fixedExpense->save();
                 $transactionContent->fixed_expense_id = $fixedExpense->id;
@@ -122,7 +122,7 @@ class TransactionController extends Controller
                     $fixedExpense->type_id           = $transactionContent->type_id;
                     $fixedExpense->category_id       = $transactionContent->category_id;
                     $fixedExpense->amount            = abs($transactionContent->amount);
-                    $fixedExpense->content           = $transactionContent->content;
+                    $fixedExpense->content           = $transactionContent->content ?? '';
                     $fixedExpense->fixed_expense_day = (int)(new DateTime($contents['date']))->format('j');
                     $fixedExpense->save();
                     $transactionContent->fixed_expense_id = $fixedExpense->id;

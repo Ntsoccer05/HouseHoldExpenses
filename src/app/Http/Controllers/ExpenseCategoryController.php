@@ -16,7 +16,7 @@ class ExpenseCategoryController extends Controller
      * @return \Illuminate\Http\JsonResponse ユーザーの収入カテゴリのリストを含むJSONレスポンス
      */
     public function index(Request $request, ExpenceCategory $expenseCategory){
-        $expenseUserCategory = $expenseCategory->where('user_id', $request->user_id)->orderBy('filtered_id')->get()->toArray();
+        $expenseUserCategory = $expenseCategory->where('user_id', $request->user()->id)->orderBy('filtered_id')->get()->toArray();
         
         return response()->json(['status' => 200, "expenseUserCategory"=>$expenseUserCategory]); 
     }

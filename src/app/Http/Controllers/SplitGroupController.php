@@ -67,8 +67,17 @@ class SplitGroupController extends Controller
 
         $splitGroup->setting()->updateOrCreate(
             ['split_group_id' => $splitGroup->id],
-            $request->only(['income_other_ratio', 'expense_other_ratio'])
+            $request->only(['income_other_ratio', 'income_other_offset', 'expense_other_ratio', 'expense_other_offset'])
         );
+
+        // overrides が含まれていれば一括置換
+        if ($request->has('overrides')) {
+            $splitGroup->categoryOverrides()->delete();
+            foreach ($request->overrides ?? [] as $override) {
+                $splitGroup->categoryOverrides()->create($override);
+            }
+        }
+
         $splitGroup->load(['setting', 'categoryOverrides']);
 
         return response()->json(['status' => 200, 'splitGroup' => $splitGroup]);
@@ -151,12 +160,15 @@ class SplitGroupController extends Controller
                 $incomeOther  += (int) floor($categoryTotal * $ratio / 100);
             }
 
+            $incomeOther += (int) ($setting->income_other_offset ?? 0);
+
             $result['income'] = [
                 'total'       => $incomeTotal,
                 'self'        => $incomeTotal - $incomeOther,
                 'other'       => $incomeOther,
                 'self_ratio'  => 100 - $setting->income_other_ratio,
                 'other_ratio' => $setting->income_other_ratio,
+                'other_offset' => $setting->income_other_offset,
             ];
         }
 
@@ -173,12 +185,15 @@ class SplitGroupController extends Controller
                 $expenseOther  += (int) floor($categoryTotal * $ratio / 100);
             }
 
+            $expenseOther += (int) ($setting->expense_other_offset ?? 0);
+
             $result['expense'] = [
                 'total'       => $expenseTotal,
                 'self'        => $expenseTotal - $expenseOther,
                 'other'       => $expenseOther,
                 'self_ratio'  => 100 - $setting->expense_other_ratio,
                 'other_ratio' => $setting->expense_other_ratio,
+                'other_offset' => $setting->expense_other_offset,
             ];
         }
 

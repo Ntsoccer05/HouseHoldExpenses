@@ -10,7 +10,7 @@ class SplitGroupSetting extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['split_group_id', 'income_other_ratio', 'expense_other_ratio'];
+    protected $fillable = ['split_group_id', 'income_other_ratio', 'income_other_offset', 'expense_other_ratio', 'expense_other_offset'];
 
     public function splitGroup(): BelongsTo
     {
