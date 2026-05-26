@@ -15,9 +15,9 @@ class UpdateSplitGroupSettingsRequest extends FormRequest
     {
         return [
             'income_other_ratio'            => 'nullable|integer|min:0|max:100',
-            'income_other_offset'           => 'nullable|integer',
+            'income_other_offset'           => 'nullable|integer|min:-9999999|max:9999999',
             'expense_other_ratio'           => 'nullable|integer|min:0|max:100',
-            'expense_other_offset'          => 'nullable|integer',
+            'expense_other_offset'          => 'nullable|integer|min:-9999999|max:9999999',
             'overrides'                     => 'nullable|array',
             'overrides.*.category_id'       => 'required|integer',
             'overrides.*.type_id'           => 'required|integer',
