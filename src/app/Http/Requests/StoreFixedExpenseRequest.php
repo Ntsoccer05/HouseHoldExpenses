@@ -17,7 +17,7 @@ class StoreFixedExpenseRequest extends FormRequest
             'type'              => 'required|in:income,expense',
             'category_id'       => 'required|integer',
             'amount'            => 'required|integer|min:1',
-            'content'           => 'required|string|max:255',
+            'content'           => 'nullable|string|max:255',
             'fixed_expense_day' => 'required|integer|min:1|max:31',
         ];
     }

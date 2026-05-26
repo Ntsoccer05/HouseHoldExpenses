@@ -27,9 +27,21 @@ class FixedExpenseController extends Controller
 
     public function store(StoreFixedExpenseRequest $request)
     {
+        $typeId = $this->resolveTypeId($request->type);
+        $count = FixedExpense::where('user_id', $request->user()->id)
+            ->where('type_id', $typeId)
+            ->count();
+
+        if ($count >= 10) {
+            return response()->json([
+                'status'  => 422,
+                'message' => '固定収支は10件までしか登録できません。',
+            ], 422);
+        }
+
         $fixedExpense = new FixedExpense();
         $fixedExpense->user_id           = $request->user()->id;
-        $fixedExpense->type_id           = $this->resolveTypeId($request->type);
+        $fixedExpense->type_id           = $typeId;
         $fixedExpense->category_id       = $request->category_id;
         $fixedExpense->amount            = $request->amount;
         $fixedExpense->content           = $request->content;

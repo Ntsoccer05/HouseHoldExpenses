@@ -16,7 +16,7 @@ class IncomeCategoryController extends Controller
      * @return \Illuminate\Http\JsonResponse ユーザーの収入カテゴリのリストを含むJSONレスポンス
      */
     public function index(Request $request, IncomeCategory $incomeCategory){
-        $incomeUserCategory = $incomeCategory->where('user_id', $request->user_id)->orderBy('filtered_id')->get()->toArray();
+        $incomeUserCategory = $incomeCategory->where('user_id', $request->user()->id)->orderBy('filtered_id')->get()->toArray();
 
         return response()->json(['status' => 200, "incomeUserCategory"=>$incomeUserCategory]); 
     }
