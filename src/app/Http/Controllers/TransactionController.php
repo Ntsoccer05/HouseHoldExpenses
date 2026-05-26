@@ -113,6 +113,11 @@ class TransactionController extends Controller
                 $transactionContent->recorded_at = new DateTime($contents['date']);
                 $transactionContent->amount = $contents['amount'];
                 $transactionContent->content = $contents['content'];
+                // 固定収支チェックがオフになった場合は is_fixed_expense と fixed_expense_id をクリア
+                if (array_key_exists('isFixedExpense', $contents) && !$contents['isFixedExpense']) {
+                    $transactionContent->is_fixed_expense = false;
+                    $transactionContent->fixed_expense_id = null;
+                }
                 $transactionContent->save();
                 // // Commit the transaction
                 DB::commit();
