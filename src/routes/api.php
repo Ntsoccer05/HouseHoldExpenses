@@ -55,6 +55,8 @@ Route::group(['middleware'=>['auth:sanctum']],function(){
     Route::post('/fixed-expenses', [FixedExpenseController::class, 'store']);
     Route::put('/fixed-expenses/{fixedExpense}', [FixedExpenseController::class, 'update']);
     Route::delete('/fixed-expenses/{fixedExpense}', [FixedExpenseController::class, 'destroy']);
+    // 月次サマリー（グループなし共有用）
+    Route::get('/monthly-summary', [SplitGroupController::class, 'monthlySummary']);
     // 分担グループ
     Route::prefix('split-groups')->group(function () {
         Route::get('/', [SplitGroupController::class, 'index']);
