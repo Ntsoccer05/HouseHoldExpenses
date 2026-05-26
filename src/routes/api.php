@@ -5,6 +5,7 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\VerificationController;
 use App\Http\Controllers\ExpenseCategoryController;
+use App\Http\Controllers\FixedExpenseController;
 use App\Http\Controllers\IncomeCategoryController;
 use App\Http\Controllers\TransactionController;
 use Illuminate\Http\Request;
@@ -49,6 +50,10 @@ Route::group(['middleware'=>['auth:sanctum']],function(){
     Route::get('/monthly-transaction',[TransactionController::class, 'getMonthlyTransaction']);
     Route::get('/monthly-transactions-bulk',[TransactionController::class, 'getMonthlyTransactionsBulk']);
     Route::get('/yearly-transaction',[TransactionController::class, 'getYearlyTransaction']);
+    Route::get('/fixed-expenses', [FixedExpenseController::class, 'index']);
+    Route::post('/fixed-expenses', [FixedExpenseController::class, 'store']);
+    Route::put('/fixed-expenses/{fixedExpense}', [FixedExpenseController::class, 'update']);
+    Route::delete('/fixed-expenses/{fixedExpense}', [FixedExpenseController::class, 'destroy']);
     Route::post('/logout',[LoginController::class, 'logout']);
 });
 

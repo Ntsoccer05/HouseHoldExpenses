@@ -6,6 +6,7 @@ use App\Enums\TypeEnum;
 use App\Http\Requests\TransactionRequest;
 use App\Http\Requests\CopyMultipleContentsRequest;
 use App\Models\Content;
+use App\Models\FixedExpense;
 use App\Models\Type;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -59,7 +60,27 @@ class TransactionController extends Controller
             $transactionContent->recorded_at = new DateTime($contents['date']);
             $transactionContent->amount = $contents['amount'];
             $transactionContent->content = $contents['content'];
+            $isFixedExpense = !empty($contents['isFixedExpense'])
+                && $transactionContent->type_id === config('app.expense_type_id');
+            if ($isFixedExpense) {
+                $transactionContent->is_fixed_expense = true;
+                $transactionContent->fixed_expense_day = isset($contents['fixedExpenseDay'])
+                    ? (int)$contents['fixedExpenseDay']
+                    : (int)(new DateTime($contents['date']))->format('j');
+            }
             $transactionContent->save();
+            if ($isFixedExpense) {
+                $fixedExpense = new FixedExpense();
+                $fixedExpense->user_id           = $user_id;
+                $fixedExpense->type_id           = $transactionContent->type_id;
+                $fixedExpense->category_id       = $transactionContent->category_id;
+                $fixedExpense->amount            = $transactionContent->amount;
+                $fixedExpense->content           = $transactionContent->content;
+                $fixedExpense->fixed_expense_day = $transactionContent->fixed_expense_day;
+                $fixedExpense->save();
+                $transactionContent->fixed_expense_id = $fixedExpense->id;
+                $transactionContent->save();
+            }
             // Commit the transaction
             DB::commit();
 

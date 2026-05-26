@@ -17,6 +17,21 @@ class Content extends Model
 {
     use HasFactory;
 
+    protected $fillable = [
+        'user_id',
+        'type_id',
+        'category_id',
+        'amount',
+        'content',
+        'recorded_at',
+        'is_fixed_expense',
+        'fixed_expense_id',
+    ];
+
+    protected $casts = [
+        'recorded_at' => 'datetime',
+    ];
+
     /**
      * Userモデルとのリレーション（多対1）
      * 
@@ -88,13 +103,15 @@ class Content extends Model
         }
         $formattedRecordedDay = (new DateTime($content->recorded_at))->format('Y-m-d');
         return [
-            'id'=> $content->id,
-            'date'=> $formattedRecordedDay,
-            'amount'=> $content->amount,
-            'content'=> $content->content,
-            'type'=> $type_name,
-            'category'=> $category_name,
-            'icon'=> $category_icon,
+            'id'             => $content->id,
+            'date'           => $formattedRecordedDay,
+            'amount'         => $content->amount,
+            'content'        => $content->content,
+            'type'           => $type_name,
+            'category'       => $category_name,
+            'icon'           => $category_icon,
+            'isFixedExpense' => (bool)($content->is_fixed_expense ?? false),
+            'fixedExpenseId' => $content->fixed_expense_id,
         ];
     }
 
