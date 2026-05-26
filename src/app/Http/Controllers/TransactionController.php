@@ -113,6 +113,31 @@ class TransactionController extends Controller
                 $transactionContent->recorded_at = new DateTime($contents['date']);
                 $transactionContent->amount = $contents['amount'];
                 $transactionContent->content = $contents['content'];
+                $isFixedExpense = array_key_exists('isFixedExpense', $contents) && $contents['isFixedExpense'];
+                // 固定収支チェックがオンになった場合（未登録のもののみ）
+                if ($isFixedExpense && !$transactionContent->is_fixed_expense) {
+                    $transactionContent->is_fixed_expense = true;
+                    $fixedExpense = new FixedExpense();
+                    $fixedExpense->user_id           = $user_id;
+                    $fixedExpense->type_id           = $transactionContent->type_id;
+                    $fixedExpense->category_id       = $transactionContent->category_id;
+                    $fixedExpense->amount            = abs($transactionContent->amount);
+                    $fixedExpense->content           = $transactionContent->content;
+                    $fixedExpense->fixed_expense_day = (int)(new DateTime($contents['date']))->format('j');
+                    $fixedExpense->save();
+                    $transactionContent->fixed_expense_id = $fixedExpense->id;
+                }
+                // 固定収支チェックがオフになった場合は is_fixed_expense・fixed_expense_id をクリアし固定収支を無効化
+                if (!$isFixedExpense && $transactionContent->is_fixed_expense) {
+                    $prevFixedExpenseId = $transactionContent->fixed_expense_id;
+                    $transactionContent->is_fixed_expense = false;
+                    $transactionContent->fixed_expense_id = null;
+                    if ($prevFixedExpenseId) {
+                        FixedExpense::where('id', $prevFixedExpenseId)
+                            ->where('user_id', $user_id)
+                            ->update(['is_active' => false, 'deactivated_at' => now()]);
+                    }
+                }
                 $transactionContent->save();
                 // // Commit the transaction
                 DB::commit();

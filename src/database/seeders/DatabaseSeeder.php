@@ -10,7 +10,6 @@ use App\Models\FixedCategory;
 use App\Models\FixedExpenseCategory;
 use App\Models\FixedIncomeCategory;
 use App\Models\IncomeCategory;
-use App\Models\MonthlyAmount;
 use App\Models\Type;
 use App\Models\User;
 use Illuminate\Database\Seeder;
@@ -51,6 +50,5 @@ class DatabaseSeeder extends Seeder
         // ExpenceCategory::factory(5)->create();
         // IncomeCategory::factory(5)->create();
         // // Content::factory(10)->create();
-        // MonthlyAmount::factory(10)->create();
     }
 }
