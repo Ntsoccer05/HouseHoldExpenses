@@ -127,10 +127,16 @@ class TransactionController extends Controller
                     $fixedExpense->save();
                     $transactionContent->fixed_expense_id = $fixedExpense->id;
                 }
-                // 固定収支チェックがオフになった場合は is_fixed_expense と fixed_expense_id をクリア
+                // 固定収支チェックがオフになった場合は is_fixed_expense・fixed_expense_id をクリアし固定収支を無効化
                 if (!$isFixedExpense && $transactionContent->is_fixed_expense) {
+                    $prevFixedExpenseId = $transactionContent->fixed_expense_id;
                     $transactionContent->is_fixed_expense = false;
                     $transactionContent->fixed_expense_id = null;
+                    if ($prevFixedExpenseId) {
+                        FixedExpense::where('id', $prevFixedExpenseId)
+                            ->where('user_id', $user_id)
+                            ->update(['is_active' => false, 'deactivated_at' => now()]);
+                    }
                 }
                 $transactionContent->save();
                 // // Commit the transaction
