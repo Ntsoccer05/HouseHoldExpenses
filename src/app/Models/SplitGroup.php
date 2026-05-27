@@ -12,9 +12,7 @@ class SplitGroup extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['user_id', 'label', 'is_active'];
-
-    protected $casts = ['is_active' => 'boolean'];
+    protected $fillable = ['user_id', 'label'];
 
     public function user(): BelongsTo
     {

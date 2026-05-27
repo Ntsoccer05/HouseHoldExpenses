@@ -14,8 +14,7 @@ class UpdateSplitGroupRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'label'     => 'sometimes|string|max:100',
-            'is_active' => 'sometimes|boolean',
+            'label' => 'sometimes|string|max:100',
         ];
     }
 }
