@@ -2,7 +2,7 @@ openapi: 3.0.0
 info:
   title: HouseHold Expenses API
   description: 家計簿管理アプリケーション（カケポン）のAPI仕様
-  version: 1.0.0
+  version: 1.1.0
   contact:
     name: Development Team
 
@@ -23,6 +23,10 @@ tags:
     description: 支出カテゴリ管理
   - name: Transaction
     description: 取引（収入・支出）管理
+  - name: FixedExpense
+    description: 固定費管理
+  - name: SplitGroup
+    description: 分担グループ・支出の割り勘管理
   - name: Social
     description: ソーシャルログイン
 
@@ -251,6 +255,24 @@ paths:
         '200':
           $ref: './responses/common.yaml#/Success'
 
+  /batchSaveIncomeCategories:
+    post:
+      tags:
+        - IncomeCategory
+      summary: 収入カテゴリ一括保存
+      description: 複数の収入カテゴリの表示名・アイコン・フィルタ順を一括更新
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: './schemas/category.yaml#/BatchSaveCategoriesRequest'
+      responses:
+        '200':
+          $ref: './responses/common.yaml#/Success'
+
   # ============= Expense Category =============
   /ExpenseCategory:
     get:
@@ -334,6 +356,24 @@ paths:
           application/json:
             schema:
               $ref: './schemas/category.yaml#/SortCategoryRequest'
+      responses:
+        '200':
+          $ref: './responses/common.yaml#/Success'
+
+  /batchSaveExpenseCategories:
+    post:
+      tags:
+        - ExpenseCategory
+      summary: 支出カテゴリ一括保存
+      description: 複数の支出カテゴリの表示名・アイコン・フィルタ順を一括更新
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: './schemas/category.yaml#/BatchSaveCategoriesRequest'
       responses:
         '200':
           $ref: './responses/common.yaml#/Success'
@@ -449,6 +489,23 @@ paths:
         '200':
           $ref: './responses/common.yaml#/MonthlySummarySuccess'
 
+  /monthly-transactions-bulk:
+    get:
+      tags:
+        - Transaction
+      summary: 複数月の取引一括取得
+      description: 基準月を中心に前々月・前月・当月・翌月の4ヶ月分の取引データを一括取得
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: './parameters/common.yaml#/BaseMonthParameter'
+        - $ref: './parameters/common.yaml#/UserIdQueryParameter'
+      responses:
+        '200':
+          $ref: './responses/common.yaml#/MonthlyTransactionsBulkSuccess'
+        '500':
+          description: データの取得に失敗しました
+
   /yearly-transaction:
     get:
       tags:
@@ -462,6 +519,268 @@ paths:
       responses:
         '200':
           $ref: './responses/common.yaml#/YearlySummarySuccess'
+
+  # ============= Fixed Expense =============
+  /fixed-expenses:
+    get:
+      tags:
+        - FixedExpense
+      summary: 固定費一覧取得
+      description: ログインユーザーの固定費一覧を取得
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          $ref: './responses/common.yaml#/FixedExpenseArraySuccess'
+        '401':
+          $ref: './responses/common.yaml#/Unauthorized'
+
+    post:
+      tags:
+        - FixedExpense
+      summary: 固定費作成
+      description: 新しい固定費を作成する（種別ごとに最大10件まで）
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: './schemas/fixed_expense.yaml#/StoreFixedExpenseRequest'
+      responses:
+        '200':
+          $ref: './responses/common.yaml#/FixedExpenseSuccess'
+        '401':
+          $ref: './responses/common.yaml#/Unauthorized'
+        '422':
+          description: バリデーションエラー、または種別ごとの登録上限（10件）超過
+
+  /fixed-expenses/{fixedExpense}:
+    put:
+      tags:
+        - FixedExpense
+      summary: 固定費更新
+      description: 固定費を更新（is_active を false にすると deactivated_at が自動設定される）
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: './parameters/common.yaml#/FixedExpenseIdPathParameter'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: './schemas/fixed_expense.yaml#/UpdateFixedExpenseRequest'
+      responses:
+        '200':
+          $ref: './responses/common.yaml#/FixedExpenseSuccess'
+        '401':
+          $ref: './responses/common.yaml#/Unauthorized'
+        '403':
+          $ref: './responses/common.yaml#/Forbidden'
+
+    delete:
+      tags:
+        - FixedExpense
+      summary: 固定費削除
+      description: 固定費を削除
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: './parameters/common.yaml#/FixedExpenseIdPathParameter'
+      responses:
+        '200':
+          $ref: './responses/common.yaml#/Success'
+        '401':
+          $ref: './responses/common.yaml#/Unauthorized'
+        '403':
+          $ref: './responses/common.yaml#/Forbidden'
+
+  # ============= Split Group =============
+  /monthly-summary:
+    get:
+      tags:
+        - SplitGroup
+      summary: 月次サマリー（グループなし共有用）
+      description: 指定月の収入・支出・収支を集計（分担グループを作成していない場合の簡易共有用）
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: './parameters/common.yaml#/MonthStringParameter'
+      responses:
+        '200':
+          $ref: './responses/common.yaml#/SplitGroupMonthlySummarySuccess'
+        '401':
+          $ref: './responses/common.yaml#/Unauthorized'
+        '422':
+          $ref: './responses/common.yaml#/ValidationError'
+
+  /split-groups:
+    get:
+      tags:
+        - SplitGroup
+      summary: 分担グループ一覧取得
+      description: ログインユーザーの分担グループ一覧を設定・カテゴリ上書きとともに取得
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          $ref: './responses/common.yaml#/SplitGroupArraySuccess'
+        '401':
+          $ref: './responses/common.yaml#/Unauthorized'
+
+    post:
+      tags:
+        - SplitGroup
+      summary: 分担グループ作成
+      description: 新しい分担グループを作成（作成時に設定レコードも自動生成される）
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: './schemas/split_group.yaml#/StoreSplitGroupRequest'
+      responses:
+        '201':
+          $ref: './responses/common.yaml#/SplitGroupSuccess'
+        '401':
+          $ref: './responses/common.yaml#/Unauthorized'
+        '422':
+          $ref: './responses/common.yaml#/ValidationError'
+
+  /split-groups/{splitGroup}:
+    put:
+      tags:
+        - SplitGroup
+      summary: 分担グループ更新
+      description: 分担グループの表示名を更新
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: './parameters/common.yaml#/SplitGroupIdPathParameter'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: './schemas/split_group.yaml#/UpdateSplitGroupRequest'
+      responses:
+        '200':
+          $ref: './responses/common.yaml#/SplitGroupSuccess'
+        '401':
+          $ref: './responses/common.yaml#/Unauthorized'
+        '403':
+          $ref: './responses/common.yaml#/Forbidden'
+
+    delete:
+      tags:
+        - SplitGroup
+      summary: 分担グループ削除
+      description: 分担グループを削除（設定・カテゴリ上書きも連動して削除される）
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: './parameters/common.yaml#/SplitGroupIdPathParameter'
+      responses:
+        '200':
+          $ref: './responses/common.yaml#/Success'
+        '401':
+          $ref: './responses/common.yaml#/Unauthorized'
+        '403':
+          $ref: './responses/common.yaml#/Forbidden'
+
+  /split-groups/{splitGroup}/settings:
+    put:
+      tags:
+        - SplitGroup
+      summary: 分担グループ設定更新
+      description: 按分比率・固定調整額を更新。overrides を含めるとカテゴリ別上書き設定を一括置換する
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: './parameters/common.yaml#/SplitGroupIdPathParameter'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: './schemas/split_group.yaml#/UpdateSplitGroupSettingsRequest'
+      responses:
+        '200':
+          $ref: './responses/common.yaml#/SplitGroupSuccess'
+        '401':
+          $ref: './responses/common.yaml#/Unauthorized'
+        '403':
+          $ref: './responses/common.yaml#/Forbidden'
+        '422':
+          $ref: './responses/common.yaml#/ValidationError'
+
+  /split-groups/{splitGroup}/category-overrides:
+    get:
+      tags:
+        - SplitGroup
+      summary: カテゴリ別上書き設定取得
+      description: 分担グループのカテゴリ別按分比率の上書き一覧を取得
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: './parameters/common.yaml#/SplitGroupIdPathParameter'
+      responses:
+        '200':
+          $ref: './responses/common.yaml#/CategoryOverridesSuccess'
+        '401':
+          $ref: './responses/common.yaml#/Unauthorized'
+        '403':
+          $ref: './responses/common.yaml#/Forbidden'
+
+    put:
+      tags:
+        - SplitGroup
+      summary: カテゴリ別上書き設定更新
+      description: カテゴリ別按分比率の上書き設定を一括置換（空配列で全削除）
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: './parameters/common.yaml#/SplitGroupIdPathParameter'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: './schemas/split_group.yaml#/UpdateCategoryOverridesRequest'
+      responses:
+        '200':
+          $ref: './responses/common.yaml#/CategoryOverridesSuccess'
+        '401':
+          $ref: './responses/common.yaml#/Unauthorized'
+        '403':
+          $ref: './responses/common.yaml#/Forbidden'
+        '422':
+          $ref: './responses/common.yaml#/ValidationError'
+
+  /split-groups/{splitGroup}/preview:
+    get:
+      tags:
+        - SplitGroup
+      summary: 分担プレビュー取得
+      description: 指定月の収入・支出を設定に基づき按分し、自分/相手の負担額プレビューを取得
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: './parameters/common.yaml#/SplitGroupIdPathParameter'
+        - $ref: './parameters/common.yaml#/MonthStringParameter'
+      responses:
+        '200':
+          $ref: './responses/common.yaml#/SplitGroupPreviewSuccess'
+        '401':
+          $ref: './responses/common.yaml#/Unauthorized'
+        '403':
+          $ref: './responses/common.yaml#/Forbidden'
+        '422':
+          $ref: './responses/common.yaml#/ValidationError'
 
   # ============= Social Login =============
   /login/{provider}:
@@ -545,6 +864,8 @@ components:
       $ref: './schemas/category.yaml#/DeleteCategoryRequest'
     SortCategoryRequest:
       $ref: './schemas/category.yaml#/SortCategoryRequest'
+    BatchSaveCategoriesRequest:
+      $ref: './schemas/category.yaml#/BatchSaveCategoriesRequest'
 
     # Transaction Schemas
     Transaction:
@@ -561,6 +882,38 @@ components:
       $ref: './schemas/transaction.yaml#/MonthlySummary'
     YearlySummary:
       $ref: './schemas/transaction.yaml#/YearlySummary'
+    FormattedTransaction:
+      $ref: './schemas/transaction.yaml#/FormattedTransaction'
+    MonthlyTransactionsBulkResponse:
+      $ref: './schemas/transaction.yaml#/MonthlyTransactionsBulkResponse'
+
+    # Fixed Expense Schemas
+    FixedExpense:
+      $ref: './schemas/fixed_expense.yaml#/FixedExpense'
+    StoreFixedExpenseRequest:
+      $ref: './schemas/fixed_expense.yaml#/StoreFixedExpenseRequest'
+    UpdateFixedExpenseRequest:
+      $ref: './schemas/fixed_expense.yaml#/UpdateFixedExpenseRequest'
+
+    # Split Group Schemas
+    SplitGroup:
+      $ref: './schemas/split_group.yaml#/SplitGroup'
+    SplitGroupSetting:
+      $ref: './schemas/split_group.yaml#/SplitGroupSetting'
+    SplitGroupCategoryOverride:
+      $ref: './schemas/split_group.yaml#/SplitGroupCategoryOverride'
+    StoreSplitGroupRequest:
+      $ref: './schemas/split_group.yaml#/StoreSplitGroupRequest'
+    UpdateSplitGroupRequest:
+      $ref: './schemas/split_group.yaml#/UpdateSplitGroupRequest'
+    UpdateSplitGroupSettingsRequest:
+      $ref: './schemas/split_group.yaml#/UpdateSplitGroupSettingsRequest'
+    UpdateCategoryOverridesRequest:
+      $ref: './schemas/split_group.yaml#/UpdateCategoryOverridesRequest'
+    SplitGroupMonthlySummary:
+      $ref: './schemas/split_group.yaml#/SplitGroupMonthlySummary'
+    SplitGroupPreviewResponse:
+      $ref: './schemas/split_group.yaml#/SplitGroupPreviewResponse'
 
     # Common Schemas
     Error:

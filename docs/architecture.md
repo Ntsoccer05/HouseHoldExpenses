@@ -1,8 +1,8 @@
 # アーキテクチャ設計書
 
 **プロジェクト**: カケポン（HouseHold Expenses）  
-**バージョン**: 1.0  
-**最終更新**: 2026-04-13
+**バージョン**: 1.1  
+**最終更新**: 2026-07-13
 
 ---
 
@@ -117,6 +117,8 @@
 ---
 
 ## バックエンドレイヤー設計
+
+> **実装上の注意（2026-07-13 追記）**: 以下の Controller → Service → Repository → Model という層構造は、固定費機能の設計時点での理想形として記載したものです。実際の `FixedExpenseController` / `SplitGroupController`（分担グループ機能）は Service・Repository 層を経由せず、Controller から直接 Eloquent モデルを操作するシンプルな実装になっています（`ResponseFormatter` も未導入で、レスポンスは各 Controller 内で個別に組み立てています）。現在のコードで採用されているパターンを正確に把握したい場合は `src/app/Http/Controllers/FixedExpenseController.php` および `src/app/Http/Controllers/SplitGroupController.php` を直接参照してください。
 
 ### 1. Controller層（プレゼンテーション層）
 
@@ -549,56 +551,86 @@ class DateCalculator
 
 ## データベース設計
 
+> **注意**: このセクションは概要のみです。全テーブルの正式なカラム定義・インデックス・リレーションは [`docs/database-design.md`](./database-design.md) を正とします（本ドキュメントより詳細かつ最新）。
+
 ### テーブル構成
 
 #### fixed_expenses テーブル
+
+実装時にソフトデリート（`deleted_at`）は廃止され、`deactivated_at` による無効化管理に変更されています。`fixed_expense_history` テーブル（金額改定履歴）は検討はされたものの**未実装**です。
+
 ```sql
 CREATE TABLE fixed_expenses (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     user_id BIGINT NOT NULL,
-    type_id INT NOT NULL DEFAULT 2,          -- 常に「支出」
+    type_id TINYINT UNSIGNED NOT NULL DEFAULT 2,  -- 1=収入, 2=支出
     category_id BIGINT NOT NULL,
-    amount INT NOT NULL,                      -- 基本金額
+    amount INT UNSIGNED NOT NULL,             -- 基本金額
     content VARCHAR(255) NOT NULL,
-    fixed_expense_day INT NOT NULL,           -- 1～31日（スマート調整される）
+    fixed_expense_day TINYINT UNSIGNED NOT NULL, -- 1～31日（月末超過時は月末に丸める）
     is_active BOOLEAN DEFAULT true,
-    last_replicated_at TIMESTAMP NULL,
+    last_replicated_at TIMESTAMP NULL,        -- バッチで contents へ最後に複製した日時
+    deactivated_at TIMESTAMP NULL,            -- is_active=false になった日時
     created_at TIMESTAMP NOT NULL,
     updated_at TIMESTAMP NOT NULL,
-    deleted_at TIMESTAMP NULL,                -- ソフトデリート
-    
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-    INDEX idx_user_id (user_id),
-    INDEX idx_is_active (is_active),
-    INDEX idx_last_replicated (last_replicated_at)
-);
-```
 
-#### fixed_expense_history テーブル（オプション）
-```sql
-CREATE TABLE fixed_expense_history (
-    id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    fixed_expense_id BIGINT NOT NULL,
-    amount INT NOT NULL,
-    effective_from DATE NOT NULL,             -- この金額がいつから有効か
-    created_at TIMESTAMP NOT NULL,
-    
-    FOREIGN KEY (fixed_expense_id) REFERENCES fixed_expenses(id) ON DELETE CASCADE,
-    INDEX idx_fixed_expense_id (fixed_expense_id),
-    INDEX idx_effective_from (effective_from)
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    INDEX idx_is_active (is_active)
 );
 ```
 
 #### contents テーブル（既存テーブルへの追加カラム）
+
+`fixed_expense_id` はアプリケーション側で紐付けを管理しており、実際の外部キー制約は設定されていません。
+
 ```sql
 ALTER TABLE contents ADD COLUMN (
     is_fixed_expense BOOLEAN DEFAULT false,
-    fixed_expense_day INT NULL,
-    fixed_expense_id BIGINT NULL,
-    
-    FOREIGN KEY (fixed_expense_id) REFERENCES fixed_expenses(id) ON DELETE SET NULL,
-    INDEX idx_fixed_expense (is_fixed_expense),
-    INDEX idx_fixed_expense_id (fixed_expense_id)
+    fixed_expense_day TINYINT UNSIGNED NULL,
+    fixed_expense_id BIGINT NULL,             -- 外部キー制約なし
+
+    INDEX idx_contents_is_fixed_expense (is_fixed_expense),
+    INDEX idx_contents_fixed_expense_id (fixed_expense_id)
+);
+```
+
+#### split_groups / split_group_settings / split_group_category_overrides テーブル（分担グループ機能）
+
+世帯・グループ単位で支出を割り勘（按分）するための分担グループ機能（2026-05 実装）。1つの `split_groups` に対し `split_group_settings` が1:1、`split_group_category_overrides` が1:n で紐づきます。カラム定義の詳細は `docs/database-design.md` の該当セクションを参照してください。
+
+```sql
+CREATE TABLE split_groups (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    user_id BIGINT NOT NULL,
+    label VARCHAR(100) NOT NULL,
+    created_at TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE split_group_settings (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    split_group_id BIGINT NOT NULL,
+    income_other_ratio TINYINT UNSIGNED NULL,   -- 収入の相手負担割合（%）
+    income_other_offset INT NULL,               -- 収入按分後の固定調整額
+    expense_other_ratio TINYINT UNSIGNED NULL,  -- 支出の相手負担割合（%）
+    expense_other_offset INT NULL,              -- 支出按分後の固定調整額
+    created_at TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP NOT NULL,
+    FOREIGN KEY (split_group_id) REFERENCES split_groups(id) ON DELETE CASCADE,
+    UNIQUE (split_group_id)
+);
+
+CREATE TABLE split_group_category_overrides (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    split_group_id BIGINT NOT NULL,
+    category_id BIGINT NOT NULL,
+    type_id TINYINT UNSIGNED NOT NULL,
+    other_ratio TINYINT UNSIGNED NOT NULL,
+    created_at TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP NOT NULL,
+    FOREIGN KEY (split_group_id) REFERENCES split_groups(id) ON DELETE CASCADE,
+    UNIQUE (split_group_id, category_id, type_id)
 );
 ```
 
@@ -606,9 +638,10 @@ ALTER TABLE contents ADD COLUMN (
 
 | テーブル | カラム | 目的 | 効果 |
 |---------|--------|------|------|
-| fixed_expenses | (user_id, is_active) | ユーザーの有効な固定費を取得 | 複合インデックスで高速化 |
-| fixed_expenses | last_replicated_at | 未複製の固定費を検出 | バッチ処理の効率化 |
+| fixed_expenses | is_active | ユーザーの有効な固定費を取得（バッチ対象の絞り込み） | 複合インデックスで高速化 |
 | contents | fixed_expense_id | 複製元を追跡 | 監査ログ用途 |
+| split_groups | user_id | ユーザーの分担グループ一覧取得 | 検索高速化 |
+| split_group_category_overrides | (split_group_id, category_id, type_id) | カテゴリ別上書きの一意性保証 | 重複防止 |
 
 ---
 

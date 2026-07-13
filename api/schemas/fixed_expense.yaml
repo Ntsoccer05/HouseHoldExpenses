@@ -1,0 +1,102 @@
+FixedExpense:
+  type: object
+  properties:
+    id:
+      type: integer
+      example: 1
+    type_id:
+      type: integer
+      example: 2
+    category_id:
+      type: integer
+      example: 5
+    amount:
+      type: integer
+      example: 80000
+    content:
+      type: string
+      nullable: true
+      example: 家賃
+    fixed_expense_day:
+      type: integer
+      example: 27
+    is_active:
+      type: boolean
+      example: true
+    last_replicated_at:
+      type: string
+      format: date-time
+      nullable: true
+      description: バッチ処理で contents へ最後に複製された日時
+      example: null
+    deactivated_at:
+      type: string
+      format: date-time
+      nullable: true
+      example: null
+    created_at:
+      type: string
+      format: date-time
+      example: 2026-05-26T00:00:00Z
+    updated_at:
+      type: string
+      format: date-time
+      example: 2026-05-26T00:00:00Z
+
+StoreFixedExpenseRequest:
+  type: object
+  required:
+    - type
+    - category_id
+    - amount
+    - fixed_expense_day
+  properties:
+    type:
+      type: string
+      enum: [income, expense]
+      example: expense
+    category_id:
+      type: integer
+      example: 5
+    amount:
+      type: integer
+      minimum: 1
+      example: 80000
+    content:
+      type: string
+      nullable: true
+      maxLength: 255
+      example: 家賃
+    fixed_expense_day:
+      type: integer
+      minimum: 1
+      maximum: 31
+      example: 27
+
+UpdateFixedExpenseRequest:
+  type: object
+  description: 全項目任意。指定したフィールドのみ更新される
+  properties:
+    type:
+      type: string
+      enum: [income, expense]
+      example: expense
+    category_id:
+      type: integer
+      example: 5
+    amount:
+      type: integer
+      minimum: 1
+      example: 80000
+    content:
+      type: string
+      maxLength: 255
+      example: 家賃
+    fixed_expense_day:
+      type: integer
+      minimum: 1
+      maximum: 31
+      example: 27
+    is_active:
+      type: boolean
+      example: false

@@ -1,0 +1,188 @@
+SplitGroupSetting:
+  type: object
+  nullable: true
+  properties:
+    income_other_ratio:
+      type: integer
+      nullable: true
+      minimum: 0
+      maximum: 100
+      description: 収入のうち相手負担とする割合（%）。未設定なら null
+      example: 50
+    income_other_offset:
+      type: integer
+      nullable: true
+      description: 収入の按分後に加減算する固定額
+      example: 0
+    expense_other_ratio:
+      type: integer
+      nullable: true
+      minimum: 0
+      maximum: 100
+      description: 支出のうち相手負担とする割合（%）。未設定なら null
+      example: 50
+    expense_other_offset:
+      type: integer
+      nullable: true
+      description: 支出の按分後に加減算する固定額
+      example: 0
+
+SplitGroupCategoryOverride:
+  type: object
+  properties:
+    category_id:
+      type: integer
+      example: 3
+    type_id:
+      type: integer
+      description: 1 = income, 2 = expense
+      example: 2
+    other_ratio:
+      type: integer
+      minimum: 0
+      maximum: 100
+      example: 80
+
+SplitGroup:
+  type: object
+  properties:
+    id:
+      type: integer
+      example: 1
+    label:
+      type: string
+      example: 家族A
+    setting:
+      $ref: '#/SplitGroupSetting'
+    category_overrides:
+      type: array
+      items:
+        $ref: '#/SplitGroupCategoryOverride'
+    created_at:
+      type: string
+      format: date-time
+      example: 2026-05-26T00:00:00Z
+    updated_at:
+      type: string
+      format: date-time
+      example: 2026-05-26T00:00:00Z
+
+StoreSplitGroupRequest:
+  type: object
+  required:
+    - label
+  properties:
+    label:
+      type: string
+      maxLength: 100
+      example: 家族A
+
+UpdateSplitGroupRequest:
+  type: object
+  properties:
+    label:
+      type: string
+      maxLength: 100
+      example: 家族A
+
+UpdateSplitGroupSettingsRequest:
+  type: object
+  properties:
+    income_other_ratio:
+      type: integer
+      nullable: true
+      minimum: 0
+      maximum: 100
+      example: 50
+    income_other_offset:
+      type: integer
+      nullable: true
+      example: 0
+    expense_other_ratio:
+      type: integer
+      nullable: true
+      minimum: 0
+      maximum: 100
+      example: 50
+    expense_other_offset:
+      type: integer
+      nullable: true
+      example: 0
+    overrides:
+      type: array
+      nullable: true
+      description: 指定した場合、既存のカテゴリ別上書き設定を全置換する
+      items:
+        $ref: '#/SplitGroupCategoryOverride'
+
+UpdateCategoryOverridesRequest:
+  type: object
+  required:
+    - overrides
+  properties:
+    overrides:
+      type: array
+      description: 既存のカテゴリ別上書き設定を全置換する（空配列で全削除）
+      items:
+        $ref: '#/SplitGroupCategoryOverride'
+
+SplitGroupMonthlySummary:
+  type: object
+  properties:
+    status:
+      type: integer
+      example: 200
+    income:
+      type: integer
+      example: 300000
+    expense:
+      type: integer
+      example: 150000
+    balance:
+      type: integer
+      example: 150000
+
+SplitGroupPreviewAmount:
+  type: object
+  properties:
+    total:
+      type: integer
+      example: 150000
+    self:
+      type: integer
+      example: 75000
+    other:
+      type: integer
+      example: 75000
+
+SplitGroupPreviewResponse:
+  type: object
+  description: >
+    income / expense は設定の ratio が未設定（null）の場合はレスポンスに含まれない。
+    balance.self / balance.other は income・expense が両方含まれる場合のみ出力される。
+  properties:
+    status:
+      type: integer
+      example: 200
+    group_label:
+      type: string
+      example: 家族A
+    month:
+      type: string
+      example: "2026-05"
+    income:
+      $ref: '#/SplitGroupPreviewAmount'
+    expense:
+      $ref: '#/SplitGroupPreviewAmount'
+    balance:
+      type: object
+      properties:
+        total:
+          type: integer
+          example: 150000
+        self:
+          type: integer
+          example: 37500
+        other:
+          type: integer
+          example: 37500

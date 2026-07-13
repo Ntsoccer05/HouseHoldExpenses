@@ -70,3 +70,48 @@ HashPathParameter:
   schema:
     type: string
   description: 認証ハッシュ
+
+FixedExpenseIdPathParameter:
+  name: fixedExpense
+  in: path
+  required: true
+  schema:
+    type: integer
+  description: 固定費ID
+
+SplitGroupIdPathParameter:
+  name: splitGroup
+  in: path
+  required: true
+  schema:
+    type: integer
+  description: 分担グループID
+
+MonthStringParameter:
+  name: month
+  in: query
+  required: true
+  schema:
+    type: string
+    pattern: '^\d{6}$'
+    example: "202605"
+  description: 対象年月（YYYYMM 形式の文字列）
+
+BaseMonthParameter:
+  name: base_month
+  in: query
+  required: true
+  schema:
+    type: string
+    pattern: '^\d{6}$'
+    example: "202605"
+  description: 基準年月（YYYYMM 形式）。前々月〜翌月の4ヶ月分を取得する起点
+
+UserIdQueryParameter:
+  name: user_id
+  in: query
+  required: true
+  schema:
+    type: integer
+    example: 1
+  description: 対象ユーザーID

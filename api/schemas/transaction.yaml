@@ -198,3 +198,63 @@ CopyMultipleContentsResponse:
       items:
         type: integer
       example: [101, 102, 103]
+
+FormattedTransaction:
+  description: 表示用に整形された取引データ（カテゴリ名・アイコンを結合済み）
+  type: object
+  properties:
+    id:
+      type: integer
+      example: 1
+    date:
+      type: string
+      format: date
+      example: 2026-05-14
+    amount:
+      type: integer
+      example: 5000
+    content:
+      type: string
+      nullable: true
+      example: スーパー
+    type:
+      type: string
+      enum: [income, expense]
+      example: expense
+    category:
+      type: string
+      nullable: true
+      example: 食費
+    icon:
+      type: string
+      nullable: true
+      example: 🍽️
+    isFixedExpense:
+      type: boolean
+      example: false
+    fixedExpenseId:
+      type: integer
+      nullable: true
+      example: null
+
+MonthlyTransactionsBulkResponse:
+  type: object
+  description: >
+    基準月（base_month）を中心に前々月・前月・当月・翌月の4ヶ月分を
+    "YYYYMM" 形式の年月をキーとして返す
+  additionalProperties:
+    type: array
+    items:
+      $ref: '#/FormattedTransaction'
+  example:
+    "202603":
+      - id: 10
+        date: 2026-03-05
+        amount: 3000
+        content: スーパー
+        type: expense
+        category: 食費
+        icon: 🍽️
+        isFixedExpense: false
+        fixedExpenseId: null
+    "202604": []

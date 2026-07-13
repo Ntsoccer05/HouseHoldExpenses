@@ -125,3 +125,34 @@ SortCategoryRequest:
           order:
             type: integer
             example: 1
+
+BatchSaveCategoriesRequest:
+  type: object
+  required:
+    - user_id
+    - categories
+  properties:
+    user_id:
+      type: integer
+      example: 1
+    categories:
+      type: array
+      items:
+        type: object
+        required:
+          - id
+          - label
+        properties:
+          id:
+            type: integer
+            example: 1
+          label:
+            type: string
+            example: 食費
+          icon:
+            type: string
+            example: 🍽️
+          filtered_id:
+            type: integer
+            nullable: true
+            example: null

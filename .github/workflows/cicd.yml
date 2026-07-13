@@ -4,6 +4,12 @@ on:
   push:
     branches:
       - main
+    paths-ignore:
+      - "**.md"
+      - "docs/**"
+      - "api/**"
+      - ".github/**"
+      - "!.github/workflows/cicd.yml"
   workflow_dispatch:
 
 permissions:

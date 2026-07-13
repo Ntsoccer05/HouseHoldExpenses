@@ -5,6 +5,20 @@ Unauthorized:
       schema:
         $ref: '../schemas/common.yaml#/UnauthorizedError'
 
+Forbidden:
+  description: 権限がありません（リソース所有者ではない）
+  content:
+    application/json:
+      schema:
+        type: object
+        properties:
+          status:
+            type: integer
+            example: 403
+          message:
+            type: string
+            example: 権限がありません
+
 ValidationError:
   description: バリデーションエラー
   content:
@@ -132,3 +146,100 @@ CopyMultipleContentsError:
           error_code:
             type: string
             example: SAME_DATE_ERROR
+
+MonthlyTransactionsBulkSuccess:
+  description: 複数月分の取引一括取得成功
+  content:
+    application/json:
+      schema:
+        $ref: '../schemas/transaction.yaml#/MonthlyTransactionsBulkResponse'
+
+# ============= Fixed Expense =============
+FixedExpenseArraySuccess:
+  description: 固定費一覧取得成功
+  content:
+    application/json:
+      schema:
+        type: object
+        properties:
+          status:
+            type: integer
+            example: 200
+          fixedExpenses:
+            type: array
+            items:
+              $ref: '../schemas/fixed_expense.yaml#/FixedExpense'
+
+FixedExpenseSuccess:
+  description: 固定費の作成・更新成功
+  content:
+    application/json:
+      schema:
+        type: object
+        properties:
+          status:
+            type: integer
+            example: 200
+          message:
+            type: string
+            example: 固定費を作成しました
+          fixedExpense:
+            $ref: '../schemas/fixed_expense.yaml#/FixedExpense'
+
+# ============= Split Group =============
+SplitGroupArraySuccess:
+  description: 分担グループ一覧取得成功
+  content:
+    application/json:
+      schema:
+        type: object
+        properties:
+          status:
+            type: integer
+            example: 200
+          splitGroups:
+            type: array
+            items:
+              $ref: '../schemas/split_group.yaml#/SplitGroup'
+
+SplitGroupSuccess:
+  description: 分担グループの作成・更新・設定更新成功
+  content:
+    application/json:
+      schema:
+        type: object
+        properties:
+          status:
+            type: integer
+            example: 200
+          splitGroup:
+            $ref: '../schemas/split_group.yaml#/SplitGroup'
+
+CategoryOverridesSuccess:
+  description: カテゴリ別上書き設定の取得・更新成功
+  content:
+    application/json:
+      schema:
+        type: object
+        properties:
+          status:
+            type: integer
+            example: 200
+          categoryOverrides:
+            type: array
+            items:
+              $ref: '../schemas/split_group.yaml#/SplitGroupCategoryOverride'
+
+SplitGroupPreviewSuccess:
+  description: 分担プレビュー取得成功
+  content:
+    application/json:
+      schema:
+        $ref: '../schemas/split_group.yaml#/SplitGroupPreviewResponse'
+
+SplitGroupMonthlySummarySuccess:
+  description: 月次サマリー（グループなし共有用）取得成功
+  content:
+    application/json:
+      schema:
+        $ref: '../schemas/split_group.yaml#/SplitGroupMonthlySummary'
