@@ -16,6 +16,12 @@ trait CreatesApplication
 
         $app->make(Kernel::class)->bootstrap();
 
+        // docker-compose.yml が DB_DATABASE をコンテナの実環境変数として注入しており
+        // $_ENV/$_SERVER に乗ってしまうため、putenv()ベースの上書き(.env.testing /
+        // phpunit.xmlのforce="true")では効かない。ここで直接configを上書きして
+        // 開発用DBと分離する（無いとRefreshDatabaseが開発用DBを消す）。
+        config(['database.connections.mysql.database' => 'householdExpensesApp_testing']);
+
         return $app;
     }
 }

@@ -3,20 +3,20 @@
 namespace App\Http\Controllers;
 
 use App\Enums\TypeEnum;
-use App\Http\Requests\TransactionRequest;
 use App\Http\Requests\CopyMultipleContentsRequest;
+use App\Http\Requests\TransactionRequest;
 use App\Models\Content;
 use App\Models\FixedExpense;
 use App\Models\Type;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use DateTime;
-use Illuminate\Http\Response;
 use Carbon\Carbon;
+use DateTime;
+use Illuminate\Http\Request;
+use Illuminate\Http\Response;
+use Illuminate\Support\Facades\DB;
 
 /**
  * 家計簿管理用コントローラー
- * 
+ *
  * 家計簿の作成、更新、削除、取得を行うAPIエンドポイントを提供します。
  */
 class TransactionController extends Controller
@@ -24,15 +24,16 @@ class TransactionController extends Controller
     /**
      * 家計簿一覧を取得
      *
-     * @param \Illuminate\Http\Request $request HTTPリクエストオブジェクト。リクエストには、ユーザーIDとカテゴリデータが含まれています。
-     * @param \App\Models\IncomeCategory $incomeCategory 収入カテゴリモデルインスタンス。
+     * @param  \Illuminate\Http\Request  $request  HTTPリクエストオブジェクト。リクエストには、ユーザーIDとカテゴリデータが含まれています。
+     * @param  \App\Models\IncomeCategory  $incomeCategory  収入カテゴリモデルインスタンス。
      * @return \Illuminate\Http\JsonResponse カテゴリ作成の結果をJSON形式で返します。
      */
-    public function index(Request $request, Content $transactionContent, Type $type){
+    public function index(Request $request, Content $transactionContent, Type $type)
+    {
         $user_id = $request->user_id;
-        $transactionContents = Content::with(['type'])->where('user_id', $user_id)->get();
+        $transactionContents = Content::where('user_id', $user_id)->get();
         $transactions = [];
-        foreach($transactionContents as $index => $content){
+        foreach ($transactionContents as $index => $content) {
             $formatedTransaction = $content->formatedTransaction($content);
             $transactions[] = $formatedTransaction;
         }
@@ -43,12 +44,13 @@ class TransactionController extends Controller
     /**
      * 新しい家計簿作成
      *
-     * @param \Illuminate\Http\Request $request HTTPリクエストオブジェクト。リクエストには、ユーザーIDとカテゴリデータが含まれています。
-     * @param \App\Models\Content $transactionContent 家計簿モデルのインスタンス。
-     * @param \App\Models\Type $type タイプモデルのインスタンス。
+     * @param  \Illuminate\Http\Request  $request  HTTPリクエストオブジェクト。リクエストには、ユーザーIDとカテゴリデータが含まれています。
+     * @param  \App\Models\Content  $transactionContent  家計簿モデルのインスタンス。
+     * @param  \App\Models\Type  $type  タイプモデルのインスタンス。
      * @return \Illuminate\Http\JsonResponse カテゴリ作成の結果をJSON形式で返します。
      */
-    public function create(TransactionRequest $request, Content $transactionContent){
+    public function create(TransactionRequest $request, Content $transactionContent)
+    {
         $user_id = $request->user_id;
         $contents = $request->transaction;
         try {
@@ -60,22 +62,22 @@ class TransactionController extends Controller
             $transactionContent->recorded_at = new DateTime($contents['date']);
             $transactionContent->amount = $contents['amount'];
             $transactionContent->content = $contents['content'];
-            $isFixedExpense = !empty($contents['isFixedExpense'])
+            $isFixedExpense = ! empty($contents['isFixedExpense'])
                 && $transactionContent->type_id === config('app.expense_type_id');
             if ($isFixedExpense) {
                 $transactionContent->is_fixed_expense = true;
                 $transactionContent->fixed_expense_day = isset($contents['fixedExpenseDay'])
-                    ? (int)$contents['fixedExpenseDay']
-                    : (int)(new DateTime($contents['date']))->format('j');
+                    ? (int) $contents['fixedExpenseDay']
+                    : (int) (new DateTime($contents['date']))->format('j');
             }
             $transactionContent->save();
             if ($isFixedExpense) {
                 $fixedExpense = new FixedExpense();
-                $fixedExpense->user_id           = $user_id;
-                $fixedExpense->type_id           = $transactionContent->type_id;
-                $fixedExpense->category_id       = $transactionContent->category_id;
-                $fixedExpense->amount            = $transactionContent->amount;
-                $fixedExpense->content           = $transactionContent->content ?? '';
+                $fixedExpense->user_id = $user_id;
+                $fixedExpense->type_id = $transactionContent->type_id;
+                $fixedExpense->category_id = $transactionContent->category_id;
+                $fixedExpense->amount = $transactionContent->amount;
+                $fixedExpense->content = $transactionContent->content ?? '';
                 $fixedExpense->fixed_expense_day = $transactionContent->fixed_expense_day;
                 $fixedExpense->save();
                 $transactionContent->fixed_expense_id = $fixedExpense->id;
@@ -96,15 +98,16 @@ class TransactionController extends Controller
     /**
      * 既存の家計簿を更新
      *
-     * @param \Illuminate\Http\Request $request HTTPリクエストオブジェクト。リクエストには、ユーザーIDとカテゴリデータが含まれています。
-     * @param \App\Models\IncomeCategory $incomeCategory 収入カテゴリモデルインスタンス。
+     * @param  \Illuminate\Http\Request  $request  HTTPリクエストオブジェクト。リクエストには、ユーザーIDとカテゴリデータが含まれています。
+     * @param  \App\Models\IncomeCategory  $incomeCategory  収入カテゴリモデルインスタンス。
      * @return \Illuminate\Http\JsonResponse カテゴリ作成の結果をJSON形式で返します。
      */
-    public function update(TransactionRequest $request, Content $transactionContent, Type $type){
+    public function update(TransactionRequest $request, Content $transactionContent, Type $type)
+    {
         $user_id = $request->user_id;
         $contents = $request->transaction;
         $transactionContent = $transactionContent->where('user_id', $user_id)->where('id', $request->transactionId)->first();
-        if($transactionContent){
+        if ($transactionContent) {
             try {
                 // Start a new database transaction
                 DB::beginTransaction();
@@ -115,20 +118,20 @@ class TransactionController extends Controller
                 $transactionContent->content = $contents['content'];
                 $isFixedExpense = array_key_exists('isFixedExpense', $contents) && $contents['isFixedExpense'];
                 // 固定収支チェックがオンになった場合（未登録のもののみ）
-                if ($isFixedExpense && !$transactionContent->is_fixed_expense) {
+                if ($isFixedExpense && ! $transactionContent->is_fixed_expense) {
                     $transactionContent->is_fixed_expense = true;
                     $fixedExpense = new FixedExpense();
-                    $fixedExpense->user_id           = $user_id;
-                    $fixedExpense->type_id           = $transactionContent->type_id;
-                    $fixedExpense->category_id       = $transactionContent->category_id;
-                    $fixedExpense->amount            = abs($transactionContent->amount);
-                    $fixedExpense->content           = $transactionContent->content ?? '';
-                    $fixedExpense->fixed_expense_day = (int)(new DateTime($contents['date']))->format('j');
+                    $fixedExpense->user_id = $user_id;
+                    $fixedExpense->type_id = $transactionContent->type_id;
+                    $fixedExpense->category_id = $transactionContent->category_id;
+                    $fixedExpense->amount = abs($transactionContent->amount);
+                    $fixedExpense->content = $transactionContent->content ?? '';
+                    $fixedExpense->fixed_expense_day = (int) (new DateTime($contents['date']))->format('j');
                     $fixedExpense->save();
                     $transactionContent->fixed_expense_id = $fixedExpense->id;
                 }
                 // 固定収支チェックがオフになった場合は is_fixed_expense・fixed_expense_id をクリアし固定収支を無効化
-                if (!$isFixedExpense && $transactionContent->is_fixed_expense) {
+                if (! $isFixedExpense && $transactionContent->is_fixed_expense) {
                     $prevFixedExpenseId = $transactionContent->fixed_expense_id;
                     $transactionContent->is_fixed_expense = false;
                     $transactionContent->fixed_expense_id = null;
@@ -141,7 +144,7 @@ class TransactionController extends Controller
                 $transactionContent->save();
                 // // Commit the transaction
                 DB::commit();
-    
+
                 return response()->json(['message' => '家計簿を登録しました', 'id' => $transactionContent->id], 200);
             } catch (\Exception $e) {
                 // Roll back the transaction if there's an error
@@ -157,15 +160,16 @@ class TransactionController extends Controller
      *
      * 指定されたIDの家計簿データを削除します。
      *
-     * @param Request $request ユーザーIDとトランザクションIDを含むリクエスト。
-     * @param Content $transactionContent 家計簿モデルのインスタンス。
+     * @param  Request  $request  ユーザーIDとトランザクションIDを含むリクエスト。
+     * @param  Content  $transactionContent  家計簿モデルのインスタンス。
      * @return \Illuminate\Http\JsonResponse 削除結果をJSON形式で返します。
      */
-    public function delete(Request $request, Content $transactionContent){
+    public function delete(Request $request, Content $transactionContent)
+    {
         $user_id = $request->user_id;
         $transactionId = $request->transactionId;
         $transactionContent = $transactionContent->where('user_id', $user_id)->where('id', $transactionId)->first();
-        if($transactionContent){
+        if ($transactionContent) {
             try {
                 DB::beginTransaction();
                 $transactionContent->delete();
@@ -174,6 +178,7 @@ class TransactionController extends Controller
                 return response()->json(['message' => '家計簿を登録しました', 'id' => $transactionContent->id], 200);
             } catch (\Exception $e) {
                 DB::rollBack();
+
                 return response()->json(['error' => config('app.debug') ? $e->getMessage() : null], 500);
             }
         }
@@ -184,8 +189,8 @@ class TransactionController extends Controller
      *
      * 指定された月のトランザクションデータを取得します。
      *
-     * @param Request $request リクエストデータ（currentMonthを含む）。
-     * @param Content $transactionContent 家計簿モデルのインスタンス。
+     * @param  Request  $request  リクエストデータ（currentMonthを含む）。
+     * @param  Content  $transactionContent  家計簿モデルのインスタンス。
      * @return \Illuminate\Http\JsonResponse 月次データをJSON形式で返します。
      */
     public function getMonthlyTransaction(Request $request, Content $transactionContent)
@@ -193,8 +198,9 @@ class TransactionController extends Controller
         try {
             $monthlyTransactionData = $transactionContent->getMonthlyTransaction($request);
             $preMonthlyTransactionData = $transactionContent->getPreMonthlyTransaction($request);
+
             return response()->json(['message' => '選択月の家計簿を取得しました。', 'monthlyTransactionData' => $monthlyTransactionData, 'preMonthlyTransactionData' => $preMonthlyTransactionData], Response::HTTP_OK);
-        }catch (\Exception $e) {
+        } catch (\Exception $e) {
             return response()->json(['message' => '選択月の家計簿はありません'], Response::HTTP_NOT_FOUND);
         }
     }
@@ -205,8 +211,8 @@ class TransactionController extends Controller
      * 基準月を中心に前々月・前月・当月・翌月の4ヶ月分を返します。
      * レスポンス形式: { "202602": [...], "202603": [...], "202604": [...], "202605": [...] }
      *
-     * @param Request $request base_month（Ym形式）, user_id を含むリクエスト
-     * @param Content $transactionContent 家計簿モデルのインスタンス
+     * @param  Request  $request  base_month（Ym形式）, user_id を含むリクエスト
+     * @param  Content  $transactionContent  家計簿モデルのインスタンス
      * @return \Illuminate\Http\JsonResponse 月ごとのデータをJSON形式で返します
      */
     public function getMonthlyTransactionsBulk(Request $request, Content $transactionContent)
@@ -229,14 +235,14 @@ class TransactionController extends Controller
             return response()->json(['message' => 'データの取得に失敗しました'], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
-    
+
     /**
      * 年次家計簿データを取得
      *
      * 指定された年のトランザクションデータを取得します。
      *
-     * @param Request $request リクエストデータ（currentYearを含む）。
-     * @param Content $transactionContent 家計簿モデルのインスタンス。
+     * @param  Request  $request  リクエストデータ（currentYearを含む）。
+     * @param  Content  $transactionContent  家計簿モデルのインスタンス。
      * @return \Illuminate\Http\JsonResponse 年次データをJSON形式で返します。
      */
     public function getYearlyTransaction(Request $request, Content $transactionContent)
@@ -244,8 +250,9 @@ class TransactionController extends Controller
         try {
             $yearlyTransactionData = $transactionContent->getYearlyTransaction($request);
             $preYearlyTransactionData = $transactionContent->getPreYearlyTransaction($request);
+
             return response()->json(['message' => '選択年の家計簿を取得しました。', 'yearlyTransactionData' => $yearlyTransactionData, 'preYearlyTransactionData' => $preYearlyTransactionData], Response::HTTP_OK);
-        }catch (\Exception $e) {
+        } catch (\Exception $e) {
             return response()->json(['message' => '選択年の家計簿はありません'], Response::HTTP_NOT_FOUND);
         }
     }
@@ -255,7 +262,7 @@ class TransactionController extends Controller
      *
      * 指定された複数の支出を別の日付にコピーします。
      *
-     * @param CopyMultipleContentsRequest $request リクエストデータ（source_date, destination_date, content_ids）。
+     * @param  CopyMultipleContentsRequest  $request  リクエストデータ（source_date, destination_date, content_ids）。
      * @return \Illuminate\Http\JsonResponse コピー結果をJSON形式で返します。
      */
     public function copyMultipleContents(CopyMultipleContentsRequest $request)
@@ -312,7 +319,7 @@ class TransactionController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => count($createdIds) . '件の支出をコピーしました',
+                'message' => count($createdIds).'件の支出をコピーしました',
                 'copied_count' => count($createdIds),
                 'created_ids' => $createdIds,
             ], 200);

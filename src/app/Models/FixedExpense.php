@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Models\Content;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -18,9 +17,9 @@ class FixedExpense extends Model
     ];
 
     protected $casts = [
-        'is_active'           => 'boolean',
-        'last_replicated_at'  => 'datetime',
-        'deactivated_at'      => 'datetime',
+        'is_active' => 'boolean',
+        'last_replicated_at' => 'datetime',
+        'deactivated_at' => 'datetime',
     ];
 
     public function user(): BelongsTo
@@ -32,14 +31,17 @@ class FixedExpense extends Model
     {
         $lastDay = Carbon::create($year, $month)->endOfMonth()->day;
         $day = min($this->fixed_expense_day, $lastDay);
+
         return Carbon::create($year, $month, $day);
     }
 
     public function isReplicatedForMonth(int $year, int $month): bool
     {
-        $yearMonth = sprintf('%04d%02d', $year, $month);
+        $start = Carbon::create($year, $month, 1)->startOfMonth();
+        $end = $start->copy()->endOfMonth();
+
         return Content::where('fixed_expense_id', $this->id)
-            ->whereRaw('DATE_FORMAT(recorded_at, "%Y%m") = ?', [$yearMonth])
+            ->whereBetween('recorded_at', [$start, $end])
             ->exists();
     }
 
@@ -50,12 +52,12 @@ class FixedExpense extends Model
         }
         $executionDate = $this->calculateExecutionDate($year, $month);
         $content = Content::create([
-            'user_id'          => $this->user_id,
-            'type_id'          => $this->type_id,
-            'category_id'      => $this->category_id,
-            'amount'           => $this->amount,
-            'content'          => $this->content,
-            'recorded_at'      => $executionDate,
+            'user_id' => $this->user_id,
+            'type_id' => $this->type_id,
+            'category_id' => $this->category_id,
+            'amount' => $this->amount,
+            'content' => $this->content,
+            'recorded_at' => $executionDate,
             'is_fixed_expense' => true,
             'fixed_expense_id' => $this->id,
         ]);

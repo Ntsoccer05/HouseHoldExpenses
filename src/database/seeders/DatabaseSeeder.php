@@ -7,13 +7,10 @@ namespace Database\Seeders;
 use App\Models\Content;
 use App\Models\ExpenceCategory;
 use App\Models\FixedCategory;
-use App\Models\FixedExpenseCategory;
-use App\Models\FixedIncomeCategory;
 use App\Models\IncomeCategory;
 use App\Models\Type;
 use App\Models\User;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
 
 class DatabaseSeeder extends Seeder
 {
@@ -24,12 +21,9 @@ class DatabaseSeeder extends Seeder
     {
         // \App\Models\User::factory(10)->create();
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test-kakep@example.com',
-        ]);
         // User::factory(10)->create();
         $this->call(TypeSeeder::class);
+        $this->call(TestAccountSeeder::class);
         // foreach(config('app.income_contents') as $key => $incomeContent){
         //     FixedCategory::factory()->create([
         //         'id' => $key + 1,

@@ -14,6 +14,7 @@ class FixedExpenseTest extends TestCase
     use RefreshDatabase;
 
     private User $user;
+
     private ExpenceCategory $category;
 
     protected function setUp(): void
@@ -25,27 +26,27 @@ class FixedExpenseTest extends TestCase
             ['id' => 2, 'name' => '支出', 'en_name' => 'expense'],
         ]);
         $this->category = ExpenceCategory::create([
-            'user_id'     => $this->user->id,
-            'type_id'     => 2,
-            'content'     => '家賃',
+            'user_id' => $this->user->id,
+            'type_id' => 2,
+            'content' => '家賃',
             'filtered_id' => 1,
-            'icon'        => '',
+            'icon' => '',
         ]);
     }
 
     public function test_can_list_fixed_expenses(): void
     {
         FixedExpense::create([
-            'user_id'           => $this->user->id,
-            'type_id'           => 2,
-            'category_id'       => $this->category->id,
-            'amount'            => 100000,
-            'content'           => '家賃',
+            'user_id' => $this->user->id,
+            'type_id' => 2,
+            'category_id' => $this->category->id,
+            'amount' => 100000,
+            'content' => '家賃',
             'fixed_expense_day' => 1,
         ]);
 
         $response = $this->actingAs($this->user)
-            ->getJson('/api/fixed-expenses?user_id=' . $this->user->id);
+            ->getJson('/api/fixed-expenses?user_id='.$this->user->id);
 
         $response->assertStatus(200)
             ->assertJsonPath('status', 200)
@@ -56,17 +57,18 @@ class FixedExpenseTest extends TestCase
     {
         $response = $this->actingAs($this->user)
             ->postJson('/api/fixed-expenses', [
-                'user_id'           => $this->user->id,
-                'category_id'       => $this->category->id,
-                'amount'            => 100000,
-                'content'           => '家賃',
+                'user_id' => $this->user->id,
+                'type' => 'expense',
+                'category_id' => $this->category->id,
+                'amount' => 100000,
+                'content' => '家賃',
                 'fixed_expense_day' => 1,
             ]);
 
         $response->assertStatus(200)->assertJsonPath('status', 200);
         $this->assertDatabaseHas('fixed_expenses', [
-            'user_id'           => $this->user->id,
-            'amount'            => 100000,
+            'user_id' => $this->user->id,
+            'amount' => 100000,
             'fixed_expense_day' => 1,
         ]);
     }
@@ -74,58 +76,59 @@ class FixedExpenseTest extends TestCase
     public function test_can_update_fixed_expense(): void
     {
         $fixedExpense = FixedExpense::create([
-            'user_id'           => $this->user->id,
-            'type_id'           => 2,
-            'category_id'       => $this->category->id,
-            'amount'            => 100000,
-            'content'           => '家賃',
+            'user_id' => $this->user->id,
+            'type_id' => 2,
+            'category_id' => $this->category->id,
+            'amount' => 100000,
+            'content' => '家賃',
             'fixed_expense_day' => 1,
         ]);
 
         $response = $this->actingAs($this->user)
-            ->putJson('/api/fixed-expenses/' . $fixedExpense->id, [
+            ->putJson('/api/fixed-expenses/'.$fixedExpense->id, [
                 'user_id' => $this->user->id,
-                'amount'  => 110000,
+                'amount' => 110000,
             ]);
 
         $response->assertStatus(200)->assertJsonPath('status', 200);
         $this->assertDatabaseHas('fixed_expenses', ['id' => $fixedExpense->id, 'amount' => 110000]);
     }
 
-    public function test_can_soft_delete_fixed_expense(): void
+    public function test_can_delete_fixed_expense(): void
     {
+        // SoftDeletes廃止済み(is_active/deactivated_at方式)のためDELETEは物理削除
         $fixedExpense = FixedExpense::create([
-            'user_id'           => $this->user->id,
-            'type_id'           => 2,
-            'category_id'       => $this->category->id,
-            'amount'            => 100000,
-            'content'           => '家賃',
+            'user_id' => $this->user->id,
+            'type_id' => 2,
+            'category_id' => $this->category->id,
+            'amount' => 100000,
+            'content' => '家賃',
             'fixed_expense_day' => 1,
         ]);
 
         $response = $this->actingAs($this->user)
-            ->deleteJson('/api/fixed-expenses/' . $fixedExpense->id . '?user_id=' . $this->user->id);
+            ->deleteJson('/api/fixed-expenses/'.$fixedExpense->id.'?user_id='.$this->user->id);
 
         $response->assertStatus(200)->assertJsonPath('status', 200);
-        $this->assertSoftDeleted('fixed_expenses', ['id' => $fixedExpense->id]);
+        $this->assertDatabaseMissing('fixed_expenses', ['id' => $fixedExpense->id]);
     }
 
     public function test_cannot_update_other_users_fixed_expense(): void
     {
         $otherUser = User::factory()->create();
         $fixedExpense = FixedExpense::create([
-            'user_id'           => $otherUser->id,
-            'type_id'           => 2,
-            'category_id'       => $this->category->id,
-            'amount'            => 100000,
-            'content'           => '家賃',
+            'user_id' => $otherUser->id,
+            'type_id' => 2,
+            'category_id' => $this->category->id,
+            'amount' => 100000,
+            'content' => '家賃',
             'fixed_expense_day' => 1,
         ]);
 
         $response = $this->actingAs($this->user)
-            ->putJson('/api/fixed-expenses/' . $fixedExpense->id, [
+            ->putJson('/api/fixed-expenses/'.$fixedExpense->id, [
                 'user_id' => $this->user->id,
-                'amount'  => 999999,
+                'amount' => 999999,
             ]);
 
         $response->assertStatus(403);

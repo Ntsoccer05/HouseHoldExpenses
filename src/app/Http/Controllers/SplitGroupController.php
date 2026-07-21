@@ -3,33 +3,50 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreSplitGroupRequest;
+use App\Http\Requests\UpdateCategoryOverridesRequest;
 use App\Http\Requests\UpdateSplitGroupRequest;
 use App\Http\Requests\UpdateSplitGroupSettingsRequest;
-use App\Http\Requests\UpdateCategoryOverridesRequest;
 use App\Models\Content;
 use App\Models\SplitGroup;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class SplitGroupController extends Controller
 {
+    /**
+     * "Ym" 形式の年月文字列から、月初〜月末の日時範囲を返す
+     *
+     * whereYear()/whereMonth() は列を関数で包むためインデックスが使えず全行走査になる。
+     * whereBetween で使える範囲に変換する。
+     *
+     * @return array{0: Carbon, 1: Carbon}
+     */
+    private function monthRange(string $yearMonth): array
+    {
+        $start = Carbon::createFromFormat('Ym', $yearMonth)->startOfMonth();
+        $end = $start->copy()->endOfMonth();
+
+        return [$start, $end];
+    }
+
     public function index(Request $request)
     {
         $groups = SplitGroup::where('user_id', $request->user()->id)
             ->with(['setting', 'categoryOverrides'])
             ->orderBy('id')
             ->get()
-            ->map(fn($g) => [
-                'id'      => $g->id,
-                'label'   => $g->label,
+            ->map(fn ($g) => [
+                'id' => $g->id,
+                'label' => $g->label,
                 'setting' => $g->setting ? [
-                    'income_other_ratio'   => $g->setting->income_other_ratio,
-                    'income_other_offset'  => $g->setting->income_other_offset,
-                    'expense_other_ratio'  => $g->setting->expense_other_ratio,
+                    'income_other_ratio' => $g->setting->income_other_ratio,
+                    'income_other_offset' => $g->setting->income_other_offset,
+                    'expense_other_ratio' => $g->setting->expense_other_ratio,
                     'expense_other_offset' => $g->setting->expense_other_offset,
                 ] : null,
-                'category_overrides' => $g->categoryOverrides->map(fn($o) => [
+                'category_overrides' => $g->categoryOverrides->map(fn ($o) => [
                     'category_id' => $o->category_id,
-                    'type_id'     => $o->type_id,
+                    'type_id' => $o->type_id,
                     'other_ratio' => $o->other_ratio,
                 ]),
             ]);
@@ -41,7 +58,7 @@ class SplitGroupController extends Controller
     {
         $group = SplitGroup::create([
             'user_id' => $request->user()->id,
-            'label'   => $request->label,
+            'label' => $request->label,
         ]);
 
         // settings レコードを自動作成（ratioはNULL）
@@ -127,21 +144,18 @@ class SplitGroupController extends Controller
     {
         $request->validate(['month' => 'required|string|regex:/^\d{6}$/']);
 
-        $month    = $request->month;
-        $year     = (int) substr($month, 0, 4);
-        $monthNum = (int) substr($month, 4, 2);
+        [$start, $end] = $this->monthRange($request->month);
 
         $contents = Content::where('user_id', $request->user()->id)
-            ->whereYear('recorded_at', $year)
-            ->whereMonth('recorded_at', $monthNum)
+            ->whereBetween('recorded_at', [$start, $end])
             ->get();
 
-        $income  = $contents->where('type_id', config('app.income_type_id'))->sum('amount');
+        $income = $contents->where('type_id', config('app.income_type_id'))->sum('amount');
         $expense = $contents->where('type_id', config('app.expense_type_id'))->sum('amount');
 
         return response()->json([
-            'status'  => 200,
-            'income'  => $income,
+            'status' => 200,
+            'income' => $income,
             'expense' => $expense,
             'balance' => $income - $expense,
         ]);
@@ -155,27 +169,28 @@ class SplitGroupController extends Controller
             return response()->json(['status' => 403, 'message' => '権限がありません'], 403);
         }
 
-        $month    = $request->month;
-        $year     = (int) substr($month, 0, 4);
+        $month = $request->month;
+        $year = (int) substr($month, 0, 4);
         $monthNum = (int) substr($month, 4, 2);
+
+        [$start, $end] = $this->monthRange($month);
 
         $splitGroup->load(['setting', 'categoryOverrides']);
         $setting = $splitGroup->setting;
 
         $base = [
-            'status'      => 200,
+            'status' => 200,
             'group_label' => $splitGroup->label,
-            'month'       => sprintf('%d-%02d', $year, $monthNum),
+            'month' => sprintf('%d-%02d', $year, $monthNum),
         ];
 
-        if (!$setting) {
+        if (! $setting) {
             return response()->json($base);
         }
 
         // 対象月のトランザクション取得
         $contents = Content::where('user_id', $request->user()->id)
-            ->whereYear('recorded_at', $year)
-            ->whereMonth('recorded_at', $monthNum)
+            ->whereBetween('recorded_at', [$start, $end])
             ->get();
 
         // カテゴリ上書きを "{type_id}_{category_id}" => ratio でインデックス化
@@ -184,12 +199,12 @@ class SplitGroupController extends Controller
             $overrideMap["{$override->type_id}_{$override->category_id}"] = $override->other_ratio;
         }
 
-        $incomeTypeId    = config('app.income_type_id');
-        $expenseTypeId   = config('app.expense_type_id');
-        $incomeContents  = $contents->where('type_id', $incomeTypeId);
+        $incomeTypeId = config('app.income_type_id');
+        $expenseTypeId = config('app.expense_type_id');
+        $incomeContents = $contents->where('type_id', $incomeTypeId);
         $expenseContents = $contents->where('type_id', $expenseTypeId);
-        $incomeTotal     = $incomeContents->sum('amount');
-        $expenseTotal    = $expenseContents->sum('amount');
+        $incomeTotal = $incomeContents->sum('amount');
+        $expenseTotal = $expenseContents->sum('amount');
 
         $result = $base;
 
@@ -197,14 +212,14 @@ class SplitGroupController extends Controller
         if ($setting->income_other_ratio !== null) {
             $incomeOther = 0;
             foreach ($incomeContents->groupBy('category_id') as $categoryId => $items) {
-                $ratio        = $overrideMap["{$incomeTypeId}_{$categoryId}"] ?? $setting->income_other_ratio;
+                $ratio = $overrideMap["{$incomeTypeId}_{$categoryId}"] ?? $setting->income_other_ratio;
                 $incomeOther += (int) floor($items->sum('amount') * $ratio / 100);
             }
             $incomeOther += (int) ($setting->income_other_offset ?? 0);
 
             $result['income'] = [
                 'total' => $incomeTotal,
-                'self'  => $incomeTotal - $incomeOther,
+                'self' => $incomeTotal - $incomeOther,
                 'other' => $incomeOther,
             ];
         }
@@ -213,14 +228,14 @@ class SplitGroupController extends Controller
         if ($setting->expense_other_ratio !== null) {
             $expenseOther = 0;
             foreach ($expenseContents->groupBy('category_id') as $categoryId => $items) {
-                $ratio         = $overrideMap["{$expenseTypeId}_{$categoryId}"] ?? $setting->expense_other_ratio;
+                $ratio = $overrideMap["{$expenseTypeId}_{$categoryId}"] ?? $setting->expense_other_ratio;
                 $expenseOther += (int) floor($items->sum('amount') * $ratio / 100);
             }
             $expenseOther += (int) ($setting->expense_other_offset ?? 0);
 
             $result['expense'] = [
                 'total' => $expenseTotal,
-                'self'  => $expenseTotal - $expenseOther,
+                'self' => $expenseTotal - $expenseOther,
                 'other' => $expenseOther,
             ];
         }
@@ -228,7 +243,7 @@ class SplitGroupController extends Controller
         // 残高：total は常に出力。self/other は両方設定済み時のみ
         $result['balance'] = ['total' => $incomeTotal - $expenseTotal];
         if (isset($result['income']) && isset($result['expense'])) {
-            $result['balance']['self']  = $result['income']['self'] - $result['expense']['self'];
+            $result['balance']['self'] = $result['income']['self'] - $result['expense']['self'];
             $result['balance']['other'] = $result['income']['other'] - $result['expense']['other'];
         }
 
