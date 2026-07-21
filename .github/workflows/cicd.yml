@@ -8,6 +8,7 @@ on:
       - "**.md"
       - "docs/**"
       - "api/**"
+      - "infra/scheduler/**"
       - ".github/**"
       - "!.github/workflows/cicd.yml"
   workflow_dispatch:

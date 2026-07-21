@@ -15,9 +15,9 @@ def handler(event, context):
     EventBridge Scheduler から呼び出されるハンドラー。
 
     event['action']:
-      'stop'      - 平日 01:00 JST: ECS停止 + RDS停止
-      'start_rds' - 平日 09:00 JST: RDS起動
-      'start_ecs' - 平日 09:15 JST: ECS起動（RDS起動から15分後）
+      'stop'      - 平日 23:30 JST: ECS停止 + RDS停止
+      'start_rds' - 平日 07:30 JST: RDS起動
+      'start_ecs' - 平日 07:45 JST: ECS起動（RDS起動から15分後）
     """
     action = event.get('action')
 
