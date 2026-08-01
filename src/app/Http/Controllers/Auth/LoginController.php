@@ -71,6 +71,12 @@ class LoginController extends Controller
         }
     }
 
+    // 認証済みユーザ情報取得
+    public function user(Request $request)
+    {
+        return $request->user();
+    }
+
     // ログアウト処理
     public function logout(Request $request)
     {

@@ -9,6 +9,7 @@ use App\Http\Controllers\FixedExpenseController;
 use App\Http\Controllers\IncomeCategoryController;
 use App\Http\Controllers\SplitGroupController;
 use App\Http\Controllers\TransactionController;
+use App\Http\Controllers\HealthController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -24,9 +25,7 @@ use Illuminate\Support\Facades\Route;
 */
 
 // ヘルスチェック
-Route::get('/health', function () {
-    return response()->json(['status' => 'ok'], 200);
-});
+Route::get('/health', [HealthController::class, 'index']);
 
 // ログイン済みのみ
 // verifiedでメール認証済み
@@ -71,9 +70,7 @@ Route::group(['middleware'=>['auth:sanctum']],function(){
     Route::post('/logout',[LoginController::class, 'logout']);
 });
 
-Route::middleware(['auth:sanctum'])->get('/user', function (Request $request) {
-    return $request->user();
-});
+Route::middleware(['auth:sanctum'])->get('/user', [LoginController::class, 'user']);
 
 Route::post('/login', [LoginController::class, 'login'])->name('login');;
 Route::post('/register', [RegisterController::class, 'temporaryRegister']);

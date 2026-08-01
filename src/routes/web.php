@@ -3,6 +3,8 @@
 use Illuminate\Support\Facades\Route;
 use Filament\Facades\Filament;
 use Illuminate\Support\Facades\Log;
+use App\Http\Controllers\HealthController;
+use App\Http\Controllers\SpaController;
 
 /*
 |--------------------------------------------------------------------------
@@ -15,10 +17,6 @@ use Illuminate\Support\Facades\Log;
 |
 */
 
-Route::get('/health', function () {
-    return response()->json(['status' => 'ok'], 200);
-});
+Route::get('/health', [HealthController::class, 'index']);
 
-Route::get('/{any}', function () {
-    return view('index');
-})->where('any', '.*');
+Route::get('/{any}', SpaController::class)->where('any', '.*');

@@ -19,6 +19,10 @@
 
 module "network" {
   source = "../../modules/network"
+
+  # compute_backend=ecs の間はNAT不要（現状もNATは存在しない）。
+  # lambdaへ切り替えた時だけNATインスタンスを新規作成する。
+  nat_type = var.compute_backend == "lambda" ? "instance" : "none"
 }
 
 module "ecs_service" {

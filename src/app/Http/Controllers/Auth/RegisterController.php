@@ -54,7 +54,7 @@ class RegisterController extends Controller
     public function formatRegister(Request $request)
     {
         Validator::make($request, [
-            'email' => 'required|string|email|max:255|unique:users|email:strict,dns,spoof',
+            'email' => 'required|string|email|max:255|unique:users|email:strict,dns',
             'token' => 'required|string',
         ])->validate();
 
