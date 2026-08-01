@@ -40,13 +40,15 @@ class Kernel extends HttpKernel
         ],
 
         'api' => [
-            // 【一時診断用】並行リクエストで401になる問題の調査のため、
-            // EnsureFrontendRequestsAreStatefulの代わりにLogSanctumRequest(内部でラップして呼ぶ)を使う。
-            // 原因特定後は元に戻すこと。
-            \App\Http\Middleware\LogSanctumRequest::class,
-            \App\Http\Middleware\EncryptCookies::class,
-            \Illuminate\Session\Middleware\StartSession::class,
-            \App\Http\Middleware\DebugSessionTrace::class,
+            // 【2026-08-02修正】EnsureFrontendRequestsAreStatefulはstatefulなフロントエンドリクエストに対して
+            // 内部で独自にEncryptCookies→StartSessionのパイプラインを実行する(frontendMiddleware()参照)。
+            // そのため、ここでEncryptCookies/StartSessionを重ねて登録すると、Sanctum内部パイプラインが
+            // 既に復号・平文化したCookie値をもう一度復号しようとして失敗し(DecryptException)、
+            // Cookieがnullとして扱われて新規セッションが生成されてしまう。
+            // 特にLambdaの並行実行下では「ログインは成功するが以降のAPIがランダムに401になる」
+            // という形で顕在化した(lessons-learned参照)。EncryptCookies/StartSessionは
+            // Sanctum側に任せ、ここには重ねて登録しないこと。
+            \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
             \Illuminate\Routing\Middleware\ThrottleRequests::class.':api',
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
         ],
