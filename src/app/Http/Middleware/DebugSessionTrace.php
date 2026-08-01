@@ -21,6 +21,17 @@ class DebugSessionTrace
         $allCookieNames = array_keys($request->cookies->all());
         $rawHeaderCookie = $request->headers->get('Cookie');
 
+        // laravel_session=... の値部分だけを抜き出して長さ・末尾数文字を見る(復号失敗の手がかり用、値自体は伏せる)
+        $sessionCookieRaw = null;
+        if ($rawHeaderCookie) {
+            foreach (explode(';', $rawHeaderCookie) as $part) {
+                $part = trim($part);
+                if (str_starts_with($part, $cookieName . '=')) {
+                    $sessionCookieRaw = substr($part, strlen($cookieName) + 1);
+                }
+            }
+        }
+
         $response = $next($request);
 
         Log::info('session_trace', [
@@ -34,6 +45,12 @@ class DebugSessionTrace
             'raw_cookie_present' => $rawCookie !== null,
             'raw_cookie_len' => $rawCookie ? strlen($rawCookie) : 0,
             'raw_cookie_hash' => $rawCookie ? substr(md5($rawCookie), 0, 12) : null,
+            'session_cookie_from_header_present' => $sessionCookieRaw !== null,
+            'session_cookie_from_header_len' => $sessionCookieRaw ? strlen($sessionCookieRaw) : 0,
+            'session_cookie_from_header_tail' => $sessionCookieRaw ? substr($sessionCookieRaw, -8) : null,
+            'session_cookie_from_header_ends_with_percent3d' => $sessionCookieRaw ? str_ends_with($sessionCookieRaw, '%3D') : null,
+            'origin' => $request->headers->get('Origin'),
+            'referer' => $request->headers->get('Referer'),
             'resolved_session_id' => $request->hasSession() ? $request->session()->getId() : null,
             'auth_check' => Auth::guard('web')->check(),
             'auth_id' => Auth::guard('web')->id(),
