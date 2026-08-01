@@ -4,6 +4,10 @@
 # compute_backend変数でECS運用とサーバーレス(Bref Lambda)運用を切り替える単一スタック。
 # 設計の理由は ../../README.md を参照。
 #
+# 【2026-08-01】destroy_idle_ecs=true で下記のimport済みECS/ALBリソースは完全削除済み。
+# 以下のimport一覧は初回セットアップ時の historical record（ecsへ切り戻す場合はゼロから再作成が必要で、
+# このimport手順はもう使えない）:
+#
 # 初回apply前に必ず import が必要な既存リソース一覧（README手順3参照）:
 #   module.network.aws_route_table.private          -> rtb-005e62414043ad5a5
 #   module.ecs_service[0].aws_ecs_cluster.this        -> house-hold-app-cluster
@@ -38,14 +42,20 @@ module "lambda_bref" {
   count  = var.compute_backend == "lambda" ? 1 : 0
   source = "../../modules/lambda_bref"
 
-  vpc_id                      = module.network.vpc_id
-  private_subnet_ids          = module.network.private_subnet_ids
-  cloudfront_distribution_arn = var.cloudfront_distribution_arn
+  vpc_id             = module.network.vpc_id
+  private_subnet_ids = module.network.private_subnet_ids
 }
 
 module "scheduler" {
-  count  = var.compute_backend == "lambda" ? 1 : 0
+  count  = var.compute_backend == "lambda" && var.enable_rds_night_stop ? 1 : 0
   source = "../../modules/scheduler"
+}
+
+module "cdn" {
+  source = "../../modules/cdn"
+
+  aws_account_id             = var.aws_account_id
+  cloudfront_distribution_id = var.cloudfront_distribution_id
 }
 
 output "compute_backend" {
@@ -54,10 +64,5 @@ output "compute_backend" {
 
 output "api_origin_domain" {
   description = "CloudFrontの switch_origin.sh に渡すオリジンドメイン（lambdaの場合のみ意味を持つ）"
-  value       = var.compute_backend == "lambda" && length(module.lambda_bref) > 0 ? module.lambda_bref[0].function_url_domain : (length(module.ecs_service) > 0 ? module.ecs_service[0].alb_dns_name : null)
-}
-
-output "lambda_oac_id" {
-  description = "switch_origin.sh 実行時に OAC_ID として渡す（compute_backend=lambdaの場合のみ値を持つ）"
-  value       = length(module.lambda_bref) > 0 ? module.lambda_bref[0].lambda_oac_id : null
+  value       = var.compute_backend == "lambda" && length(module.lambda_bref) > 0 ? module.lambda_bref[0].api_gateway_domain : (length(module.ecs_service) > 0 ? module.ecs_service[0].alb_dns_name : null)
 }

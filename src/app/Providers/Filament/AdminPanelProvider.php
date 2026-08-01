@@ -26,6 +26,9 @@ class AdminPanelProvider extends PanelProvider
             ->default()
             ->id('admin')
             ->path(config('filament.path'))
+            // Lambda環境変数経由の日本語文字列はBrefランタイム側でgetenv()時に文字化けするため、
+            // config('app.name')に依存せずコードへ直接埋め込む
+            ->brandName('カケポン|家計簿アプリ')
             ->login()
             ->colors([
                 'primary' => Color::Amber,

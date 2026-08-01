@@ -7,7 +7,15 @@ variable "public_subnet_ids" {
 }
 
 variable "security_group_id" {
-  description = "既存の house-hold-api-sg (sg-00da69b8788f033d3)。RDSと共用中のためそのまま参照する"
+  description = <<-EOT
+    既存の house-hold-api-sg (sg-00da69b8788f033d3)。ALB・ECSタスク・RDSで共用中のためそのまま参照する。
+    Terraform管理外(aws_security_groupリソースとしてimportしていない、CloudFrontと同様の設計判断)。
+
+    【2026-08-01修正・AWS CLIで直接適用】インバウンド3306(MySQL)が0.0.0.0/0に開放されていたため、
+    自己参照(ECS用)とLambda SG(sg-0dfb9e6ed6ce92fb8)からのみ許可するルールに置き換えた。
+    RDSはpublicly_accessible=falseのため実際のインターネット直接到達性はなかったが、
+    同SGを共用するALBの公開ENI経由でポートスキャン上は開いて見える状態だったため是正した。
+  EOT
   type        = string
   default     = "sg-00da69b8788f033d3"
 }

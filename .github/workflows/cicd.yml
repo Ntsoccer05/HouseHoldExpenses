@@ -1,16 +1,12 @@
 name: Deploy Laravel to ECS
 
+# 2026-08-01: Lambda(Bref)へ完全移行しECS/ALB一式をterraform destroyで削除済みのため無効化。
+# pushトリガーを外しworkflow_dispatchのみに変更(このワークフローを動かしてもECSクラスターが
+# 存在せず失敗する)。再度ECS運用に戻す場合は
+#   terraform apply -var="compute_backend=ecs" -var="destroy_idle_ecs=false"
+# でECS/ALBを作り直してからpushトリガーを復活させること。
+# 今後のデプロイは .github/workflows/deploy-backend-serverless.yml (Lambda) を使う。
 on:
-  push:
-    branches:
-      - main
-    paths-ignore:
-      - "**.md"
-      - "docs/**"
-      - "api/**"
-      - "infra/scheduler/**"
-      - ".github/**"
-      - "!.github/workflows/cicd.yml"
   workflow_dispatch:
 
 permissions:

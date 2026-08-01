@@ -109,7 +109,9 @@ return [
 
     'from' => [
         'address' => env('MAIL_FROM_ADDRESS', 'hello@example.com'),
-        'name' => env('MAIL_FROM_NAME', 'Example'),
+        // Lambda環境変数経由の日本語文字列はBrefランタイム側でgetenv()時に文字化けするため、
+        // MAIL_FROM_NAME環境変数には依存せずデフォルト値へ直接埋め込む
+        'name' => env('MAIL_FROM_NAME', 'カケポン|家計簿アプリ'),
     ],
 
     /*

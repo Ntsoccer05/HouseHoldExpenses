@@ -39,33 +39,67 @@ infra/terraform/
     └── prod/               # 本番環境。上記モジュールを束ねるルート
 ```
 
-## 使い方（実行前に必ず読むこと）
+## 現在の状態（2026-08-01時点）
 
-**このディレクトリのTerraformコードはまだ一度も `terraform apply` していない。**
-既存リソース（ECS/ALB/RDS/CloudFront等）は現状すべてコンソールから作成されたものであり、Terraform stateには
-一切登録されていない。そのままこのコードで `terraform apply` すると、Terraformは「まだ存在しない」と誤認して
-**重複したリソースを新規作成しようとする**（`serverless-migration-lessons-learned.md` 3-17と同種の事故）。
+- `bootstrap/`: apply済み。tfstate用S3(`household-expenses-terraform-state`)・DynamoDB(`household-expenses-terraform-lock`)・
+  GitHub OIDC(既存の共有プロバイダをimportして再利用)・IAMロール(`household-github-actions-deploy`, AdministratorAccess)作成済み
+- `envs/prod`: `compute_backend=lambda`で本番稼働中。**ECS/ALB一式は完全削除済み**
+  （`destroy_idle_ecs=true`。クラスター/サービス/タスク定義/ALB/リスナー3本/ターゲットグループ/ECRリポジトリ/
+  CloudWatchロググループをterraform destroy。ロールバック用の待機は終了し、`compute_backend=ecs`へ戻すには
+  `destroy_idle_ecs=false`にしてapplyし直す＝ゼロから再作成が必要）
+- **RDSは24時間稼働（`enable_rds_night_stop=false`）**。Terraform管理のRDS夜間停止スケジュールを削除。
+  加えて、Lambda移行後も気づかれず毎朝ECSを再起動し続けていたlegacy CloudFormationスタック
+  `household-scheduler`（ECS/RDS夜間停止用の旧仕組み、`infra/scheduler/`）も削除し、二重管理を解消した。
+  24/7化による追加コストは`COST_ESTIMATE.md`5章参照
+- **CloudFrontのオリジンは切替済み**。ただしLambda Function URLではなく**API Gateway(HTTP API)**経由
+  （Function URLはAccessDeniedExceptionが解消できず断念。詳細は`modules/cdn/README.md`参照）
+- 静的アセット（Filament/Livewireのcss/js/vendor）配信用に新規S3バケット`house-hold-api-static-assets`を
+  追加し、該当CloudFrontビヘイビアをそちらに向けている（`modules/cdn/main.tf`、Terraform管理下）
+- **本番でAPI・SPA・Filament管理画面（ログイン〜ダッシュボード）すべて実機動作確認済み**
+- CloudFrontディストリビューション本体・カスタムキャッシュポリシー等の細部は引き続きTerraform管理外
+  （`modules/cdn/README.md`の「2026-08-01の本番障害対応で実施した変更」の節に現在のライブ設定を記載）
+- `.github/workflows/cicd.yml`（ECSデプロイ用）はpushトリガーを外し`workflow_dispatch`のみに無効化済み。
+  今後のバックエンドデプロイは`.github/workflows/deploy-backend-serverless.yml`（Lambda）を使う
 
-**実行する場合は、必ず以下の順序を踏むこと（ユーザー自身の判断・実行を推奨。破壊的操作を伴うため自動実行しない）。**
+## 使い方（今後このコードを再適用する場合）
 
-1. `bootstrap/` を最初に一度だけ apply し、tfstate用S3バケット・DynamoDBロックテーブル・GitHub OIDC用IAMロールを作る
-2. `envs/prod/backend.tf` の bucket名を bootstrap の出力に合わせて更新し `terraform init`
-3. **既存リソースを `terraform import` でstateに取り込む**（ECSクラスター、サービス、タスク定義、ALB、ターゲットグループ、セキュリティグループ、CloudFrontディストリビューション、RDSインスタンス 等）。import対象リソースのアドレス一覧は `envs/prod/main.tf` 内のコメントを参照
-4. `terraform plan` で **差分が実質ゼロ（0 to add, 0 to destroy）** になることを確認してから初めて `apply`
-5. 変更を加える場合も、必ず `plan` の内容を人間が確認してから `apply` する
+`terraform plan` で差分の内容を必ず人間が確認してから `apply` すること。特に`compute_backend`を切り替える
+apply、CloudFrontのオリジン切替は本番トラフィックに影響するため、事前に内容を把握してから実行する。
+
+## 【重要】Bref 3.x の RUNTIME_CLASS が機能しない問題（実機で発見・解決済み）
+
+`bref/bref` の `php-82`(v23) レイヤーは `/opt/bootstrap` シェルスクリプトが
+`export RUNTIME_CLASS="Bref\FunctionRuntime\Main"` を**無条件に**実行しており、
+Lambda関数側で `RUNTIME_CLASS` 環境変数に別の値（`Bref\FpmRuntime\Main` や `Bref\ConsoleRuntime\Main`）を
+設定しても**常に上書きされて無視される**。これは`serverless-migration-lessons-learned.md`(Bref 2.x時代)に
+書いた「RUNTIME_CLASS未設定時のデフォルトフォールバック」問題とは別の、Bref 3.x特有の新しい罠。
+
+- `Bref\FpmRuntime\Main` というクラスはBref 3.xにはそもそも存在しない（`FpmRuntime`名前空間にあるのは`FpmHandler`のみ）
+- handlerに`public/index.php`や`artisan`のような**ファイルパス**を指定すると、`FunctionRuntime\Main`が
+  ファイルを直接`require`してしまい、`public/index.php`は`$_SERVER`未整備によるTypeErrorでクラッシュ、
+  `artisan`はファイル末尾の`exit()`でランタイムプロセスごと終了し**Lambdaがタイムアウトするまでハングする**
+  （実機で両方とも再現・確認済み）
+
+**解決策**: handlerを**クラス名**にする(`FunctionRuntime\Main`はBref標準の`Handler`インターフェースを
+実装したクラスを正しく解決できる)。
+- HTTP: `Bref\LaravelBridge\Http\HttpHandler`（bref/laravel-bridge同梱、追加実装不要）
+- artisan: `App\Lambda\ArtisanHandler`（本リポジトリで新規作成。`Kernel::call()`でin-process実行し、
+  サブプロセスやexit()に依存しない。`src/tests/Unit/Lambda/ArtisanHandlerTest.php`参照）
+
+`modules/lambda_bref/main.tf`の`aws_lambda_function.app`/`console`のhandler設定とコメントを参照。
 
 ## compute_backend の切替で何が起きるか
 
-| リソース | `ecs` | `lambda` |
+| リソース | `ecs` | `lambda`（2026-08-01時点の実際の設定） |
 |---|---|---|
-| ECSクラスター/サービス/タスク定義 | 稼働 | `desired_count=0`で維持（削除はしない。すぐ戻せるように） |
-| ALB | 稼働 | 稼働はし続けるが CloudFront からは参照されなくなる |
+| ECSクラスター/サービス/タスク定義/ALB/ECR | 稼働 | **削除済み**（`destroy_idle_ecs=true`。ロールバックには再作成が必要） |
 | Lambda (fpm/console) | 定義のみ（`publish=false`で待機） | 稼働 |
 | CloudFrontのAPI系オリジン | ALB | Lambda Function URL |
-| EventBridge Scheduler | ECS+RDS 夜間停止 | RDSのみ夜間停止（Lambdaは呼ばれた分だけ課金なので停止不要） |
+| EventBridge Scheduler (RDS夜間停止) | — | 停止（`enable_rds_night_stop=false`。RDSは24/7稼働） |
 
-**ECS/ALBは`lambda`選択時も即座には削除しない。** 本当に不要と判断してから
-`terraform apply -var="compute_backend=lambda" -var="destroy_idle_ecs=true"` のように明示的に削除する
+**当初は「`lambda`選択時もECS/ALBは即座に削除せず`desired_count=0`で待機」という設計だったが、
+2026-08-01にLambda運用が安定稼働したと判断し`destroy_idle_ecs=true`で完全削除した。**
+`ecs`へ切り戻す場合は`destroy_idle_ecs=false`にしてapplyし、ECS/ALB/ECRをゼロから再作成する必要がある
 （`serverless-migration-lessons-learned.md` 3-13「削除し忘れの付随リソース」を踏まえ、EIP・SG等の孤立リソース確認も
 このステップで行う）。
 
@@ -115,3 +149,4 @@ OAC_ID=<lambda用OACのID> ./infra/terraform/modules/cdn/switch_origin.sh lambda
 - [ ] Lambda環境変数（DB_HOST/DB_PORT/DB_DATABASE/DB_USERNAME/DB_PASSWORD/APP_KEY等）の完全なリストをCI Secretsに用意したか
 - [ ] NATインスタンスを使う場合、iptablesスクリプトでインターフェース名をハードコードしていないか、AMIにDockerが同梱されていないか
 - [ ] `config:cache`はCIパイプラインに含めない（Filamentの`resources.path`がビルド環境の絶対パスで固定される問題を回避）
+- [x] Lambda handlerはファイルパスではなくクラス名にする（上記「Bref 3.x の RUNTIME_CLASS が機能しない問題」参照）— 解決済み

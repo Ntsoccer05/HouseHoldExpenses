@@ -1,14 +1,14 @@
 ##############################################################################
-# scheduler (compute_backend = "lambda" 専用)
+# scheduler (compute_backend = "lambda" かつ enable_rds_night_stop = true の時のみ作成)
 #
-# 既存の household-scheduler(CloudFormation管理, infra/scheduler/) は
-# ECS desiredCount操作 + RDS start/stop の両方を行うが、Lambda移行後はECS操作が
-# 不要になる(Lambdaは呼ばれた分だけの課金でdesiredCountという概念が無い)。
+# 【2026-08-01】RDSを24/7常時稼働させる方針になったため、envs/prod側で
+# enable_rds_night_stop のデフォルトを false にし、このモジュール自体を作成しないよう変更した。
+# 夜間停止でコストを下げたい場合のみ enable_rds_night_stop=true にすれば復活する
+# （コスト差は COST_ESTIMATE.md 5章参照）。
 #
-# 既存のCloudFormationスタックとLambda関数名が競合しないよう、
-# この Terraform 版は別名 (house-hold-app-rds-scheduler) で新規作成し、
-# 既存の household-scheduler 側は「envs/prod」から compute_backend=ecs の時だけ
-# 有効化される運用のまま touch しない（2つのIaCで同じ実リソースを取り合わない設計。README参照）。
+# 既存の household-scheduler(CloudFormation管理, infra/scheduler/) も同じ理由(ECS desiredCount操作 +
+# RDS start/stop の重複、かつLambda移行後もECSを毎朝再起動し続けるバグ状態だった)により2026-08-01に
+# スタックごと削除済み。infra/scheduler/ 配下のファイルは削除された旧スタックのソースとして参考用に残す。
 ##############################################################################
 
 resource "aws_iam_role" "scheduler_lambda" {

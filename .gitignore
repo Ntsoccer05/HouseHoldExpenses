@@ -1,5 +1,6 @@
 .env
 .env.production
+prod.env
 /phpmyadmin/
 node_modules
 .github/secrets/*_env
@@ -14,6 +15,9 @@ node_modules
 *.tfstate.*
 *.tfvars
 !*.tfvars.example
+*.tfplan
+tfplan*.out
 crash.log
 crash.*.log
 infra/terraform/modules/scheduler/build/
+infra/terraform/envs/prod/set-lambda-secrets.sh

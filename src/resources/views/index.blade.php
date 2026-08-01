@@ -8,7 +8,8 @@
   <!-- CSRF Token -->
   <meta name="csrf-token" content="{{ csrf_token() }}">
 
-  <title>{{ config('app.name', 'Laravel') }}</title>
+  {{-- Lambda環境変数経由の日本語文字列はBrefランタイム側でgetenv()時に文字化けするため、config('app.name')に依存せずハードコードする --}}
+  <title>カケポン|家計簿アプリ</title>
   <link rel="shortcut icon" href="{{ asset('/favicon.ico') }}">
 
   <!-- Fonts -->
