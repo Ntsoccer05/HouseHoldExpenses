@@ -84,6 +84,17 @@ class DebugSessions extends Command
         $this->line('APP_KEY prefix: ' . substr(config('app.key'), 0, 15) . '...');
         $this->line('cipher: ' . config('app.cipher'));
 
+        $this->info('=== CookieValuePrefix hash comparison ===');
+        $cookieName = config('session.cookie');
+        $this->line('cookieName=' . $cookieName);
+        $encrypterKey = app('encrypter')->getKey();
+        $this->line('encrypterKey (hex, first 16 bytes)=' . bin2hex(substr($encrypterKey, 0, 16)));
+        $expectedPrefix = \Illuminate\Cookie\CookieValuePrefix::create($cookieName, $encrypterKey);
+        $this->line('expected prefix=' . $expectedPrefix);
+        [, $decodedRawNoPrefixStrip] = [null, Crypt::decrypt($sampleCookie, false)];
+        $this->line('actual decrypted value starts with expected prefix: ' . (str_starts_with($decodedRawNoPrefixStrip, $expectedPrefix) ? 'YES' : 'NO'));
+        $this->line('actual decrypted value first 41 chars=' . substr($decodedRawNoPrefixStrip, 0, 41));
+
         $this->info('=== session config ===');
         $this->line('SESSION_DRIVER=' . config('session.driver'));
         $this->line('SESSION_LIFETIME=' . config('session.lifetime'));
