@@ -1,6 +1,8 @@
 .env
 .env.production
 prod.env
+ci_production_env.txt
+laravel_production_env.txt
 /phpmyadmin/
 node_modules
 .github/secrets/*_env

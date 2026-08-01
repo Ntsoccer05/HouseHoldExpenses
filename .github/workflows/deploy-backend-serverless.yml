@@ -98,9 +98,9 @@ jobs:
               k, v = line.split("=", 1)
               env[k.strip()] = v.strip().strip('"')
           with open("lambda-env-app.json", "w") as f:
-              json.dump({**env, "RUNTIME_CLASS": "Bref\\FpmRuntime\\Main"}, f)
+              json.dump({"Variables": {**env, "RUNTIME_CLASS": "Bref\\FpmRuntime\\Main"}}, f)
           with open("lambda-env-console.json", "w") as f:
-              json.dump({**env, "RUNTIME_CLASS": "Bref\\ConsoleRuntime\\Main"}, f)
+              json.dump({"Variables": {**env, "RUNTIME_CLASS": "Bref\\ConsoleRuntime\\Main"}}, f)
           PY
         env:
           LARAVEL_PRODUCTION_ENV_RAW: ${{ secrets.LARAVEL_PRODUCTION_ENV }}
@@ -119,7 +119,7 @@ jobs:
         run: |
           aws lambda update-function-configuration \
             --function-name "${{ env.LAMBDA_APP_FUNCTION_NAME }}" \
-            --environment "Variables=$(cat lambda-env-app.json)"
+            --environment file://lambda-env-app.json
           aws lambda wait function-updated --function-name "${{ env.LAMBDA_APP_FUNCTION_NAME }}"
 
       - name: Update Lambda function code (console)
@@ -136,7 +136,7 @@ jobs:
         run: |
           aws lambda update-function-configuration \
             --function-name "${{ env.LAMBDA_CONSOLE_FUNCTION_NAME }}" \
-            --environment "Variables=$(cat lambda-env-console.json)"
+            --environment file://lambda-env-console.json
           aws lambda wait function-updated --function-name "${{ env.LAMBDA_CONSOLE_FUNCTION_NAME }}"
 
       - name: Smoke test (console runtime, DBに触れない最小コマンド)
