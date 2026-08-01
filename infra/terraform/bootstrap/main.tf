@@ -80,9 +80,12 @@ resource "aws_dynamodb_table" "tfstate_lock" {
 # --- GitHub Actions OIDC ----------------------------------------------------
 
 resource "aws_iam_openid_connect_provider" "github" {
+  # NOTE: このOIDCプロバイダはAWSアカウントに1つしか存在できず、実際に既に他プロジェクト用に
+  # 作成済みだった(import済み)。thumbprintは実際の値に合わせてあり、他プロジェクトの
+  # IAMロールへの影響を避けるため、このTerraformから値を変更しない。
   url             = "https://token.actions.githubusercontent.com"
   client_id_list  = ["sts.amazonaws.com"]
-  thumbprint_list = ["6938fd4d98bab03faadb97b34396831e3780aea1"]
+  thumbprint_list = ["d89e3bd43d5d909b47a18977aa9d5ce36cee184c"]
 }
 
 data "aws_iam_policy_document" "github_oidc_assume" {
