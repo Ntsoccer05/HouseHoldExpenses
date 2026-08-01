@@ -40,10 +40,13 @@ class Kernel extends HttpKernel
         ],
 
         'api' => [
-            \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
-            // \App\Http\Middleware\LogSanctumRequest::class,
+            // 【一時診断用】並行リクエストで401になる問題の調査のため、
+            // EnsureFrontendRequestsAreStatefulの代わりにLogSanctumRequest(内部でラップして呼ぶ)を使う。
+            // 原因特定後は元に戻すこと。
+            \App\Http\Middleware\LogSanctumRequest::class,
             \App\Http\Middleware\EncryptCookies::class,
             \Illuminate\Session\Middleware\StartSession::class,
+            \App\Http\Middleware\DebugSessionTrace::class,
             \Illuminate\Routing\Middleware\ThrottleRequests::class.':api',
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
         ],
