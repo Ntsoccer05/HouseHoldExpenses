@@ -68,17 +68,17 @@ class DebugSessions extends Command
         $sampleCookie = 'eyJpdiI6InViam1FU1hZcndmUDBRcUZFRlpzU2c9PSIsInZhbHVlIjoiVExodEVYRTExandGTVRtcGU2Um5LSmwybWZxODVtNWJDVGZvUWhuUFBLTm96ZEV3RWZQdjFGN09IUjdzTVBCdGJNdm1KaTNHV1dUNjh1V2JicGRSTHhiWi9pOEozRXNBODRDNzliQ0dDVmt3Ymh5cTBteWsxY3dMNEdtZS8zVVMiLCJtYWMiOiJkMDc2NDQxNDI3OWZjMzkwZjUxMjJlMTUzNmI1Mjg0YTc3YWIzODU2YzU0NDA2MmZkYjk4NzhmMWU1MWI3NWE3IiwidGFnIjoiIn0=';
 
         try {
-            $decryptedSerialized = Crypt::decrypt($sampleCookie, true);
-            $this->line('serialize=true decrypt OK: ' . var_export($decryptedSerialized, true));
-        } catch (DecryptException $e) {
-            $this->line('serialize=true decrypt FAILED: ' . $e->getMessage());
+            $decryptedRaw = Crypt::decrypt($sampleCookie, false);
+            $this->line('serialize=false decrypt OK: ' . var_export($decryptedRaw, true));
+        } catch (\Throwable $e) {
+            $this->line('serialize=false decrypt FAILED: ' . get_class($e) . ': ' . $e->getMessage());
         }
 
         try {
-            $decryptedRaw = Crypt::decrypt($sampleCookie, false);
-            $this->line('serialize=false decrypt OK: ' . var_export($decryptedRaw, true));
-        } catch (DecryptException $e) {
-            $this->line('serialize=false decrypt FAILED: ' . $e->getMessage());
+            $decryptedSerialized = @unserialize(Crypt::decrypt($sampleCookie, false));
+            $this->line('manual unserialize of raw decrypt: ' . var_export($decryptedSerialized, true));
+        } catch (\Throwable $e) {
+            $this->line('manual unserialize FAILED: ' . get_class($e) . ': ' . $e->getMessage());
         }
 
         $this->line('APP_KEY prefix: ' . substr(config('app.key'), 0, 15) . '...');
