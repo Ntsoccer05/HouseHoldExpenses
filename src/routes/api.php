@@ -4,6 +4,7 @@ use App\Http\Controllers\Auth\ForgetPasswordController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\VerificationController;
+use App\Http\Controllers\ContactController;
 use App\Http\Controllers\ExpenseCategoryController;
 use App\Http\Controllers\FixedExpenseController;
 use App\Http\Controllers\IncomeCategoryController;
@@ -93,3 +94,6 @@ Route::prefix('register')->group(function () {
 //パスワードリセット
 Route::post('/password/forget', [ForgetPasswordController::class, 'sendemail']);
 Route::post('/password/reset', [ForgetPasswordController::class, 'passwordreset'])->name('password.reset');
+
+// お問い合わせフォーム
+Route::post('/contact', [ContactController::class, 'store'])->middleware('throttle:5,1');
