@@ -7,3 +7,13 @@ node_modules
 .claude/settings.local.json
 .claude/settings.json
 .env.scheduler
+
+# Terraform
+**/.terraform/*
+*.tfstate
+*.tfstate.*
+*.tfvars
+!*.tfvars.example
+crash.log
+crash.*.log
+infra/terraform/modules/scheduler/build/

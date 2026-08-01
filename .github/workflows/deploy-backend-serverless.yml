@@ -1,0 +1,146 @@
+name: Deploy Laravel to Lambda (Bref, serverless)
+
+# NOTE: 意図的に push トリガーは付けていない。
+# compute_backend=lambda への切替を決定するまでは、既存の cicd.yml (ECS) が
+# 引き続き唯一の自動デプロイ経路。移行を確定したら push トリガーを有効化すること。
+#
+# 参考: serverless-migration-lessons-learned.md
+#   3-1  : Lambda環境変数の完全なチェックリストが必要（DB接続情報等の設定漏れに注意）
+#   3-16 : route:cache導入前にクロージャルートをコントローラーに置き換える必要がある
+#          (web.php の /health, /{any}、api.php の /health, /user が該当。要事前修正)
+#   3-18 : ignore_changesで追跡除外している属性(s3_key)は、固定キーに常に最新を上書きする
+#   1章  : RUNTIME_CLASS を明示設定しないとBrefがデフォルトのFunctionRuntime\Mainにフォールバックし、
+#          console関数はハング、app関数は即クラッシュする
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: "デプロイ対象"
+        type: choice
+        options: [both, app, console]
+        default: both
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  ENV_DATA_PATH: docker/production/env_data
+  AWS_REGION: ap-northeast-1
+  ARTIFACT_S3_KEY_LATEST: backend/latest.zip
+
+jobs:
+  build-and-deploy:
+    name: Build & Deploy
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Inject .env from Secrets (AWS_ROLE_TO_ASSUME 等)
+        run: |
+          echo "${{ secrets.PRODUCTION_ENV }}" > .env
+          cat .env >> $GITHUB_ENV
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.2"
+          extensions: pdo, pdo_mysql, zip, intl, gd, opcache
+          tools: composer:v2
+
+      - name: Install PHP dependencies (production)
+        working-directory: src
+        run: composer install --no-dev --optimize-autoloader --no-interaction
+
+      - name: Bake route/event cache (config:cache は使わない — lessons-learned 3-21 参照)
+        working-directory: src
+        env:
+          APP_ENV: production
+        run: |
+          php artisan route:cache
+          php artisan event:cache
+
+      - name: Package Lambda artifact (vendor/bref + app code)
+        working-directory: src
+        run: |
+          zip -r ../lambda-artifact.zip . \
+            -x ".git/*" -x "node_modules/*" -x "tests/*" -x "storage/logs/*"
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: ${{ env.AWS_REGION }}
+          role-to-assume: ${{ env.AWS_ROLE_TO_ASSUME }}
+
+      - name: Upload artifact to S3 (fixed key + sha-tagged key)
+        run: |
+          aws s3 cp lambda-artifact.zip "s3://${{ env.LAMBDA_ARTIFACT_BUCKET }}/${{ env.ARTIFACT_S3_KEY_LATEST }}"
+          aws s3 cp lambda-artifact.zip "s3://${{ env.LAMBDA_ARTIFACT_BUCKET }}/backend/${{ github.sha }}.zip"
+
+      - name: Build Lambda environment variables JSON from Secret
+        run: |
+          python3 - <<'PY'
+          import json, os
+          raw = os.environ.get("LARAVEL_PRODUCTION_ENV_RAW", "")
+          env = {}
+          for line in raw.splitlines():
+              line = line.strip()
+              if not line or line.startswith("#") or "=" not in line:
+                  continue
+              k, v = line.split("=", 1)
+              env[k.strip()] = v.strip().strip('"')
+          with open("lambda-env-app.json", "w") as f:
+              json.dump({**env, "RUNTIME_CLASS": "Bref\\FpmRuntime\\Main"}, f)
+          with open("lambda-env-console.json", "w") as f:
+              json.dump({**env, "RUNTIME_CLASS": "Bref\\ConsoleRuntime\\Main"}, f)
+          PY
+        env:
+          LARAVEL_PRODUCTION_ENV_RAW: ${{ secrets.LARAVEL_PRODUCTION_ENV }}
+
+      - name: Update Lambda function code (app)
+        if: ${{ inputs.target == 'both' || inputs.target == 'app' }}
+        run: |
+          aws lambda update-function-code \
+            --function-name "${{ env.LAMBDA_APP_FUNCTION_NAME }}" \
+            --s3-bucket "${{ env.LAMBDA_ARTIFACT_BUCKET }}" \
+            --s3-key "${{ env.ARTIFACT_S3_KEY_LATEST }}"
+          aws lambda wait function-updated --function-name "${{ env.LAMBDA_APP_FUNCTION_NAME }}"
+
+      - name: Update Lambda environment (app)
+        if: ${{ inputs.target == 'both' || inputs.target == 'app' }}
+        run: |
+          aws lambda update-function-configuration \
+            --function-name "${{ env.LAMBDA_APP_FUNCTION_NAME }}" \
+            --environment "Variables=$(cat lambda-env-app.json)"
+          aws lambda wait function-updated --function-name "${{ env.LAMBDA_APP_FUNCTION_NAME }}"
+
+      - name: Update Lambda function code (console)
+        if: ${{ inputs.target == 'both' || inputs.target == 'console' }}
+        run: |
+          aws lambda update-function-code \
+            --function-name "${{ env.LAMBDA_CONSOLE_FUNCTION_NAME }}" \
+            --s3-bucket "${{ env.LAMBDA_ARTIFACT_BUCKET }}" \
+            --s3-key "${{ env.ARTIFACT_S3_KEY_LATEST }}"
+          aws lambda wait function-updated --function-name "${{ env.LAMBDA_CONSOLE_FUNCTION_NAME }}"
+
+      - name: Update Lambda environment (console)
+        if: ${{ inputs.target == 'both' || inputs.target == 'console' }}
+        run: |
+          aws lambda update-function-configuration \
+            --function-name "${{ env.LAMBDA_CONSOLE_FUNCTION_NAME }}" \
+            --environment "Variables=$(cat lambda-env-console.json)"
+          aws lambda wait function-updated --function-name "${{ env.LAMBDA_CONSOLE_FUNCTION_NAME }}"
+
+      - name: Smoke test (console runtime, DBに触れない最小コマンド)
+        if: ${{ inputs.target == 'both' || inputs.target == 'console' }}
+        run: |
+          aws lambda invoke \
+            --function-name "${{ env.LAMBDA_CONSOLE_FUNCTION_NAME }}" \
+            --payload '{"cli": "--version"}' \
+            --cli-binary-format raw-in-base64-out \
+            --log-type Tail \
+            /tmp/invoke-result.json \
+          | jq -r '.LogResult' | base64 -d
+          cat /tmp/invoke-result.json

@@ -1,0 +1,4 @@
+# cp terraform.tfvars.example terraform.tfvars して使う（.tfvarsはgitignore対象にすること）
+
+compute_backend  = "ecs" # 移行時に "lambda" へ変更
+destroy_idle_ecs = false # Lambda移行が安定してから初めて true にする
