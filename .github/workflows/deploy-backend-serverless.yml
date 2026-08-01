@@ -1,8 +1,9 @@
 name: Deploy Laravel to Lambda (Bref, serverless)
 
-# NOTE: 意図的に push トリガーは付けていない。
-# compute_backend=lambda への切替を決定するまでは、既存の cicd.yml (ECS) が
-# 引き続き唯一の自動デプロイ経路。移行を確定したら push トリガーを有効化すること。
+# 2026-08-01: Lambda(Bref)への移行を確定したため、mainへのpush(src/**変更時)で
+# app・console両方を自動デプロイするpushトリガーを追加。ECS用のcicd.ymlは無効化済み
+# (このワークフローが唯一の自動デプロイ経路)。
+# workflow_dispatchも従来通り残しており、target指定で個別デプロイも可能。
 #
 # 参考: serverless-migration-lessons-learned.md
 #   3-1  : Lambda環境変数の完全なチェックリストが必要（DB接続情報等の設定漏れに注意）
@@ -12,6 +13,11 @@ name: Deploy Laravel to Lambda (Bref, serverless)
 #   1章  : RUNTIME_CLASS を明示設定しないとBrefがデフォルトのFunctionRuntime\Mainにフォールバックし、
 #          console関数はハング、app関数は即クラッシュする
 on:
+  push:
+    branches: [main]
+    paths:
+      - "src/**"
+      - ".github/workflows/deploy-backend-serverless.yml"
   workflow_dispatch:
     inputs:
       target:
@@ -100,7 +106,7 @@ jobs:
           LARAVEL_PRODUCTION_ENV_RAW: ${{ secrets.LARAVEL_PRODUCTION_ENV }}
 
       - name: Update Lambda function code (app)
-        if: ${{ inputs.target == 'both' || inputs.target == 'app' }}
+        if: ${{ github.event_name == 'push' || inputs.target == 'both' || inputs.target == 'app' }}
         run: |
           aws lambda update-function-code \
             --function-name "${{ env.LAMBDA_APP_FUNCTION_NAME }}" \
@@ -109,7 +115,7 @@ jobs:
           aws lambda wait function-updated --function-name "${{ env.LAMBDA_APP_FUNCTION_NAME }}"
 
       - name: Update Lambda environment (app)
-        if: ${{ inputs.target == 'both' || inputs.target == 'app' }}
+        if: ${{ github.event_name == 'push' || inputs.target == 'both' || inputs.target == 'app' }}
         run: |
           aws lambda update-function-configuration \
             --function-name "${{ env.LAMBDA_APP_FUNCTION_NAME }}" \
@@ -117,7 +123,7 @@ jobs:
           aws lambda wait function-updated --function-name "${{ env.LAMBDA_APP_FUNCTION_NAME }}"
 
       - name: Update Lambda function code (console)
-        if: ${{ inputs.target == 'both' || inputs.target == 'console' }}
+        if: ${{ github.event_name == 'push' || inputs.target == 'both' || inputs.target == 'console' }}
         run: |
           aws lambda update-function-code \
             --function-name "${{ env.LAMBDA_CONSOLE_FUNCTION_NAME }}" \
@@ -126,7 +132,7 @@ jobs:
           aws lambda wait function-updated --function-name "${{ env.LAMBDA_CONSOLE_FUNCTION_NAME }}"
 
       - name: Update Lambda environment (console)
-        if: ${{ inputs.target == 'both' || inputs.target == 'console' }}
+        if: ${{ github.event_name == 'push' || inputs.target == 'both' || inputs.target == 'console' }}
         run: |
           aws lambda update-function-configuration \
             --function-name "${{ env.LAMBDA_CONSOLE_FUNCTION_NAME }}" \
@@ -134,7 +140,7 @@ jobs:
           aws lambda wait function-updated --function-name "${{ env.LAMBDA_CONSOLE_FUNCTION_NAME }}"
 
       - name: Smoke test (console runtime, DBに触れない最小コマンド)
-        if: ${{ inputs.target == 'both' || inputs.target == 'console' }}
+        if: ${{ github.event_name == 'push' || inputs.target == 'both' || inputs.target == 'console' }}
         run: |
           aws lambda invoke \
             --function-name "${{ env.LAMBDA_CONSOLE_FUNCTION_NAME }}" \

@@ -125,9 +125,9 @@ LAMBDA_CONSOLE_FUNCTION_NAME=house-hold-app-console
 使っている場合は `spoof` を除去するなど、Lambda移行前提のアプリ側修正を先に適用しておくこと
 （設計書4章リスク1,2、`serverless-migration-lessons-learned.md`参照）。
 
-このworkflowは`workflow_dispatch`のみで、pushトリガーはまだ付けていない
-（既存の`cicd.yml`と同時に自動発火してECSとLambdaが競合しないようにするため）。
-移行を確定したら`on.push`を有効化する。
+【2026-08-01】Lambda移行を確定したため、`src/**`変更時にmainへのpushで自動デプロイする
+`on.push`トリガーを有効化済み（ECS用`cicd.yml`は既にpushトリガーを外してあるため競合しない）。
+`workflow_dispatch`も引き続き使用可能で、`target`（both/app/console）で個別デプロイもできる。
 
 ## CloudFrontの切替（カットオーバー）
 
