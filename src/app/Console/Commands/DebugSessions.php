@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
+use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 
@@ -62,6 +63,26 @@ class DebugSessions extends Command
         if (!empty($maxConn)) {
             $this->line("max_connections: {$maxConn[0]->Value}");
         }
+
+        $this->info('=== cookie decrypt test (実際に届いたlaravel_session Cookieの生値を直接復号してみる) ===');
+        $sampleCookie = 'eyJpdiI6InViam1FU1hZcndmUDBRcUZFRlpzU2c9PSIsInZhbHVlIjoiVExodEVYRTExandGTVRtcGU2Um5LSmwybWZxODVtNWJDVGZvUWhuUFBLTm96ZEV3RWZQdjFGN09IUjdzTVBCdGJNdm1KaTNHV1dUNjh1V2JicGRSTHhiWi9pOEozRXNBODRDNzliQ0dDVmt3Ymh5cTBteWsxY3dMNEdtZS8zVVMiLCJtYWMiOiJkMDc2NDQxNDI3OWZjMzkwZjUxMjJlMTUzNmI1Mjg0YTc3YWIzODU2YzU0NDA2MmZkYjk4NzhmMWU1MWI3NWE3IiwidGFnIjoiIn0=';
+
+        try {
+            $decryptedSerialized = Crypt::decrypt($sampleCookie, true);
+            $this->line('serialize=true decrypt OK: ' . var_export($decryptedSerialized, true));
+        } catch (DecryptException $e) {
+            $this->line('serialize=true decrypt FAILED: ' . $e->getMessage());
+        }
+
+        try {
+            $decryptedRaw = Crypt::decrypt($sampleCookie, false);
+            $this->line('serialize=false decrypt OK: ' . var_export($decryptedRaw, true));
+        } catch (DecryptException $e) {
+            $this->line('serialize=false decrypt FAILED: ' . $e->getMessage());
+        }
+
+        $this->line('APP_KEY prefix: ' . substr(config('app.key'), 0, 15) . '...');
+        $this->line('cipher: ' . config('app.cipher'));
 
         $this->info('=== session config ===');
         $this->line('SESSION_DRIVER=' . config('session.driver'));
