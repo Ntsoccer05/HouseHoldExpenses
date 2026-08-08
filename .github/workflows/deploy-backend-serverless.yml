@@ -46,6 +46,16 @@ jobs:
           echo "${{ secrets.PRODUCTION_ENV }}" > .env
           cat .env >> $GITHUB_ENV
 
+      - name: Load Laravel app secrets into environment (route:cache に FILAMENT_PATH 等を反映させるため)
+        # route:cache はビルド時点の環境変数をルート定義に焼き込むため、Lambdaの実行時
+        # 環境変数(update-function-configuration)を後から更新しても反映されない。
+        # ここでLARAVEL_PRODUCTION_ENV(Lambda実行時環境変数と同一内容)をCIランナーの
+        # 環境変数として展開してからroute:cacheを実行する。src/配下にファイルを書き出す
+        # わけではないので、Lambdaアーティファクト(zip)に秘匿値が混入することはない。
+        # 参考: infra/terraform/modules/lambda_bref/variables.tf の lessons-learned 3-1
+        run: |
+          echo "${{ secrets.LARAVEL_PRODUCTION_ENV }}" >> $GITHUB_ENV
+
       - name: Checkout code
         uses: actions/checkout@v4
 
@@ -72,7 +82,7 @@ jobs:
         working-directory: src
         run: |
           zip -r ../lambda-artifact.zip . \
-            -x ".git/*" -x "node_modules/*" -x "tests/*" -x "storage/logs/*"
+            -x ".git/*" -x "node_modules/*" -x "tests/*" -x "storage/logs/*" -x ".env"
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
