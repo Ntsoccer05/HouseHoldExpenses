@@ -68,6 +68,12 @@ apply、CloudFrontのオリジン切替は本番トラフィックに影響す�
 
 ## 【重要】Bref 3.x の RUNTIME_CLASS が機能しない問題（実機で発見・解決済み）
 
+> **2026-10-22 訂正:** この問題の本当の原因は、`bref_layer_arn` が Bref 1/2 時代の公開アカウント
+> （`534081306603`）の 2023 年製レイヤーを指していたこと。Bref 3.x の正しいレイヤー（アカウント
+> `873528684822`、`provided.al2023` 専用）では RUNTIME_CLASS が正しく効く。現在は api が
+> FpmRuntime + `public/index.php`、console が ConsoleRuntime + `artisan` で稼働している
+> （`modules/lambda_bref/main.tf` 参照）。以下は経緯として残す。
+
 `bref/bref` の `php-82`(v23) レイヤーは `/opt/bootstrap` シェルスクリプトが
 `export RUNTIME_CLASS="Bref\FunctionRuntime\Main"` を**無条件に**実行しており、
 Lambda関数側で `RUNTIME_CLASS` 環境変数に別の値（`Bref\FpmRuntime\Main` や `Bref\ConsoleRuntime\Main`）を

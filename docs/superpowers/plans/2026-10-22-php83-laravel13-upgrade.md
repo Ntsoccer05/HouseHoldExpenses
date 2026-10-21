@@ -148,7 +148,7 @@ class SecurityHardeningTest extends TestCase
 
 - [ ] **Step 1:** `git add -A && git commit -m "feat: PHP 8.3 / Laravel 13 へアップグレード"`
 - [ ] **Step 2:** 切り戻し情報を記録: 現行 main の SHA（`backend/<sha>.zip`）、現行レイヤー `php-82:26`。
-- [ ] **Step 3:** RDS 稼働時間帯に、先に api / console 両 Lambda のレイヤーを `php-83:24` に `aws lambda update-function-configuration --layers` で切り替え、現行コード（Laravel 10）が PHP 8.3 で動くことを `/api/health` で確認する。逆順（コード先行）だと新コードの composer platform check (PHP ^8.3) が PHP 8.2 上で失敗し全停止するため、必ずこの順にする。
+- [ ] **Step 3:** RDS 稼働時間帯に、先に api / console 両 Lambda のレイヤーを `php-83:24` に `aws lambda update-function-configuration --layers arn:aws:lambda:ap-northeast-1:873528684822:layer:php-83:24`（Bref 3 の公開アカウント。534081306603 は旧アカウントなので不可）で切り替え、現行コード（Laravel 10）が PHP 8.3 で動くことを `/api/health` で確認する。逆順（コード先行）だと新コードの composer platform check (PHP ^8.3) が PHP 8.2 上で失敗し全停止するため、必ずこの順にする。
 - [ ] **Step 4:** main へマージ・push → `deploy-backend-serverless` の成功を `gh run watch` で確認。
 - [ ] **Step 4b:** Filament/Livewire の静的アセットは Lambda ではなく S3 `house-hold-api-static-assets` から配信されており CI では同期されないため、
   `aws s3 sync src/public/css/filament s3://house-hold-api-static-assets/css/filament`、同様に `js/filament`・`vendor` を同期し、
