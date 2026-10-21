@@ -36,7 +36,7 @@ variable "bref_layer_arn" {
     最初はECSと同じx86_64で揃え、安定後にarm64へ切り替える(その際は"arm-php-82"に変更)。
   EOT
   type        = string
-  default     = "arn:aws:lambda:ap-northeast-1:534081306603:layer:php-82:23"
+  default     = "arn:aws:lambda:ap-northeast-1:534081306603:layer:php-82:26"
 }
 
 variable "lambda_memory_mb" {

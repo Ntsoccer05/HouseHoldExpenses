@@ -1,4 +1,5 @@
-FROM php:8.2-fpm
+# CVE-2026-109618/109619 (php2shell) 対策で修正版にパッチバージョンを固定
+FROM php:8.2.35-fpm
 
 # COPY php.ini
 COPY ./docker/php/php.ini /usr/local/etc/php/php.ini
