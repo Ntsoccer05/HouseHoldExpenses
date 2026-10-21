@@ -30,13 +30,13 @@ variable "deploy_object_key" {
 
 variable "bref_layer_arn" {
   description = <<-EOT
-    Bref PHPレイヤーのARN。Bref 3.x以降はfpm-runtime/console-runtimeとも同一の"php-82"レイヤーを使う
+    Bref PHPレイヤーのARN。Bref 3.x以降はfpm-runtime/console-runtimeとも同一の"php-83"レイヤーを使う
     (2.x時代の"php-82-fpm"+"console"の2レイヤー構成から統合された)。
     バージョンは `vendor/bref/bref/layers.json` を参照して固定すること。
-    最初はECSと同じx86_64で揃え、安定後にarm64へ切り替える(その際は"arm-php-82"に変更)。
+    最初はECSと同じx86_64で揃え、安定後にarm64へ切り替える(その際は"arm-php-83"に変更)。
   EOT
   type        = string
-  default     = "arn:aws:lambda:ap-northeast-1:534081306603:layer:php-82:26"
+  default     = "arn:aws:lambda:ap-northeast-1:534081306603:layer:php-83:24"
 }
 
 variable "lambda_memory_mb" {

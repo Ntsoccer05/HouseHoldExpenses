@@ -5,7 +5,7 @@
 ## プロジェクト概要
 
 **HouseHold Expenses (カケポン)** は、以下の要素を持つフルスタック家計管理アプリケーションです：
-- **バックエンド**: Laravel 10 と Filament 管理パネル（アカウント・コンテンツ管理用）
+- **バックエンド**: Laravel 13（PHP 8.3）と Filament 管理パネル（アカウント・コンテンツ管理用）
 - **フロントエンド**: React 18 + TypeScript と Vite（カレンダービュー、支出管理、チャート機能）
 - **データベース**: MySQL
 - **認証**: Laravel Sanctum (API) + Socialite (OAuth連携)

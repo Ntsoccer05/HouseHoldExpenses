@@ -1,5 +1,5 @@
 # CVE-2026-109618/109619 (php2shell) 対策で修正版にパッチバージョンを固定
-FROM php:8.2.35-fpm
+FROM php:8.3.36-fpm
 
 # 作業ディレクトリ
 WORKDIR /var/www/html

@@ -51,8 +51,11 @@ class User extends Authenticatable implements MustVerifyEmail, FilamentUser
     // 本番ではこれがないと403になる
     public function canAccessPanel(Panel $panel): bool
     {
-        // 第一引数が第二引数を含んでいるかチェック
-        return str_ends_with($this->email, '@gmail.com');
+        // 管理画面は全ユーザーのデータを扱えるため、許可リストに載ったメール認証済みユーザーだけに限定する
+        $adminEmails = array_map('strtolower', config('auth.admin_emails', []));
+
+        return $this->hasVerifiedEmail()
+            && in_array(strtolower($this->email), $adminEmails, true);
     }
 
     public function Contents():HasMany
