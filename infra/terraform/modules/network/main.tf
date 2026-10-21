@@ -75,9 +75,12 @@ data "aws_ami" "nat_instance" {
   most_recent = true
   owners      = ["amazon"]
 
+  # "al2023-ami-*-arm64" だと ECS最適化AMI(al2023-ami-ecs-hvm-*)や minimal にも一致し、
+  # 実際に ECS用AMI が選ばれて Docker と ECSエージェントが常駐していた(エージェントが ECS 登録を
+  # AccessDenied で延々再試行し、t4g.nano の CPU とメモリを圧迫)。標準AMI だけに絞る。
   filter {
     name   = "name"
-    values = ["al2023-ami-*-arm64"]
+    values = ["al2023-ami-2023.*-kernel-*-arm64"]
   }
   filter {
     name   = "architecture"
