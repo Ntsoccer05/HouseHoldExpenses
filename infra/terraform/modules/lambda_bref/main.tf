@@ -77,23 +77,19 @@ resource "aws_security_group" "lambda" {
   }
 }
 
-# --- Lambda: HTTP (FunctionRuntime + Bref\LaravelBridge\Http\HttpHandler) ------
+# --- Lambda: HTTP (FpmRuntime + public/index.php) -----------------------------
 #
-# 【重要・実機検証で判明】Bref 3.x + bref/laravel-bridge には "FpmRuntime\Main" という
-# クラスは存在しない(FpmRuntimeネームスペースにあるのは FpmHandler のみ)。
-# 旧版(Bref 2.x)の "RUNTIME_CLASS=Bref\FpmRuntime\Main" 明示指定はもはや正しくなく、
-# 存在しないクラスを指定した結果、デフォルトの FunctionRuntime\Main にフォールバックし、
-# handler="public/index.php" がファイルとして直接requireされてクラッシュすることを実機で確認した。
-#
-# 正しい構成(bref/laravel-bridgeのvendor/.../stubs/serverless.ymlで確認済み):
-#   handler: Bref\LaravelBridge\Http\HttpHandler というクラス名を指定する
-#   (Bref\Event\Http\HttpHandler の handle() が Bref標準の Handler インターフェースを実装しており、
-#    追加のRUNTIME_CLASS指定は一切不要 = デフォルトのFunctionRuntime\Mainのままでよい)
+# 【2026-10-22 訂正】以前ここに「Bref 3.x では RUNTIME_CLASS=FpmRuntime が効かない」と書いていたが、
+# 原因は bref_layer_arn が Bref 2.x の公開アカウント(534081306603)の 2023年製レイヤーを指していたこと。
+# Bref 3.x の正しいレイヤー(アカウント 873528684822、Amazon Linux 2023 専用)は RUNTIME_CLASS を尊重し、
+# デプロイワークフローが設定する RUNTIME_CLASS=Bref\FpmRuntime\Main で PHP-FPM が起動する。
+# FpmRuntime は handler をファイルとして扱うため public/index.php を指定する
+# (クラス名を指定すると Runtime.NoSuchHandler で起動に失敗することを本番で確認済み)。
 resource "aws_lambda_function" "app" {
   function_name = "house-hold-app-api"
   role          = aws_iam_role.lambda_exec.arn
-  runtime       = "provided.al2"
-  handler       = "Bref\\LaravelBridge\\Http\\HttpHandler"
+  runtime       = "provided.al2023"
+  handler       = "public/index.php"
   memory_size   = var.lambda_memory_mb
   timeout       = var.lambda_timeout_seconds
   layers        = [var.bref_layer_arn]
@@ -226,19 +222,18 @@ resource "aws_scheduler_schedule" "warmup" {
   }
 }
 
-# --- Lambda: console (FunctionRuntime + App\Lambda\ArtisanHandler) ------------
+# --- Lambda: console (ConsoleRuntime + artisan) -------------------------------
 #
-# 【重要・実機検証で判明】このBrefレイヤー(php-82:23)の /opt/bootstrap シェルスクリプトは
-# RUNTIME_CLASS を "Bref\FunctionRuntime\Main" に無条件でexportしており、
-# Lambda関数側で RUNTIME_CLASS=Bref\ConsoleRuntime\Main を設定しても無視される。
-# handler="artisan"(ファイル)のままだと、artisanファイル末尾のexit()でランタイムごと
-# 終了してしまいハングする(実機で再現・確認済み)ため、appと同様にBref標準のHandler
-# インターフェースを実装した独自クラス(App\Lambda\ArtisanHandler)経由で実行する。
+# 【2026-10-22 訂正】以前の「RUNTIME_CLASS が無視される」問題は Bref 2.x の古いレイヤーを使っていたため。
+# Bref 3.x の正しいレイヤーでは RUNTIME_CLASS=Bref\ConsoleRuntime\Main が効き、artisan を別プロセスで
+# 実行するため exit() でランタイムが終了する問題も起きない。ConsoleRuntime は {"cli": "..."} 形式の
+# イベントにも対応しているので、EventBridge Scheduler や CI のスモークテストの入力はそのまま使える。
+# (App\Lambda\ArtisanHandler は旧レイヤー用の回避策で、現在は使っていない)
 resource "aws_lambda_function" "console" {
   function_name = "house-hold-app-console"
   role          = aws_iam_role.lambda_exec.arn
-  runtime       = "provided.al2"
-  handler       = "App\\Lambda\\ArtisanHandler"
+  runtime       = "provided.al2023"
+  handler       = "artisan"
   memory_size   = var.lambda_memory_mb
   timeout       = 120 # artisanコマンドはHTTPより長めに許容
   layers        = [var.bref_layer_arn]
