@@ -36,6 +36,14 @@ class AdminPanelAccessTest extends TestCase
         $this->assertFalse($user->canAccessPanel(Filament::getPanel('admin')));
     }
 
+    public function test_nobody_can_access_panel_when_no_admin_emails_are_configured(): void
+    {
+        config(['auth.admin_emails' => []]);
+        $user = User::factory()->make(['email' => 'admin@gmail.com', 'email_verified_at' => now()]);
+
+        $this->assertFalse($user->canAccessPanel(Filament::getPanel('admin')));
+    }
+
     public function test_email_comparison_is_case_insensitive(): void
     {
         $user = User::factory()->make(['email' => 'Admin@Gmail.com', 'email_verified_at' => now()]);

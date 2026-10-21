@@ -118,14 +118,16 @@ return [
     | Admin Panel Emails
     |--------------------------------------------------------------------------
     |
-    | Filament 管理画面へのアクセスを許可するメールアドレス（カンマ区切り）。
+    | Filament 管理画面へのアクセスを許可するメールアドレス（環境変数 ADMIN_EMAILS にカンマ区切り）。
     | 管理画面は全ユーザーのデータを閲覧・編集できるため、ここに無いユーザーは入れない。
+    | リポジトリは公開されているので、アドレスはコードに書かず GitHub Secret の ADMIN_EMAILS で渡す。
+    | 未設定の場合は誰も入れない（安全側に倒す）。
     |
     */
 
     'admin_emails' => array_values(array_filter(array_map(
         'trim',
-        explode(',', env('ADMIN_EMAILS', '2460socceronly0512@gmail.com,nishimura.070512@gmail.com'))
+        explode(',', (string) env('ADMIN_EMAILS', ''))
     ))),
 
 ];

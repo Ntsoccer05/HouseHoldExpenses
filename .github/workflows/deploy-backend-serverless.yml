@@ -107,6 +107,9 @@ jobs:
                   continue
               k, v = line.split("=", 1)
               env[k.strip()] = v.strip().strip('"')
+          # 管理画面の許可メールアドレスは公開リポジトリに書かず、専用の Secret から渡す
+          if os.environ.get("ADMIN_EMAILS"):
+              env["ADMIN_EMAILS"] = os.environ["ADMIN_EMAILS"]
           with open("lambda-env-app.json", "w") as f:
               json.dump({"Variables": {**env, "RUNTIME_CLASS": "Bref\\FpmRuntime\\Main"}}, f)
           with open("lambda-env-console.json", "w") as f:
@@ -114,6 +117,7 @@ jobs:
           PY
         env:
           LARAVEL_PRODUCTION_ENV_RAW: ${{ secrets.LARAVEL_PRODUCTION_ENV }}
+          ADMIN_EMAILS: ${{ secrets.ADMIN_EMAILS }}
 
       - name: Update Lambda function code (app)
         if: ${{ github.event_name == 'push' || inputs.target == 'both' || inputs.target == 'app' }}
