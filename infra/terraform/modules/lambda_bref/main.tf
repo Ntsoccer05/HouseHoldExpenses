@@ -191,9 +191,9 @@ resource "aws_iam_role_policy" "warmup_invoke" {
 }
 
 resource "aws_scheduler_schedule" "warmup" {
-  count                        = var.warmup_enabled ? 1 : 0
-  name                         = "house-hold-app-warmup-ping"
-  schedule_expression          = var.warmup_schedule
+  for_each                     = var.warmup_enabled ? var.warmup_schedules : {}
+  name                         = "house-hold-app-warmup-ping-${each.key}"
+  schedule_expression          = each.value
   schedule_expression_timezone = "Asia/Tokyo"
 
   flexible_time_window {
@@ -257,5 +257,56 @@ resource "aws_lambda_function" "console" {
 
   lifecycle {
     ignore_changes = [s3_key, environment]
+  }
+}
+
+# --- 月次バッチ(Laravel Scheduler の代替) ------------------------------------
+#
+# ECS時代は supervisord の `schedule:work` が Kernel.php のスケジュールを回していたが、
+# Lambdaには常駐プロセスが無いため、EventBridge Scheduler から console Lambda を直接呼ぶ。
+# 時刻は src/app/Console/Kernel.php の monthlyOn と揃えること。
+
+resource "aws_iam_role" "monthly_batch_invoke" {
+  name = "house-hold-app-monthly-batch-scheduler-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect    = "Allow"
+      Principal = { Service = "scheduler.amazonaws.com" }
+      Action    = "sts:AssumeRole"
+    }]
+  })
+}
+
+resource "aws_iam_role_policy" "monthly_batch_invoke" {
+  name = "invoke-console-lambda"
+  role = aws_iam_role.monthly_batch_invoke.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect   = "Allow"
+      Action   = "lambda:InvokeFunction"
+      Resource = aws_lambda_function.console.arn
+    }]
+  })
+}
+
+resource "aws_scheduler_schedule" "monthly_batch" {
+  for_each = var.monthly_batch_schedules
+
+  name                         = "house-hold-app-${each.key}"
+  schedule_expression          = each.value.schedule
+  schedule_expression_timezone = "Asia/Tokyo"
+
+  flexible_time_window {
+    mode = "OFF"
+  }
+
+  target {
+    arn      = aws_lambda_function.console.arn
+    role_arn = aws_iam_role.monthly_batch_invoke.arn
+    input    = jsonencode({ cli = each.value.cli })
   }
 }

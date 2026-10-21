@@ -25,12 +25,11 @@ variable "destroy_idle_ecs" {
 
 variable "enable_rds_night_stop" {
   description = <<-EOT
-    trueの場合、夜間(23:30 JST)にRDSを停止し朝(07:30 JST)に起動するEventBridge Schedulerを作成する。
-    2026-08-01時点、DBを常時稼働させる方針のためfalseがデフォルト。
-    夜間停止でコストを下げたい場合のみtrueにする（コスト差はCOST_ESTIMATE.md参照）。
+    trueの場合、平日 1:00-6:00 / 11:00-17:00、土日祝 1:00-7:00 (JST) にRDSを停止するEventBridge Schedulerを作成する。
+    2026-08-01に24/7稼働へ切り替えたが、2026-10-04にコスト削減のため再びtrueをデフォルトにした。
   EOT
   type        = bool
-  default     = false
+  default     = true
 }
 
 variable "cloudfront_distribution_id" {

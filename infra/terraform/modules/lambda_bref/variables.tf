@@ -113,11 +113,33 @@ variable "warmup_enabled" {
   default     = true
 }
 
-variable "warmup_schedule" {
+variable "warmup_schedules" {
   description = <<-EOT
-    lessons-learned 3-20を踏襲: 深夜早朝(RDS停止時間帯とほぼ重なる0:00-5:00)を除いた
-    利用時間帯のみ5分間隔でping。muuv-e-partsの実運用パターンを参考にした値。
+    lessons-learned 3-20を踏襲し、RDSが動いている時間帯(modules/scheduler の schedules 参照)だけ5分間隔でping。
+    cronでは祝日を除けないため、平日の祝日は平日の時間帯でpingされる(/api/healthはDBに触れないので害はない)。
   EOT
-  type        = string
-  default     = "cron(0/5 5-23 * * ? *)"
+  type        = map(string)
+  default = {
+    "weekday"  = "cron(0/5 6-10,17-23 ? * MON-FRI *)"
+    "weekend"  = "cron(0/5 7-23 ? * SAT,SUN *)"
+    "midnight" = "cron(0/5 0 ? * * *)"
+  }
+}
+
+variable "monthly_batch_schedules" {
+  description = "console Lambda で定期実行する artisan コマンド(キーはスケジュール名の接尾辞)"
+  type = map(object({
+    schedule = string
+    cli      = string
+  }))
+  default = {
+    "fixed-expenses-replicate" = {
+      schedule = "cron(0 10 1 * ? *)"
+      cli      = "fixed-expenses:replicate"
+    }
+    "fixed-expenses-cleanup" = {
+      schedule = "cron(30 10 1 * ? *)"
+      cli      = "fixed-expenses:cleanup"
+    }
+  }
 }

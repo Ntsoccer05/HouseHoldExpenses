@@ -95,7 +95,7 @@ Lambda関数側で `RUNTIME_CLASS` 環境変数に別の値（`Bref\FpmRuntime\M
 | ECSクラスター/サービス/タスク定義/ALB/ECR | 稼働 | **削除済み**（`destroy_idle_ecs=true`。ロールバックには再作成が必要） |
 | Lambda (fpm/console) | 定義のみ（`publish=false`で待機） | 稼働 |
 | CloudFrontのAPI系オリジン | ALB | Lambda Function URL |
-| EventBridge Scheduler (RDS夜間停止) | — | 停止（`enable_rds_night_stop=false`。RDSは24/7稼働） |
+| EventBridge Scheduler (RDS停止) | — | 稼働（`enable_rds_night_stop=true`。平日 1:00-6:00 / 11:00-17:00、土日祝 1:00-7:00 に停止） |
 
 **当初は「`lambda`選択時もECS/ALBは即座に削除せず`desired_count=0`で待機」という設計だったが、
 2026-08-01にLambda運用が安定稼働したと判断し`destroy_idle_ecs=true`で完全削除した。**

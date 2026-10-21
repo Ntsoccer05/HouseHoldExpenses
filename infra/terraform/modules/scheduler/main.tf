@@ -1,10 +1,9 @@
 ##############################################################################
 # scheduler (compute_backend = "lambda" かつ enable_rds_night_stop = true の時のみ作成)
 #
-# 【2026-08-01】RDSを24/7常時稼働させる方針になったため、envs/prod側で
-# enable_rds_night_stop のデフォルトを false にし、このモジュール自体を作成しないよう変更した。
-# 夜間停止でコストを下げたい場合のみ enable_rds_night_stop=true にすれば復活する
-# （コスト差は COST_ESTIMATE.md 5章参照）。
+# 【2026-08-01】RDSを24/7常時稼働させる方針で一度無効化したが、
+# 【2026-10-04】コスト削減のため再有効化し、平日 1:00-6:00 / 11:00-17:00、土日祝 1:00-7:00 に停止する。
+# 祝日はEventBridgeのcronで表現できないため、Lambda側で holidays-jp API を見て判定する。
 #
 # 既存の household-scheduler(CloudFormation管理, infra/scheduler/) も同じ理由(ECS desiredCount操作 +
 # RDS start/stop の重複、かつLambda移行後もECSを毎朝再起動し続けるバグ状態だった)により2026-08-01に
@@ -70,14 +69,33 @@ data "archive_file" "scheduler" {
 
   source {
     content  = <<-PY
-      import boto3, os
+      import boto3, json, os, urllib.request
+      from datetime import datetime, timedelta, timezone
       from botocore.exceptions import ClientError
 
       rds = boto3.client('rds')
       DB_INSTANCE = os.environ['RDS_INSTANCE_ID']
+      HOLIDAYS_API_URL = 'https://holidays-jp.github.io/api/v1/date.json'
+      JST = timezone(timedelta(hours=9))
+
+      def is_jp_holiday(target_date):
+          try:
+              with urllib.request.urlopen(HOLIDAYS_API_URL, timeout=10) as response:
+                  return target_date.isoformat() in json.load(response)
+          except Exception as error:
+              print(f'祝日カレンダーの取得に失敗したため平日扱いにします: {error}')
+              return False
+
+      def today_type():
+          today = datetime.now(JST).date()
+          return 'holiday' if today.weekday() >= 5 or is_jp_holiday(today) else 'weekday'
 
       def handler(event, context):
           action = event.get('action')
+          days = event.get('days', 'all')
+          if days != 'all' and days != today_type():
+              print(f'{days} 向けのスケジュールのため本日は {action} をスキップします')
+              return
           try:
               if action == 'stop':
                   rds.stop_db_instance(DBInstanceIdentifier=DB_INSTANCE)
@@ -128,9 +146,11 @@ resource "aws_iam_role_policy" "scheduler_invoke" {
   })
 }
 
-resource "aws_scheduler_schedule" "stop" {
-  name                         = "house-hold-app-rds-stop"
-  schedule_expression          = var.stop_cron
+resource "aws_scheduler_schedule" "rds" {
+  for_each = var.schedules
+
+  name                         = "house-hold-app-rds-${each.key}"
+  schedule_expression          = each.value.cron
   schedule_expression_timezone = "Asia/Tokyo"
 
   flexible_time_window {
@@ -140,22 +160,6 @@ resource "aws_scheduler_schedule" "stop" {
   target {
     arn      = aws_lambda_function.scheduler.arn
     role_arn = aws_iam_role.scheduler_invoke.arn
-    input    = jsonencode({ action = "stop" })
-  }
-}
-
-resource "aws_scheduler_schedule" "start" {
-  name                         = "house-hold-app-rds-start"
-  schedule_expression          = var.start_cron
-  schedule_expression_timezone = "Asia/Tokyo"
-
-  flexible_time_window {
-    mode = "OFF"
-  }
-
-  target {
-    arn      = aws_lambda_function.scheduler.arn
-    role_arn = aws_iam_role.scheduler_invoke.arn
-    input    = jsonencode({ action = "start" })
+    input    = jsonencode({ action = each.value.action, days = each.value.days })
   }
 }
