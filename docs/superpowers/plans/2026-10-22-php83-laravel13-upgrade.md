@@ -137,7 +137,7 @@ class SecurityHardeningTest extends TestCase
 ### Task 5b: 管理画面のアクセス制御（実施中に発見した既存の脆弱性）
 
 - `User::canAccessPanel()` が `@gmail.com` で終わる全ユーザーを許可していたため、`config('auth.admin_emails')`
-  （env `ADMIN_EMAILS`、既定 `2460socceronly0512@gmail.com`）に載ったメール認証済みユーザーだけに限定。
+  （env `ADMIN_EMAILS`、既定 `2460socceronly0512@gmail.com`, `nishimura.070512@gmail.com`）に載ったメール認証済みユーザーだけに限定。
 - テスト: `src/tests/Feature/AdminPanelAccessTest.php`。
 
 ### Task 6: ドキュメント

@@ -125,7 +125,7 @@ return [
 
     'admin_emails' => array_values(array_filter(array_map(
         'trim',
-        explode(',', env('ADMIN_EMAILS', '2460socceronly0512@gmail.com'))
+        explode(',', env('ADMIN_EMAILS', '2460socceronly0512@gmail.com,nishimura.070512@gmail.com'))
     ))),
 
 ];
